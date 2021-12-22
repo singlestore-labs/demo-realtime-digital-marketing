@@ -3,7 +3,6 @@ module s2cellular
 go 1.17
 
 require (
-	github.com/segmentio/ksuid v1.0.4
 	github.com/ungerik/go3d v0.0.0-20211026193542-07217314a07d
 	gocloud.dev v0.24.0
 )
