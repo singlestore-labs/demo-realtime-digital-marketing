@@ -32,7 +32,8 @@ var (
 	minSpeed = flag.Float64("min-speed", 0.001, "minimum speed")
 	maxSpeed = flag.Float64("max-speed", 0.01, "maximum speed")
 
-	iterations = flag.Int("iterations", 10, "number of iterations")
+	iterations   = flag.Int("iterations", 10, "number of iterations")
+	progressFreq = flag.Int("progress-freq", 10, "frequency of progress reports (0 disables)")
 )
 
 func main() {
@@ -71,6 +72,8 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 
+	startTime := time.Now()
+
 	for i := 0; i < *numPartitions; i++ {
 		wg.Add(1)
 
@@ -99,9 +102,18 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
+
+				if *progressFreq > 0 && (i+1)%(*progressFreq) == 0 {
+					log.Printf("partition %d: %d/%d complete", partitionid, i+1, *iterations)
+				}
 			}
 		}(i)
 	}
 
 	wg.Wait()
+
+	duration := time.Since(startTime)
+
+	log.Printf("finished in %s", duration)
+	log.Printf("%.2f batches per second", float64(*iterations**numPartitions)/duration.Seconds())
 }
