@@ -30,16 +30,14 @@ func UpdateSubscribers(state *State) {
 			subscriber.Location.Add(&subscriber.Velocity)
 		}
 
-		r := state.Rand.Float64()
-
-		if state.RequestProb > r {
+		if state.RequestProb > state.Rand.Float64() {
 			vendor := data.ChooseVendor(state.Rand)
 			subscriber.LastRequestDomain = vendor.Domain
 		} else {
 			subscriber.LastRequestDomain = ""
 		}
 
-		if state.PurchaseProb > r {
+		if state.PurchaseProb > state.Rand.Float64() {
 			vendor := data.ChooseVendor(state.Rand)
 			subscriber.LastPurchaseVendor = vendor.Name
 		} else {
