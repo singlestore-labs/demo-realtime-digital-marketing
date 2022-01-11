@@ -19,6 +19,7 @@ type Subscriber struct {
 
 func InitSubscribers(state *State, count int) {
 	state.Subscribers = make([]Subscriber, count)
+	offset := count * state.PartitionId
 
 	for i := 0; i < count; i++ {
 		loc := util.SampleUnitCircle(state.Rand)
@@ -32,7 +33,7 @@ func InitSubscribers(state *State, count int) {
 		)
 
 		state.Subscribers[i] = Subscriber{
-			Id:             int64(i),
+			Id:             int64(offset + i),
 			Location:       loc,
 			Velocity:       velocity,
 			TargetLocation: tgt,
