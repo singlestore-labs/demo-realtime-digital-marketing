@@ -4,13 +4,14 @@
     - S2C uses this data to deliver targeted just-in-time offers on subscriber devices
     - S2C powers this with SingleStore
 - S2C tracks their cell subscribers in realtime
-    - collected via Kafka from three topics (locations, requests, purchases)
+    - collected via three streams (locations, requests, purchases)
         - locations records the geospatial location of each subscriber
         - requests records the sites each subscriber visits
         - purchases records each purchase a subscribe makes using their device (i.e. via monitoring apple pay, google pay)
     - ingested into SingleStore using pipelines
         - full history stored in location/web/purchase history tables
         - update subscribers table's current location field
+            - may be possible to remove this field
 - SingleStore schema
     - subscribers (rowstore)
         - each row represents one of S2C's subscribers
@@ -77,7 +78,7 @@
             - number of notifications
             - total spend
             - min/max/avg spend per notification
-- a background service continuously runs the matching algorithm which triggers notifications via writing to a notification table
+- we run the matching algorithm which triggers notifications via writing to a notification table as we load subscriber location updates
     - offers join subscribers
         - offers.enabled = true
         - offers.notification zone = subscribers.current location

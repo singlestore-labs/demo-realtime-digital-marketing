@@ -42,7 +42,7 @@ create table if not exists customers (
     PRIMARY KEY (customer_id)
 );
 
-create table if not exists offers (
+create rowstore table if not exists offers (
     offer_id BIGINT NOT NULL,
     customer_id BIGINT NOT NULL,
     enabled BOOLEAN NOT NULL,
