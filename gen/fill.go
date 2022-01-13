@@ -49,7 +49,6 @@ func FillBatch(state *State, batch *Batch) {
 		batch.locations[i].SubscriberId = subscriber.Id
 		batch.locations[i].Offset[0] = subscriber.Location[0]
 		batch.locations[i].Offset[1] = subscriber.Location[1]
-		batch.locations[i].Seq++
 
 		if subscriber.LastRequestDomain != "" {
 			batch.requests[numRequests].SubscriberId = subscriber.Id

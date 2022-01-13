@@ -26,7 +26,6 @@ var (
 		goparquet.WithSchemaDefinition(mustCreateSchemaDefinition(`
 			message location {
 				required int64 subscriberid;
-				required int64 seq;
 				required double offsetX;
 				required double offsetY;
 			}
@@ -63,14 +62,12 @@ func (e *ParquetEncoder) EncodeLocations(rows []Location, w io.Writer) error {
 	fw := goparquet.NewFileWriter(w, parquetLocationOptions...)
 	obj := map[string]interface{}{
 		"subscriberid": nil,
-		"seq":          nil,
 		"offsetX":      nil,
 		"offsetY":      nil,
 	}
 
 	for i := range rows {
 		obj["subscriberid"] = rows[i].SubscriberId
-		obj["seq"] = rows[i].Seq
 		obj["offsetX"] = rows[i].Offset[0]
 		obj["offsetY"] = rows[i].Offset[1]
 

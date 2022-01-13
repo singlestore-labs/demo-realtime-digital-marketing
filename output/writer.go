@@ -8,7 +8,6 @@ import (
 
 type Location struct {
 	SubscriberId int64
-	Seq          int64
 	Offset       vec2.T
 }
 

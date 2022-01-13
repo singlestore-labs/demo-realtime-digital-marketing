@@ -1,38 +1,40 @@
-create rowstore table if not exists subscribers (
-    subscriber_id BIGINT NOT NULL,
-    current_lonlat GEOGRAPHYPOINT,
-    last_notification DATETIME(6),
+create rowstore reference table if not exists cities (
+    city_id BIGINT NOT NULL,
+    city_name TEXT NOT NULL,
+    centroid GEOGRAPHYPOINT NOT NULL,
+    diameter DOUBLE,
 
-    PRIMARY KEY (subscriber_id),
-    INDEX (current_lonlat),
-    INDEX (last_notification)
+    PRIMARY KEY (city_id)
 );
 
 create table if not exists locations (
+    city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
     ts DATETIME(6) NOT NULL,
     lonlat GEOGRAPHYPOINT NOT NULL,
 
-    SHARD KEY (subscriber_id),
-    SORT KEY (ts, subscriber_id)
+    SHARD KEY (city_id, subscriber_id),
+    SORT KEY (ts, city_id, subscriber_id)
 );
 
 create table if not exists requests (
+    city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
     ts DATETIME(6) NOT NULL,
     domain TEXT NOT NULL,
 
-    SHARD KEY (subscriber_id),
-    SORT KEY (ts, subscriber_id)
+    SHARD KEY (city_id, subscriber_id),
+    SORT KEY (ts, city_id, subscriber_id)
 );
 
 create table if not exists purchases (
+    city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
     ts DATETIME(6) NOT NULL,
     vendor TEXT NOT NULL,
 
-    SHARD KEY (subscriber_id),
-    SORT KEY (ts, subscriber_id)
+    SHARD KEY (city_id, subscriber_id),
+    SORT KEY (ts, city_id, subscriber_id)
 );
 
 create table if not exists customers (
@@ -60,6 +62,7 @@ create rowstore table if not exists offers (
 
 create table if not exists notifications (
     offer_id BIGINT NOT NULL,
+    city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
     cost_cents BIGINT NOT NULL,
     ts DATETIME(6) NOT NULL,
