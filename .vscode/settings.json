@@ -1,0 +1,17 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default"
+            },
+            "previewLimit": 50,
+            "server": "172.17.0.3",
+            "port": 3306,
+            "driver": "MariaDB",
+            "name": "singlestore",
+            "database": "s2cellular",
+            "username": "root",
+            "password": "test"
+        }
+    ]
+}

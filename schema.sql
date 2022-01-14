@@ -10,7 +10,7 @@ create rowstore reference table if not exists cities (
 create table if not exists locations (
     city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
-    ts DATETIME(6) NOT NULL,
+    ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
     lonlat GEOGRAPHYPOINT NOT NULL,
 
     SHARD KEY (city_id, subscriber_id),
@@ -20,7 +20,7 @@ create table if not exists locations (
 create table if not exists requests (
     city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
-    ts DATETIME(6) NOT NULL,
+    ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
     domain TEXT NOT NULL,
 
     SHARD KEY (city_id, subscriber_id),
@@ -30,7 +30,7 @@ create table if not exists requests (
 create table if not exists purchases (
     city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
-    ts DATETIME(6) NOT NULL,
+    ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
     vendor TEXT NOT NULL,
 
     SHARD KEY (city_id, subscriber_id),
@@ -44,7 +44,7 @@ create table if not exists customers (
     PRIMARY KEY (customer_id)
 );
 
-create rowstore table if not exists offers (
+create rowstore reference table if not exists offers (
     offer_id BIGINT NOT NULL,
     customer_id BIGINT NOT NULL,
     enabled BOOLEAN NOT NULL,
@@ -65,8 +65,8 @@ create table if not exists notifications (
     city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
     cost_cents BIGINT NOT NULL,
-    ts DATETIME(6) NOT NULL,
+    ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
 
-    SHARD KEY (offer_id),
+    SHARD KEY (city_id, subscriber_id),
     SORT KEY (ts)
 );
