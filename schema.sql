@@ -14,7 +14,8 @@ create table if not exists locations (
     lonlat GEOGRAPHYPOINT NOT NULL,
 
     SHARD KEY (city_id, subscriber_id),
-    SORT KEY (ts)
+    SORT KEY (ts),
+    KEY (city_id, subscriber_id) USING HASH
 );
 
 create table if not exists requests (
@@ -85,3 +86,18 @@ create view subscribers as
         from notifications
         group by city_id, subscriber_id
     ) b on a.city_id = b.city_id and a.subscriber_id = b.subscriber_id;
+
+create rowstore reference table segments (
+    segment_id BIGINT NOT NULL,
+    criteria JSON NOT NULL,
+
+    PRIMARY KEY (segment_id)
+);
+
+create rowstore table subscriber_segments (
+    city_id BIGINT NOT NULL,
+    subscriber_id BIGINT NOT NULL,
+    segment_ids JSON NOT NULL,
+
+    PRIMARY KEY (city_id, subscriber_id)
+);
