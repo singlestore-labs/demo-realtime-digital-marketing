@@ -14,7 +14,7 @@ create table if not exists locations (
     lonlat GEOGRAPHYPOINT NOT NULL,
 
     SHARD KEY (city_id, subscriber_id),
-    SORT KEY (ts, city_id, subscriber_id)
+    SORT KEY (ts)
 );
 
 create table if not exists requests (
@@ -24,7 +24,8 @@ create table if not exists requests (
     domain TEXT NOT NULL,
 
     SHARD KEY (city_id, subscriber_id),
-    SORT KEY (ts, city_id, subscriber_id)
+    SORT KEY (ts),
+    KEY (domain) USING HASH
 );
 
 create table if not exists purchases (
@@ -34,7 +35,8 @@ create table if not exists purchases (
     vendor TEXT NOT NULL,
 
     SHARD KEY (city_id, subscriber_id),
-    SORT KEY (ts, city_id, subscriber_id)
+    SORT KEY (ts),
+    KEY (vendor) USING HASH
 );
 
 create table if not exists customers (
@@ -57,7 +59,8 @@ create rowstore reference table if not exists offers (
 
     maximum_bid_cents BIGINT NOT NULL,
 
-    PRIMARY KEY (offer_id)
+    PRIMARY KEY (offer_id),
+    INDEX (notification_zone)
 );
 
 create table if not exists notifications (
@@ -70,3 +73,15 @@ create table if not exists notifications (
     SHARD KEY (city_id, subscriber_id),
     SORT KEY (ts)
 );
+
+create view subscribers as
+    select a.city_id, a.subscriber_id, current_location, last_notification
+    from (
+        select city_id, subscriber_id, last(lonlat) as current_location
+        from locations
+        group by city_id, subscriber_id
+    ) a left join (
+        select city_id, subscriber_id, last(ts) as last_notification
+        from notifications
+        group by city_id, subscriber_id
+    ) b on a.city_id = b.city_id and a.subscriber_id = b.subscriber_id;

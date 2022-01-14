@@ -1,6 +1,3 @@
-replace into cities values
-    (0, "new york", 'POINT(-74.006 40.7128)', 0.5);
-
 delete from locations;
 insert into locations values
     (0, 0, now(), 'POINT(-74.000 40.7128)'),
@@ -36,6 +33,9 @@ insert into purchases values
     (0, 1, now() - INTERVAL 3 HOUR, 'google.com'),
     (0, 1, now() - INTERVAL 5 HOUR, 'yahoo.com'),
     (0, 1, now() - INTERVAL 2 DAY, 'amazon.com');
+
+replace into cities values
+    (0, "new york", 'POINT(-74.006 40.7128)', 0.5);
 
 replace into customers values
     (0, 'customer 1'), (1, 'customer 2'), (2, 'customer 3');
@@ -88,3 +88,45 @@ replace into notifications set
     subscriber_id = 0,
     cost_cents = 10,
     ts = NOW() - INTERVAL 30 minute;
+
+replace into offers set
+    offer_id = 2,
+    customer_id = 0,
+    enabled = true,
+
+    notification_zone = 'POLYGON((-74.0085465553596 40.73811655378369,-73.99275370867991 40.73811655378369,-73.99275370867991 40.72627932318957,-74.0085465553596 40.72627932318957,-74.0085465553596 40.73811655378369))',
+    notification_criteria = '[
+        {
+            "filter": "location",
+            "value": "POLYGON((-73.95445298275654 40.871866946418095,-74.14946030697529 40.647182343199475,-73.91874741635029 40.52933655076082,-73.69490098080341 40.704465763751266,-73.95445298275654 40.871866946418095))",
+            "interval": "day"
+        },
+        {
+            "filter": "request",
+            "value": "youspan.biz",
+            "interval": "day"
+        },
+        {
+            "filter": "purchase",
+            "value": "Photobug",
+            "interval": "day"
+        }
+    ]',
+
+    notification_content = 'beer, now 50% off',
+    notification_target = 'example.com?offer=1234',
+
+    maximum_bid_cents = 10;
+
+replace into offers set
+    offer_id = 3,
+    customer_id = 1,
+    enabled = true,
+
+    notification_zone = 'POLYGON((-74.0085465553596 40.73811655378369,-73.99275370867991 40.73811655378369,-73.99275370867991 40.72627932318957,-74.0085465553596 40.72627932318957,-74.0085465553596 40.73811655378369))',
+    notification_criteria = '[ ]',
+
+    notification_content = 'beer, now 50% off',
+    notification_target = 'example.com?offer=1234',
+
+    maximum_bid_cents = 10;
