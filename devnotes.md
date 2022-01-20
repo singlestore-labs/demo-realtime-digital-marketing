@@ -1,10 +1,3 @@
-# subscribers table
-
-Need to add the subscribers table back because calculating the unique set of subscribers along with last notification + current location is too expensive to do on the fly.
-
-When we receive locations we will need to upsert into this table.
-When we generate notifications we will need to update this table.
-
 # segmentation
 
 Handling dynamic criteria within the matching algorithm is too expensive. Need to precompute segment memberships which offers can use instead.
@@ -20,6 +13,8 @@ Handling dynamic criteria within the matching algorithm is too expensive. Need t
 # matching
 
 Once we have segmentation, offers should be modified to contain a list of segment IDs. The matching algorithm will need to use json_contains_array to filter offers.
+
+Need to update subscribers.last_notification as well as write out the notifications.
 
 # frontend framework
 

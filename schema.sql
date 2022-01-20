@@ -7,6 +7,15 @@ create rowstore reference table if not exists cities (
     PRIMARY KEY (city_id)
 );
 
+create rowstore table if not exists subscribers (
+    city_id BIGINT NOT NULL,
+    subscriber_id BIGINT NOT NULL,
+    current_location GEOGRAPHYPOINT NOT NULL,
+    last_notification DATETIME(6),
+
+    PRIMARY KEY (city_id, subscriber_id)
+);
+
 create table if not exists locations (
     city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
@@ -74,18 +83,6 @@ create table if not exists notifications (
     SHARD KEY (city_id, subscriber_id),
     SORT KEY (ts)
 );
-
-create view subscribers as
-    select a.city_id, a.subscriber_id, current_location, last_notification
-    from (
-        select city_id, subscriber_id, last(lonlat) as current_location
-        from locations
-        group by city_id, subscriber_id
-    ) a left join (
-        select city_id, subscriber_id, last(ts) as last_notification
-        from notifications
-        group by city_id, subscriber_id
-    ) b on a.city_id = b.city_id and a.subscriber_id = b.subscriber_id;
 
 create rowstore reference table segments (
     segment_id BIGINT NOT NULL,
