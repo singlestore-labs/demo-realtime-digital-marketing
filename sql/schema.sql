@@ -74,11 +74,16 @@ create rowstore reference table if not exists offers (
 );
 
 create table if not exists notifications (
-    offer_id BIGINT NOT NULL,
     city_id BIGINT NOT NULL,
     subscriber_id BIGINT NOT NULL,
-    cost_cents BIGINT NOT NULL,
+
     ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
+
+    offer_id BIGINT NOT NULL,
+    cost_cents BIGINT NOT NULL,
+    lonlat GEOGRAPHYPOINT NOT NULL,
+    notification_content TEXT NOT NULL,
+    notification_target TEXT NOT NULL,
 
     SHARD KEY (city_id, subscriber_id),
     SORT KEY (ts)

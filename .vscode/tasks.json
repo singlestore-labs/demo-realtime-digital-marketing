@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "frontend dev server",
+            "type": "shell",
+            "command": "cd web && yarn run dev",
+            "problemMatcher": []
+        }
+    ]
+}
