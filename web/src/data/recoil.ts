@@ -32,12 +32,19 @@ export const connectionPassword = atom({
   effects_UNSTABLE: [localStorageEffect],
 });
 
+export const connectionDatabase = atom({
+  key: "connectionDatabase",
+  default: "s2cellular",
+  effects_UNSTABLE: [localStorageEffect],
+});
+
 export const connectionConfig = selector({
   key: "connectionConfig",
   get: ({ get }) => {
     const host = get(connectionHost);
     const user = get(connectionUser);
     const password = get(connectionPassword);
-    return { host, user, password };
+    const database = get(connectionDatabase);
+    return { host, user, password, database };
   },
 });

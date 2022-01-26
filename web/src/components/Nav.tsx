@@ -1,5 +1,5 @@
 import { DatabaseDrawer } from "@/components/DatabaseDrawer";
-import { useConnected } from "@/data/hooks";
+import { useConnectionState } from "@/data/hooks";
 import {
   CheckCircleIcon,
   CloseIcon,
@@ -56,7 +56,7 @@ export const Nav = () => {
   const navMenu = useDisclosure();
   const databaseMenu = useDisclosure();
   const databaseBtnRef = React.useRef<HTMLButtonElement>(null);
-  const connected = useConnected();
+  const { connected, initialized } = useConnectionState();
 
   const links = (
     <>
@@ -92,10 +92,16 @@ export const Nav = () => {
               size="sm"
               ref={databaseBtnRef}
               onClick={databaseMenu.onOpen}
-              leftIcon={connected ? <CheckCircleIcon /> : <WarningTwoIcon />}
-              colorScheme={connected ? "green" : "red"}
+              leftIcon={initialized ? <CheckCircleIcon /> : <WarningTwoIcon />}
+              colorScheme={
+                connected ? (initialized ? "green" : "yellow") : "red"
+              }
             >
-              {connected ? "connected" : "disconnected"}
+              {connected
+                ? initialized
+                  ? "connected"
+                  : "needs schema"
+                : "disconnected"}
             </Button>
             <Button size="sm" onClick={toggleColorMode}>
               {colorMode === "light" ? <MoonIcon /> : <SunIcon />}

@@ -1,10 +1,17 @@
-import { testConnection } from "@/data/client";
+import { connectionState } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
-export const useConnected = () => {
+export const useConnectionState = () => {
   const config = useRecoilValue(connectionConfig);
-  const { data } = useSWR(["connected", config], () => testConnection(config));
-  return !!data;
+  const { data, mutate } = useSWR(["connectionState", config], () =>
+    connectionState(config)
+  );
+  return {
+    connected: false,
+    initialized: false,
+    reset: mutate,
+    ...data,
+  };
 };

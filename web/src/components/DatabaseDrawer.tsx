@@ -1,10 +1,23 @@
-import { useConnected } from "@/data/hooks";
+import { useConnectionState } from "@/data/hooks";
+import { resetSchema } from "@/data/queries";
 import {
+  connectionConfig,
+  connectionDatabase,
   connectionHost,
   connectionPassword,
   connectionUser,
 } from "@/data/recoil";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 import {
+  Alert,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  AlertIcon,
+  AlertTitle,
   Badge,
   Button,
   Drawer,
@@ -15,11 +28,18 @@ import {
   DrawerHeader,
   DrawerOverlay,
   FormControl,
+  FormHelperText,
   FormLabel,
   Input,
+  Link,
+  Spinner,
   Stack,
+  useBoolean,
+  useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
-import { useRecoilState } from "recoil";
+import React from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 
 type Props = {
   finalFocusRef: React.RefObject<HTMLButtonElement>;
@@ -33,7 +53,38 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
   const [host, setHost] = useRecoilState(connectionHost);
   const [user, setUser] = useRecoilState(connectionUser);
   const [password, setPassword] = useRecoilState(connectionPassword);
-  const connected = useConnected();
+  const [database, setDatabase] = useRecoilState(connectionDatabase);
+  const config = useRecoilValue(connectionConfig);
+  const {
+    connected,
+    initialized,
+    reset: resetConnectionState,
+  } = useConnectionState();
+
+  const resetSchemaDialog = useDisclosure();
+  const [resettingSchema, resettingSchemaCtrl] = useBoolean();
+  const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
+  const toast = useToast();
+
+  const onResetSchema = async () => {
+    resettingSchemaCtrl.on();
+    await resetSchema(config, (title, status) => {
+      const id = "reset-schema";
+      if (toast.isActive(id)) {
+        toast.update(id, {
+          title,
+          status,
+          duration: 3000,
+          isClosable: status === "success",
+        });
+      } else {
+        toast({ id, title, status });
+      }
+    });
+    resettingSchemaCtrl.off();
+    resetSchemaDialog.onClose();
+    resetConnectionState();
+  };
 
   return (
     <Drawer
@@ -58,6 +109,22 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
                 value={host}
                 onChange={(e) => setHost(e.target.value)}
               />
+              <FormHelperText>
+                The protocol (http, https), host, and port for the SingleStore{" "}
+                <Link
+                  isExternal
+                  color="teal.500"
+                  href="https://docs.singlestore.com/managed-service/en/reference/http-api.html"
+                >
+                  HTTP API{" "}
+                  <ExternalLinkIcon
+                    bottom="2px"
+                    boxSize="0.9em"
+                    position="relative"
+                  />
+                </Link>
+                .
+              </FormHelperText>
             </FormControl>
             <FormControl id="user">
               <FormLabel fontSize="sm" fontWeight="bold">
@@ -80,16 +147,71 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </FormControl>
+            <FormControl id="database" label="database">
+              <FormLabel fontSize="sm" fontWeight="bold">
+                Database
+              </FormLabel>
+              <Input
+                placeholder="s2cellular"
+                value={database}
+                onChange={(e) => setDatabase(e.target.value)}
+              />
+            </FormControl>
+            <Alert status={connected ? "success" : "error"} borderRadius="md">
+              <AlertIcon />
+              <AlertTitle>
+                {connected ? "connected" : "disconnected"}
+              </AlertTitle>
+            </Alert>
           </Stack>
         </DrawerBody>
 
         <DrawerFooter>
-          <Badge size="lg" mr={4} colorScheme={connected ? "green" : "red"}>
-            {connected ? "connected" : "disconnected"}
-          </Badge>
-          <Button onClick={onClose}>Save & Close</Button>
+          {connected ? (
+            <Badge size="lg" mr={4} colorScheme={initialized ? "green" : "red"}>
+              {initialized ? "ready!" : "needs schema"}
+            </Badge>
+          ) : null}
+          <Button disabled={!connected} onClick={resetSchemaDialog.onOpen}>
+            Reset Schema
+          </Button>
         </DrawerFooter>
       </DrawerContent>
+      <AlertDialog
+        isOpen={resetSchemaDialog.isOpen}
+        onClose={resetSchemaDialog.onClose}
+        closeOnEsc={false}
+        closeOnOverlayClick={false}
+        leastDestructiveRef={cancelResetSchemaBtn}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Reset Schema
+            </AlertDialogHeader>
+            <AlertDialogBody>
+              Are you sure? You can&lsquo;t undo this action afterwards.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button
+                ref={cancelResetSchemaBtn}
+                onClick={resetSchemaDialog.onClose}
+                disabled={resettingSchema}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={resettingSchema}
+                colorScheme="red"
+                onClick={onResetSchema}
+                ml={3}
+              >
+                {resettingSchema ? <Spinner /> : "Reset Schema"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Drawer>
   );
 };
