@@ -1,4 +1,11 @@
-import { ConnectionConfig, Query, QueryNoDB, SQLError } from "@/data/client";
+import {
+  ConnectionConfig,
+  Exec,
+  ExecNoDb,
+  Query,
+  QueryTuples,
+  SQLError,
+} from "@/data/client";
 import { PROCEDURES, TABLES } from "@/data/sql";
 
 export const connectionState = async (config: ConnectionConfig) => {
@@ -14,8 +21,10 @@ export const connectionState = async (config: ConnectionConfig) => {
 
 export const hasSchema = async (config: ConnectionConfig) => {
   try {
-    const tables = (await Query(config, "SHOW TABLES")).map((r) => r[0]).sort();
-    const procedures = (await Query(config, "SHOW PROCEDURES"))
+    const tables = (await QueryTuples(config, "SHOW TABLES"))
+      .map((r) => r[0])
+      .sort();
+    const procedures = (await QueryTuples(config, "SHOW PROCEDURES"))
       .map((r) => r[0])
       .sort();
 
@@ -32,25 +41,47 @@ export const hasSchema = async (config: ConnectionConfig) => {
   }
 };
 
-// TODO: support custom partition counts
+// TODO: support skipping drop database
 export const resetSchema = async (
   config: ConnectionConfig,
   progress: (msg: string, status: "info" | "success") => void
 ) => {
   progress("Dropping existing schema", "info");
-  await QueryNoDB(config, "DROP DATABASE IF EXISTS `" + config.database + "`");
+  await ExecNoDb(config, "DROP DATABASE IF EXISTS `" + config.database + "`");
 
   progress("Creating database", "info");
-  await QueryNoDB(config, "CREATE DATABASE `" + config.database + "`");
+  await ExecNoDb(config, "CREATE DATABASE `" + config.database + "`");
 
   for (const obj of TABLES) {
     progress(`Creating table: ${obj.name}`, "info");
-    await Query(config, obj.createStmt);
+    await Exec(config, obj.createStmt);
   }
   for (const obj of PROCEDURES) {
     progress(`Creating procedure: ${obj.name}`, "info");
-    await Query(config, obj.createStmt);
+    await Exec(config, obj.createStmt);
   }
 
   progress("Schema initialized", "success");
 };
+
+type City = {
+  id: number;
+  name: string;
+  lon: number;
+  lat: number;
+  diameter: number;
+};
+
+export const getCities = (config: ConnectionConfig) =>
+  Query<City>(
+    config,
+    `
+    SELECT
+      city_id AS id,
+      city_name AS name,
+      GEOGRAPHY_LONGITUDE(centroid) AS lon,
+      GEOGRAPHY_LATITUDE(centroid) AS lat,
+      diameter
+    FROM cities
+  `
+  );

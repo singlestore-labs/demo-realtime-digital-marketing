@@ -13,8 +13,10 @@ type SQLValue =
   | { [key: string]: SQLValue }
   | SQLValue[];
 
-type Row = SQLValue[];
-type Rows = Row[];
+type Row = { [key: string]: SQLValue };
+
+type Tuple = SQLValue[];
+type Tuples = Tuple[];
 
 const regexSQLErrorCode = /^Error (?<code>\d+):/;
 
@@ -37,30 +39,55 @@ export class SQLError extends Error {
   }
 }
 
-export const QueryOne = async (
+export const Query = async <T = Row>(
   config: ConnectionConfig,
   sql: string,
   ...args: SQLValue[]
-): Promise<Row> => {
-  const result = await Query(config, sql, ...args);
-  if (result.length !== 1) {
-    throw new SQLError("Expected exactly one row", sql);
+): Promise<T[]> => {
+  const data = await fetchEndpoint("query/rows", config, sql, ...args);
+
+  if (data.results.length !== 1) {
+    throw new SQLError("Expected exactly one result set", sql);
   }
-  return result[0];
+
+  return data.results[0].rows;
 };
 
-export const QueryNoDB = async (
+export const QueryTuples = async (
   config: ConnectionConfig,
   sql: string,
   ...args: SQLValue[]
-): Promise<Rows> => Query({ ...config, database: undefined }, sql, ...args);
+): Promise<Tuples> => {
+  const data = await fetchEndpoint("query/tuples", config, sql, ...args);
 
-export const Query = async (
+  if (data.results.length !== 1) {
+    throw new SQLError("Expected exactly one result set", sql);
+  }
+
+  return data.results[0].rows;
+};
+
+export const ExecNoDb = (
   config: ConnectionConfig,
   sql: string,
   ...args: SQLValue[]
-): Promise<Rows> => {
-  const response = await fetch(`${config.host}/api/v1/query/tuples`, {
+): Promise<{ lastInsertId: number; rowsAffected: number }> =>
+  fetchEndpoint("exec", { ...config, database: undefined }, sql, ...args);
+
+export const Exec = (
+  config: ConnectionConfig,
+  sql: string,
+  ...args: SQLValue[]
+): Promise<{ lastInsertId: number; rowsAffected: number }> =>
+  fetchEndpoint("exec", config, sql, ...args);
+
+const fetchEndpoint = async (
+  endpoint: string,
+  config: ConnectionConfig,
+  sql: string,
+  ...args: SQLValue[]
+) => {
+  const response = await fetch(`${config.host}/api/v1/${endpoint}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -78,10 +105,5 @@ export const Query = async (
   if (data.error) {
     throw new SQLError(data.error.message, sql, data.error.code);
   }
-
-  if (data.results.length !== 1) {
-    throw new SQLError("Expected exactly one result set", sql);
-  }
-
-  return data.results[0].rows;
+  return data;
 };

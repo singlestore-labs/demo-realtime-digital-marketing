@@ -1,11 +1,12 @@
 import { ConnectionConfig } from "@/data/client";
-import { hasSchema } from "@/data/queries";
+import { getCities } from "@/data/queries";
 
 export const Simulator = (config: ConnectionConfig) => {
   console.log("Starting Simulator: config:", config);
 
   (async () => {
-    console.log(await hasSchema(config));
+    const cities = await getCities(config);
+    console.log(cities);
   })();
 
   return () => {

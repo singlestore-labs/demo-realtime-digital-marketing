@@ -51,13 +51,8 @@ curl -H 'Content-Type: application/json' -X POST -d '{"sql": "select 1"}' 'root:
 }
 ```
 
-Nav ->
-* needs to know connection status
-
 DatabaseDrawer ->
-* needs to know connection status
-* get and set connection details
-* simulator state
+* simulator state?
 
 Simulator ->
 * what happens when multiple simulators are executing on the same db

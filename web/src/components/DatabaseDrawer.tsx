@@ -38,7 +38,7 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 
 type Props = {
@@ -66,7 +66,7 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
   const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
   const toast = useToast();
 
-  const onResetSchema = async () => {
+  const onResetSchema = useCallback(async () => {
     resettingSchemaCtrl.on();
     await resetSchema(config, (title, status) => {
       const id = "reset-schema";
@@ -84,7 +84,13 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
     resettingSchemaCtrl.off();
     resetSchemaDialog.onClose();
     resetConnectionState();
-  };
+  }, [
+    config,
+    resetConnectionState,
+    resetSchemaDialog,
+    resettingSchemaCtrl,
+    toast,
+  ]);
 
   return (
     <Drawer
