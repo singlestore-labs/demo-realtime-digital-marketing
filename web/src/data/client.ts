@@ -16,9 +16,6 @@ type SQLValue =
 
 type Row = { [key: string]: SQLValue };
 
-type Tuple = SQLValue[];
-type Tuples = Tuple[];
-
 const regexSQLErrorCode = /^Error (?<code>\d+):/;
 
 export class SQLError extends Error {
@@ -72,11 +69,11 @@ export const Query = async <T = Row>(
   return data.results[0].rows;
 };
 
-export const QueryTuples = async (
+export const QueryTuples = async <T extends [...SQLValue[]] = SQLValue[]>(
   config: ConnectionConfig,
   sql: string,
   ...args: SQLValue[]
-): Promise<Tuples> => {
+): Promise<T[]> => {
   const data = await fetchEndpoint("query/tuples", config, sql, ...args);
 
   if (data.results.length !== 1) {

@@ -1,7 +1,7 @@
+import { NotificationMap } from "@/components/NotificationMap";
 import {
-  AspectRatio,
   Box,
-  Grid,
+  Flex,
   Heading,
   HStack,
   Stack,
@@ -51,17 +51,17 @@ const Notification = (n: Notification) => (
 
 export const Dashboard = () => {
   return (
-    <Grid
-      templateColumns={["minmax(0, 1fr)", null, "2fr minmax(0, 1fr)"]}
+    <Flex
       gap={4}
+      justifyContent="space-between"
+      direction={["column", "column", "row"]}
+      height="100%"
     >
-      <Stack spacing={4}>
-        <Heading size="md">Notifications</Heading>
-        <AspectRatio borderRadius="md" overflow="hidden" ratio={16 / 9}>
-          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3963.952912260219!2d3.375295414770757!3d6.5276316452784755!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103b8b2ae68280c1%3A0xdc9e87a367c3d9cb!2sLagos!5e0!3m2!1sen!2sng!4v1567723392506!5m2!1sen!2sng" />
-        </AspectRatio>
+      <Stack spacing={4} flex="2 2 0" minHeight="200px" maxHeight="100%">
+        <Heading size="md">Map</Heading>
+        <NotificationMap />
       </Stack>
-      <Stack spacing={4}>
+      <Stack spacing={4} flex="1 1 0" minWidth="0">
         <Heading size="md">Notifications Stream</Heading>
         <Stack spacing={4}>
           <Notification
@@ -85,6 +85,6 @@ export const Dashboard = () => {
           />
         </Stack>
       </Stack>
-    </Grid>
+    </Flex>
   );
 };

@@ -259,3 +259,42 @@ export const truncateTableIfNeeded = async (
 
 export const runMatchingProcess = (config: ConnectionConfig) =>
   Exec(config, `CALL run_matching_process()`);
+
+interface Bounds {
+  ne: [number, number];
+  sw: [number, number];
+}
+
+export const loadLatestNotificationsContainedBy = (
+  config: ConnectionConfig,
+  bounds: Bounds,
+  since: string
+) => {
+  const [minLat, maxLon] = bounds.ne;
+  const [maxLat, minLon] = bounds.sw;
+  const boundsPolygon = `
+    POLYGON((
+      ${minLon} ${minLat},
+      ${maxLon} ${minLat},
+      ${maxLon} ${maxLat},
+      ${minLon} ${maxLat},
+      ${minLon} ${minLat}
+    ))
+  `;
+
+  return QueryTuples<[number, number, string]>(
+    config,
+    `
+      SELECT
+        GEOGRAPHY_LONGITUDE(LAST(lonlat)) AS lon,
+        GEOGRAPHY_LATITUDE(LAST(lonlat)) AS lat,
+        LAST(ts) AS ts
+      FROM notifications
+      WHERE GEOGRAPHY_CONTAINS(?, lonlat) AND ts >= ?
+      GROUP BY city_id, subscriber_id
+      ORDER BY ts DESC;
+    `,
+    boundsPolygon,
+    since
+  );
+};
