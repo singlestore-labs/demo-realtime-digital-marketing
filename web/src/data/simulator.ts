@@ -79,7 +79,12 @@ const SimulationTick = async (
     );
     await ensurePipelinesAreRunning(config);
 
-    const timeseriesTables = ["locations", "requests", "purchases"];
+    const timeseriesTables = [
+      "locations",
+      "requests",
+      "purchases",
+      "notifications",
+    ];
     await Promise.all(
       timeseriesTables.map((table) =>
         truncateTableIfNeeded(config, table, scaleFactor)
