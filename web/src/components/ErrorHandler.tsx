@@ -1,7 +1,8 @@
 import { SQLError } from "@/data/client";
 import { RepeatIcon, WarningTwoIcon } from "@chakra-ui/icons";
-import { Box, Code, Heading, Stack, Text } from "@chakra-ui/react";
+import { Box, Center, Code, Heading, Stack, Text } from "@chakra-ui/react";
 import React from "react";
+import dedent from "ts-dedent";
 
 type State = {
   error?: Error;
@@ -42,9 +43,11 @@ export class ErrorBoundary extends React.Component<unknown, State> {
         info = (
           <>
             <Text>An error occurred while running the following query:</Text>
-            <Code display="block" whiteSpace="pre">
-              {error.sql}
-            </Code>
+            <Center>
+              <Code display="block" whiteSpace="pre" textAlign="left" p={6}>
+                {dedent(error.sql)}
+              </Code>
+            </Center>
           </>
         );
       }

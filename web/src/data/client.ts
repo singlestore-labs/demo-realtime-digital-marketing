@@ -3,6 +3,7 @@ export type ConnectionConfig = {
   user: string;
   password: string;
   database?: string;
+  ctx?: AbortController;
 };
 
 type SQLValue =
@@ -34,10 +35,28 @@ export class SQLError extends Error {
       this.code = code;
     } else {
       const matched = msg.match(regexSQLErrorCode);
-      this.code = matched ? parseInt(matched.groups?.code || "-1") : -1;
+      this.code = matched ? parseInt(matched.groups?.code || "-1", 10) : -1;
     }
   }
+
+  isUnknownDatabase() {
+    return this.code === 1049;
+  }
 }
+
+export const QueryOne = async <T = Row>(
+  config: ConnectionConfig,
+  sql: string,
+  ...args: SQLValue[]
+): Promise<T> => {
+  const rows = await Query<T>(config, sql, ...args);
+
+  if (rows.length !== 1) {
+    throw new SQLError("Expected exactly one row", sql);
+  }
+
+  return rows[0];
+};
 
 export const Query = async <T = Row>(
   config: ConnectionConfig,
@@ -89,6 +108,7 @@ const fetchEndpoint = async (
 ) => {
   const response = await fetch(`${config.host}/api/v1/${endpoint}`, {
     method: "POST",
+    signal: config.ctx?.signal,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Basic ${btoa(`${config.user}:${config.password}`)}`,

@@ -1,5 +1,6 @@
 import { DatabaseDrawer } from "@/components/DatabaseDrawer";
 import { useConnectionState } from "@/data/hooks";
+import { simulatorEnabled } from "@/data/recoil";
 import {
   CheckCircleIcon,
   CloseIcon,
@@ -27,6 +28,7 @@ import {
   useMatch,
   useResolvedPath,
 } from "react-router-dom";
+import { useRecoilValue } from "recoil";
 
 const NavLink = ({ to, children }: { to: string; children: ReactNode }) => {
   const resolved = useResolvedPath(to);
@@ -57,6 +59,7 @@ export const Nav = () => {
   const databaseMenu = useDisclosure();
   const databaseBtnRef = React.useRef<HTMLButtonElement>(null);
   const { connected, initialized } = useConnectionState();
+  const isSimulatorEnabled = useRecoilValue(simulatorEnabled);
 
   const links = (
     <>
@@ -94,12 +97,18 @@ export const Nav = () => {
               onClick={databaseMenu.onOpen}
               leftIcon={initialized ? <CheckCircleIcon /> : <WarningTwoIcon />}
               colorScheme={
-                connected ? (initialized ? "green" : "yellow") : "red"
+                connected
+                  ? initialized && isSimulatorEnabled
+                    ? "green"
+                    : "yellow"
+                  : "red"
               }
             >
               {connected
                 ? initialized
-                  ? "connected"
+                  ? isSimulatorEnabled
+                    ? "connected"
+                    : "simulator disabled"
                   : "needs schema"
                 : "disconnected"}
             </Button>

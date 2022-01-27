@@ -1,11 +1,14 @@
 import { useConnectionState } from "@/data/hooks";
 import { resetSchema } from "@/data/queries";
 import {
+  configScaleFactor,
   connectionConfig,
   connectionDatabase,
   connectionHost,
   connectionPassword,
   connectionUser,
+  ScaleFactors,
+  simulatorEnabled,
 } from "@/data/recoil";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import {
@@ -18,7 +21,6 @@ import {
   AlertDialogOverlay,
   AlertIcon,
   AlertTitle,
-  Badge,
   Button,
   Drawer,
   DrawerBody,
@@ -32,13 +34,16 @@ import {
   FormLabel,
   Input,
   Link,
+  Select,
+  SimpleGrid,
   Spinner,
   Stack,
+  Switch,
   useBoolean,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import React, { useCallback } from "react";
+import React, { ReactNode, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 
 type Props = {
@@ -49,11 +54,51 @@ type Props = {
 
 // TODO: show connection status details in the drawer
 
+type ConfigInputProps = {
+  id: string;
+  label: string;
+  placeholder: string;
+  value: string;
+  setValue: (value: string) => void;
+  helpText?: ReactNode;
+  type?: "text" | "password" | "number";
+};
+
+const ConfigInput = ({
+  id,
+  label,
+  placeholder,
+  value,
+  setValue,
+  helpText,
+  type = "text",
+}: ConfigInputProps) => (
+  <FormControl id={id}>
+    <FormLabel mb={1} fontSize="xs" fontWeight="bold" textTransform="uppercase">
+      {label}
+    </FormLabel>
+    <Input
+      size="sm"
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      type={type}
+    />
+    {helpText ? (
+      <FormHelperText fontSize="xs">{helpText}</FormHelperText>
+    ) : null}
+  </FormControl>
+);
+
 export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
   const [host, setHost] = useRecoilState(connectionHost);
   const [user, setUser] = useRecoilState(connectionUser);
   const [password, setPassword] = useRecoilState(connectionPassword);
   const [database, setDatabase] = useRecoilState(connectionDatabase);
+  const [scaleFactor, setScaleFactor] = useRecoilState(configScaleFactor);
+  const [isSimulatorEnabled, setSimulatorEnabled] =
+    useRecoilState(simulatorEnabled);
+
   const config = useRecoilValue(connectionConfig);
   const {
     connected,
@@ -67,6 +112,8 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
   const toast = useToast();
 
   const onResetSchema = useCallback(async () => {
+    const simulatorEnabledBefore = isSimulatorEnabled;
+    setSimulatorEnabled(false);
     resettingSchemaCtrl.on();
     await resetSchema(config, (title, status) => {
       const id = "reset-schema";
@@ -84,12 +131,15 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
     resettingSchemaCtrl.off();
     resetSchemaDialog.onClose();
     resetConnectionState();
+    setSimulatorEnabled(simulatorEnabledBefore);
   }, [
     config,
     resetConnectionState,
     resetSchemaDialog,
     resettingSchemaCtrl,
     toast,
+    isSimulatorEnabled,
+    setSimulatorEnabled,
   ]);
 
   return (
@@ -102,86 +152,133 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
       <DrawerOverlay />
       <DrawerContent>
         <DrawerCloseButton />
-        <DrawerHeader>Connection Details</DrawerHeader>
+        <DrawerHeader>Config</DrawerHeader>
 
         <DrawerBody>
           <Stack spacing={4}>
-            <FormControl id="host">
-              <FormLabel fontSize="sm" fontWeight="bold">
-                Host & Port
-              </FormLabel>
-              <Input
-                placeholder="http://127.0.0.1:8808"
-                value={host}
-                onChange={(e) => setHost(e.target.value)}
-              />
-              <FormHelperText>
-                The protocol (http, https), host, and port for the SingleStore{" "}
-                <Link
-                  isExternal
-                  color="teal.500"
-                  href="https://docs.singlestore.com/managed-service/en/reference/http-api.html"
-                >
-                  HTTP API{" "}
-                  <ExternalLinkIcon
-                    bottom="2px"
-                    boxSize="0.9em"
-                    position="relative"
-                  />
-                </Link>
-                .
-              </FormHelperText>
-            </FormControl>
-            <FormControl id="user">
-              <FormLabel fontSize="sm" fontWeight="bold">
-                Username
-              </FormLabel>
-              <Input
+            <ConfigInput
+              id="host"
+              label="Host & Port"
+              placeholder="http://127.0.0.1:8808"
+              value={host}
+              setValue={setHost}
+              helpText={
+                <>
+                  The protocol (http, https), host, and port for the SingleStore{" "}
+                  <Link
+                    isExternal
+                    color="teal.500"
+                    href="https://docs.singlestore.com/docs/http-api/"
+                  >
+                    HTTP API{" "}
+                    <ExternalLinkIcon
+                      bottom="2px"
+                      boxSize="0.9em"
+                      position="relative"
+                    />
+                  </Link>
+                  .
+                </>
+              }
+            />
+            <SimpleGrid columns={2} gap={2}>
+              <ConfigInput
+                id="user"
+                label="Username"
                 placeholder="admin"
                 value={user}
-                onChange={(e) => setUser(e.target.value)}
+                setValue={setUser}
               />
-            </FormControl>
-            <FormControl id="password" label="password">
-              <FormLabel fontSize="sm" fontWeight="bold">
-                Password
-              </FormLabel>
-              <Input
-                type="password"
+              <ConfigInput
+                id="password"
+                label="Password"
                 placeholder="•••••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                setValue={setPassword}
+                type="password"
               />
-            </FormControl>
-            <FormControl id="database" label="database">
-              <FormLabel fontSize="sm" fontWeight="bold">
-                Database
-              </FormLabel>
-              <Input
+              <ConfigInput
+                id="database"
+                label="Database"
                 placeholder="s2cellular"
                 value={database}
-                onChange={(e) => setDatabase(e.target.value)}
+                setValue={setDatabase}
               />
-            </FormControl>
+              <FormControl id="scaleFactor">
+                <FormLabel
+                  mb={1}
+                  fontSize="xs"
+                  fontWeight="bold"
+                  textTransform="uppercase"
+                >
+                  Scale Factor
+                </FormLabel>
+                <Select
+                  size="sm"
+                  required
+                  value={scaleFactor}
+                  onChange={(ev) => {
+                    const v = ev.target.value;
+                    if (v === "small" || v === "large") {
+                      setScaleFactor(v);
+                    }
+                  }}
+                >
+                  {Object.keys(ScaleFactors)
+                    .sort()
+                    .map((f) => (
+                      <option value={f} key={f}>
+                        {f}
+                      </option>
+                    ))}
+                </Select>
+              </FormControl>
+            </SimpleGrid>
             <Alert status={connected ? "success" : "error"} borderRadius="md">
               <AlertIcon />
               <AlertTitle>
                 {connected ? "connected" : "disconnected"}
               </AlertTitle>
             </Alert>
+            <Alert
+              status={initialized ? "success" : "warning"}
+              borderRadius="md"
+            >
+              <AlertIcon />
+              <AlertTitle>schema</AlertTitle>
+              <Button
+                position="absolute"
+                right={4}
+                top={3}
+                size="xs"
+                colorScheme={initialized ? "green" : "red"}
+                disabled={!connected}
+                onClick={resetSchemaDialog.onOpen}
+              >
+                {initialized ? "Reset" : "Setup"}
+              </Button>
+            </Alert>
+            <Alert
+              status={isSimulatorEnabled ? "success" : "warning"}
+              borderRadius="md"
+            >
+              <AlertIcon />
+              <AlertTitle>simulator</AlertTitle>
+              <Switch
+                position="absolute"
+                right={4}
+                top={3.5}
+                size="md"
+                colorScheme={isSimulatorEnabled ? "green" : "red"}
+                isChecked={isSimulatorEnabled}
+                disabled={!connected || !initialized}
+                onChange={() => setSimulatorEnabled(!isSimulatorEnabled)}
+              />
+            </Alert>
           </Stack>
         </DrawerBody>
 
-        <DrawerFooter>
-          {connected ? (
-            <Badge size="lg" mr={4} colorScheme={initialized ? "green" : "red"}>
-              {initialized ? "ready!" : "needs schema"}
-            </Badge>
-          ) : null}
-          <Button disabled={!connected} onClick={resetSchemaDialog.onOpen}>
-            Reset Schema
-          </Button>
-        </DrawerFooter>
+        <DrawerFooter></DrawerFooter>
       </DrawerContent>
       <AlertDialog
         isOpen={resetSchemaDialog.isOpen}
@@ -193,10 +290,11 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
         <AlertDialogOverlay>
           <AlertDialogContent>
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Reset Schema
+              {initialized ? "Reset" : "Setup"} {database}
             </AlertDialogHeader>
             <AlertDialogBody>
-              Are you sure? You can&lsquo;t undo this action afterwards.
+              This will {initialized ? "recreate" : "create"} database{" "}
+              {database}. Are you sure?
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button

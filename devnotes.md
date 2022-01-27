@@ -27,36 +27,8 @@ Need to update subscribers.last_notification as well as write out the notificati
 - offer management
 - offer report
 
-# querying
+# Reminders
 
-```bash
-curl -H 'Content-Type: application/json' -X POST -d '{"sql": "select 1"}' 'root:test@localhost:8808/api/v1/query/tuples' | jq .
-{
-  "results": [
-    {
-      "columns": [
-        {
-          "name": "1",
-          "dataType": "BIGINT",
-          "nullable": false
-        }
-      ],
-      "rows": [
-        [
-          1
-        ]
-      ]
-    }
-  ]
-}
-```
-
-DatabaseDrawer ->
-* simulator state?
-
-Simulator ->
-* what happens when multiple simulators are executing on the same db
-  * needs to know which cities are registered
-* manage pipelines for each city
-* restarts pipelines when they finish
-* can delete cities
+- Check TODOs
+- configure pipeline size?
+- configure database partitions?
