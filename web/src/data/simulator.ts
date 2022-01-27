@@ -1,11 +1,10 @@
 import { ConnectionConfig, SQLError } from "@/data/client";
 import { useConnectionState } from "@/data/hooks";
 import {
-  createPipelinesForCity,
   ensurePipelinesAreRunning,
-  getCities,
+  ensurePipelinesExist,
   runMatchingProcess,
-  truncateTableIfNeeded,
+  truncateTimeseriesTables,
 } from "@/data/queries";
 import {
   configScaleFactor,
@@ -71,27 +70,15 @@ const SimulationTick = async (
   scaleFactor: ScaleFactor
 ) => {
   try {
+    console.log("SimulationTick Start");
     console.time("SimulationTick");
 
-    const cities = await getCities(config);
-    await Promise.all(
-      cities.map((city) => createPipelinesForCity(config, city, scaleFactor))
-    );
-    await ensurePipelinesAreRunning(config);
-
-    const timeseriesTables = [
-      "locations",
-      "requests",
-      "purchases",
-      "notifications",
-    ];
-    await Promise.all(
-      timeseriesTables.map((table) =>
-        truncateTableIfNeeded(config, table, scaleFactor)
-      )
-    );
-
-    await runMatchingProcess(config);
+    await Promise.all([
+      ensurePipelinesExist(config, scaleFactor),
+      ensurePipelinesAreRunning(config),
+      truncateTimeseriesTables(config, scaleFactor),
+      runMatchingProcess(config),
+    ]);
   } finally {
     console.timeEnd("SimulationTick");
   }

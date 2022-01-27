@@ -68,125 +68,107 @@ export const resetSchema = async (
   progress("Schema initialized", "success");
 };
 
-type City = {
-  id: number;
-  name: string;
-  lon: number;
-  lat: number;
-  diameter: number;
-};
-
-export const getCities = (config: ConnectionConfig) =>
-  Query<City>(
-    config,
-    `
-      SELECT
-        city_id AS id,
-        city_name AS name,
-        GEOGRAPHY_LONGITUDE(centroid) AS lon,
-        GEOGRAPHY_LATITUDE(centroid) AS lat,
-        diameter
-      FROM cities
-    `
-  );
-
-export const createPipelinesForCity = async (
+export const ensurePipelinesExist = async (
   config: ConnectionConfig,
-  city: City,
-  size: ScaleFactor
+  scaleFactor: ScaleFactor
 ) => {
-  const pipelines = await Query<{ name: string; connection: string }>(
+  type Row = {
+    cityId: number;
+    cityName: string;
+    pipelineName: string;
+    lon: number;
+    lat: number;
+    diameter: number;
+  };
+
+  const pipelines = await Query<Row>(
     config,
     `
       SELECT
-        pipeline_name AS name,
-        config_json::$connection_string AS connection
-      FROM information_schema.pipelines
-      WHERE database_name = ?
+        expected.city_id AS cityId,
+        expected.city_name AS cityName,
+        pipelineName,
+        GEOGRAPHY_LONGITUDE(expected.centroid) AS lon,
+        GEOGRAPHY_LATITUDE(expected.centroid) AS lat,
+        expected.diameter
+      FROM (
+        SELECT cities.*, CONCAT(prefix.table_col, cities.city_id) AS pipelineName
+        FROM s2cellular.cities
+        JOIN TABLE(["locations_", "requests_", "purchases_"]) AS prefix
+      ) AS expected
+      LEFT JOIN information_schema.pipelines
+        ON pipelines.database_name = ?
+        AND pipelines.pipeline_name = expected.pipelineName
+      WHERE
+        pipelines.pipeline_name IS NULL
+        OR config_json::$connection_string NOT LIKE "%${scaleFactor}%"
     `,
     config.database || "s2cellular"
   );
 
-  const needsUpdate = (pipelineName: string) => {
-    const pipeline = pipelines.find(({ name }) => name === pipelineName);
-    if (!pipeline) {
-      return true;
-    }
-    return !pipeline.connection.includes(size);
-  };
+  await Promise.all(
+    pipelines.map((city) => {
+      console.log(
+        `recreating pipeline ${city.pipelineName} for city ${city.cityName}`
+      );
 
-  const promises = [];
-
-  if (needsUpdate(`locations_${city.id}`)) {
-    console.log("creating locations pipeline for city", city.name);
-    promises.push(
-      Exec(
-        config,
-        `
-          CREATE OR REPLACE PIPELINE locations_${city.id}
-          AS LOAD DATA LINK aws_s3 's2cellular/${size}/locations.*'
-          INTO PROCEDURE process_locations FORMAT PARQUET (
-            subscriber_id <- subscriberid,
-            @offset_x <- offsetX,
-            @offset_y <- offsetY
-          )
-          SET
-            city_id = ?,
-            lonlat = GEOGRAPHY_POINT(
-              ? + (@offset_x * ?),
-              ? + (@offset_y * ?)
-            );
-        `,
-        city.id,
-        city.lon,
-        city.diameter,
-        city.lat,
-        city.diameter
-      )
-    );
-  }
-
-  if (needsUpdate(`requests_${city.id}`)) {
-    console.log("creating requests pipeline for city", city.name);
-    promises.push(
-      Exec(
-        config,
-        `
-          CREATE OR REPLACE PIPELINE requests_${city.id}
-          AS LOAD DATA LINK aws_s3 's2cellular/${size}/requests.*'
-          INTO TABLE requests FORMAT PARQUET (
-            subscriber_id <- subscriberid,
-            domain <- domain
-          )
-          SET ts = NOW(),
-            city_id = ?;
-        `,
-        city.id
-      )
-    );
-  }
-
-  if (needsUpdate(`purchases_${city.id}`)) {
-    console.log("creating purchases pipeline for city", city.name);
-    promises.push(
-      Exec(
-        config,
-        `
-          CREATE OR REPLACE PIPELINE purchases_${city.id}
-          AS LOAD DATA LINK aws_s3 's2cellular/${size}/purchases.*'
-          INTO TABLE purchases FORMAT PARQUET (
-            subscriber_id <- subscriberid,
-            vendor <- vendor
-          )
-          SET ts = NOW(),
-            city_id = ?;
-        `,
-        city.id
-      )
-    );
-  }
-
-  await Promise.all(promises);
+      if (city.pipelineName.startsWith("locations_")) {
+        return Exec(
+          config,
+          `
+            CREATE OR REPLACE PIPELINE ${city.pipelineName}
+            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactor}/locations.*'
+            INTO PROCEDURE process_locations FORMAT PARQUET (
+              subscriber_id <- subscriberid,
+              @offset_x <- offsetX,
+              @offset_y <- offsetY
+            )
+            SET
+              city_id = ?,
+              lonlat = GEOGRAPHY_POINT(
+                ? + (@offset_x * ?),
+                ? + (@offset_y * ?)
+              );
+          `,
+          city.cityId,
+          city.lon,
+          city.diameter,
+          city.lat,
+          city.diameter
+        );
+      } else if (city.pipelineName.startsWith("requests_")) {
+        return Exec(
+          config,
+          `
+            CREATE OR REPLACE PIPELINE ${city.pipelineName}
+            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactor}/requests.*'
+            INTO TABLE requests FORMAT PARQUET (
+              subscriber_id <- subscriberid,
+              domain <- domain
+            )
+            SET ts = NOW(),
+              city_id = ?;
+          `,
+          city.cityId
+        );
+      } else if (city.pipelineName.startsWith("purchases_")) {
+        return Exec(
+          config,
+          `
+            CREATE OR REPLACE PIPELINE ${city.pipelineName}
+            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactor}/purchases.*'
+            INTO TABLE purchases FORMAT PARQUET (
+              subscriber_id <- subscriberid,
+              vendor <- vendor
+            )
+            SET ts = NOW(),
+              city_id = ?;
+          `,
+          city.cityId
+        );
+      }
+    })
+  );
 };
 
 export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
@@ -220,41 +202,53 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
   );
 };
 
-export const truncateTableIfNeeded = async (
+export const truncateTimeseriesTables = async (
   config: ConnectionConfig,
-  tableName: string,
   scaleFactor: ScaleFactor
 ) => {
   const { maxRows } = ScaleFactors[scaleFactor];
-  const { count } = await QueryOne<{ count: number }>(
+  const oversizedTables = await Query<{ name: string; count: number }>(
     config,
-    `SELECT COUNT(*) AS count FROM ${tableName}`
+    `
+      SELECT
+        table_name AS name,
+        SUM(rows) AS count
+      FROM information_schema.table_statistics
+      WHERE
+        database_name = ?
+        AND table_name IN ("locations", "requests", "purchases", "notifications")
+      GROUP BY table_name
+      HAVING count > ${maxRows}
+    `,
+    config.database || "s2cellular"
   );
-  if (count > maxRows) {
-    const delta = count - maxRows;
-    const { ts } = await QueryOne<{ ts: string }>(
-      config,
-      `
+
+  await Promise.all(
+    oversizedTables.map(async ({ name, count }) => {
+      const delta = count - maxRows;
+
+      // only run delete if we are going to delete at least 20% of the data
+      if (delta < maxRows * 0.2) {
+        return;
+      }
+
+      const { ts } = await QueryOne<{ ts: string }>(
+        config,
+        `
         SELECT
           MAX(ts) AS ts
         FROM (
-          SELECT * FROM ${tableName}
+          SELECT * FROM ${name}
           ORDER BY ts ASC
           LIMIT ${delta}
         )
       `
-    );
+      );
 
-    console.log(`removing ${delta} rows from ${tableName} (up to ${ts})`);
-    await Exec(
-      config,
-      `
-        DELETE FROM ${tableName}
-        WHERE ts <= ?
-      `,
-      ts
-    );
-  }
+      console.log(`removing ${delta} rows from ${name} (up to ${ts})`);
+      await Exec(config, `DELETE FROM ${name} WHERE ts <= ?`, ts);
+    })
+  );
 };
 
 export const runMatchingProcess = (config: ConnectionConfig) =>

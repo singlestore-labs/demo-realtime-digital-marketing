@@ -65,8 +65,8 @@ const NotificationLayer = ({ latLngToPixel, mapState }: PigeonProps) => {
       isSimulatorEnabled &&
       mapState
         ? fetcher(config, mapState.bounds)
-        : null,
-    { refreshInterval: 1000 }
+        : null
+    //{ refreshInterval: 1000 }
   );
 
   useEffect(() => {
