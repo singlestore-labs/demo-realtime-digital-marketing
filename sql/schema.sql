@@ -118,12 +118,12 @@ create view match_offers_to_subscribers as (
                 and geography_contains(offers.notification_zone, subscribers.current_location)
                 and (
                     subscribers.last_notification is NULL
-                    or subscribers.last_notification < NOW() - INTERVAL 1 HOUR
+                    or subscribers.last_notification < NOW() - INTERVAL 1 MINUTE
                 )
         ),
         -- only match (offer, subscriber) pairs such that
         -- there is no matching notification
-        -- or the matching notification is < 1 day ago
+        -- or the matching notification is < 1 minute ago
         phase_2 as (
             select phase_1.*
             from phase_1
@@ -137,7 +137,7 @@ create view match_offers_to_subscribers as (
                 and phase_1.subscriber_id = n.subscriber_id
             where
                 n.offer_id is null
-                or n.ts < NOW() - INTERVAL 1 DAY
+                or n.ts < NOW() - INTERVAL 1 MINUTE
         ),
         -- join against locations, purchases, and requests to
         -- filter based on offer criteria

@@ -1,6 +1,5 @@
 import App from "@/components/App";
 import { ErrorBoundary } from "@/components/ErrorHandler";
-import { SimulationManager } from "@/components/SimulationManager";
 import { chakraTheme } from "@/components/theme";
 import { ChakraProvider, useToast } from "@chakra-ui/react";
 import React, { ReactNode } from "react";
@@ -31,9 +30,7 @@ ReactDOM.render(
         <SWRWrapper>
           <RecoilRoot>
             <BrowserRouter>
-              <SimulationManager>
-                <App />
-              </SimulationManager>
+              <App />
             </BrowserRouter>
           </RecoilRoot>
         </SWRWrapper>

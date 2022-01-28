@@ -18,6 +18,8 @@ type Row = { [key: string]: SQLValue };
 
 const regexSQLErrorCode = /^Error (?<code>\d+):/;
 
+const DEBUG = false;
+
 export class SQLError extends Error {
   code: number;
   sql: string;
@@ -103,7 +105,9 @@ const fetchEndpoint = async (
   sql: string,
   ...args: SQLValue[]
 ) => {
-  console.log("running query", sql, args);
+  if (DEBUG) {
+    console.log("running query", sql, args);
+  }
 
   const response = await fetch(`${config.host}/api/v1/${endpoint}`, {
     method: "POST",

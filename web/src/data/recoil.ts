@@ -1,5 +1,6 @@
 import { ConnectionConfig } from "@/data/client";
-import { atom, AtomEffect, selector } from "recoil";
+import { NotificationTuple } from "@/data/queries";
+import { atom, AtomEffect, DefaultValue, selector } from "recoil";
 
 const localStorageEffect =
   <T>(): AtomEffect<T> =>
@@ -50,6 +51,9 @@ export const connectionConfig = selector<ConnectionConfig>({
     const database = get(connectionDatabase);
     return { host, user, password, database };
   },
+  cachePolicy_UNSTABLE: {
+    eviction: "most-recent",
+  },
 });
 
 export const ScaleFactors = {
@@ -68,4 +72,28 @@ export const simulatorEnabled = atom<boolean>({
   key: "simulatorEnabled",
   default: true,
   effects_UNSTABLE: [localStorageEffect()],
+});
+
+export const MAX_NOTIFICATIONS = 1000;
+
+export const notificationsBuffer = atom<NotificationTuple[]>({
+  key: "notificationsBuffer",
+  default: [],
+});
+
+export const notifications = selector<NotificationTuple[]>({
+  key: "notifications",
+  get: ({ get }) => get(notificationsBuffer),
+  set: ({ set, get }, newValue) => {
+    if (newValue instanceof DefaultValue) {
+      return set(notificationsBuffer, []);
+    }
+    // TODO: optimize this to reuse the existing array when buffer is full
+    const buffer = get(notificationsBuffer);
+    const newBuffer = [...buffer, ...newValue];
+    if (newBuffer.length > MAX_NOTIFICATIONS) {
+      newBuffer.splice(0, newBuffer.length - MAX_NOTIFICATIONS);
+    }
+    set(notificationsBuffer, newBuffer);
+  },
 });
