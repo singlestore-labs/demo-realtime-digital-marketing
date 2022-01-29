@@ -11,14 +11,6 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 
 const TICK_INTERVAL = 1 * 1000;
 
-/*
-  - map renders notifications as pings which decay
-  - notification list view renders notifications as a stream of locations and offer ids
-    - hovering a notification queries for details on the notification
-    - clicking a notification jumps the map to the notification
-      - re-pings the map with potentially a different color?
-*/
-
 export type NotificationSubscriber = (newNotifications: NotificationTuple[]) => void;
 
 const useNotificationEmitter = () => {

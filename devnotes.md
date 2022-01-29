@@ -29,13 +29,7 @@ Need to update subscribers.last_notification as well as write out the notificati
 
 # Notification streaming to frontend
 
-- Notification manager, similar to simulation manager
-- enables/disables along with the sim manager
-- maintains a buffer of recent notifications, with a fixed size
-- polls for all notifications created since last poll - at high frequency
-  - Only grabs offer_id, lonlat, ts
-  - Only grabs most recent N notifications == size of buffer
-- map renders notifications as pings which decay
+- make sure we always query for notifications in the viewport otherwise issues with getting notifications happening elsewhere + limit
 - notification list view renders notifications as a stream of locations and offer ids
   - hovering a notification queries for details on the notification
   - clicking a notification jumps the map to the notification

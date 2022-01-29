@@ -5,7 +5,7 @@ import {
   Query,
   QueryOne,
   QueryTuples,
-  SQLError
+  SQLError,
 } from "@/data/client";
 import { ScaleFactor, ScaleFactors } from "@/data/recoil";
 import { PROCEDURES, SEED_DATA, TABLES } from "@/data/sql";

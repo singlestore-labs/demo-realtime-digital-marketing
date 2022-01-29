@@ -16,6 +16,9 @@ const COLORS = [
   0xe48873, 0xf16623, 0xf44546,
 ];
 
+// TODO: remove COLORS array (or move it somewhere, we only use one color)
+// TODO: filter new notifications for visible notifications (i.e. ignore things we can't see)
+
 export const useNotificationsRenderer = ({
   subscribe,
   unsubscribe,
