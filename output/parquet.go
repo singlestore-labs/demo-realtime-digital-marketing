@@ -28,6 +28,7 @@ var (
 				required int64 subscriberid;
 				required double offsetX;
 				required double offsetY;
+				required binary olc (STRING);
 			}
 		`)),
 	)
@@ -64,12 +65,14 @@ func (e *ParquetEncoder) EncodeLocations(rows []Location, w io.Writer) error {
 		"subscriberid": nil,
 		"offsetX":      nil,
 		"offsetY":      nil,
+		"olc":          nil,
 	}
 
 	for i := range rows {
 		obj["subscriberid"] = rows[i].SubscriberId
 		obj["offsetX"] = rows[i].Offset[0]
 		obj["offsetY"] = rows[i].Offset[1]
+		obj["olc"] = []byte(rows[i].OpenLocationCode)
 
 		if err := fw.AddData(obj); err != nil {
 			return err

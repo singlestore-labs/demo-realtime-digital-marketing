@@ -11,7 +11,9 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 
 const TICK_INTERVAL = 1 * 1000;
 
-export type NotificationSubscriber = (newNotifications: NotificationTuple[]) => void;
+export type NotificationSubscriber = (
+  newNotifications: NotificationTuple[]
+) => void;
 
 const useNotificationEmitter = () => {
   const subscriberRef = useRef<NotificationSubscriber>();
@@ -42,7 +44,7 @@ export const useNotifications = () => {
   const config = useRecoilValue(connectionConfig);
   const enabled = useRecoilValue(simulatorEnabled);
   const { initialized } = useConnectionState();
-  const timestampCursor = useRef("");
+  const timestampCursor = useRef(new Date().toISOString());
   const setNotifications = useSetRecoilState(notifications);
   const { subscribe, unsubscribe, emit } = useNotificationEmitter();
 
@@ -55,7 +57,8 @@ export const useNotifications = () => {
         MAX_NOTIFICATIONS
       );
       if (newNotifications.length > 0) {
-        timestampCursor.current = newNotifications[0][0];
+        timestampCursor.current =
+          newNotifications[newNotifications.length - 1][0];
         setNotifications(newNotifications);
         emit(newNotifications);
       }

@@ -130,3 +130,18 @@ replace into offers set
     notification_target = 'example.com?offer=1234',
 
     maximum_bid_cents = 10;
+
+replace into segments set
+    segment_id = 0,
+    valid_interval = "day",
+    location_criteria = "POLYGON((-73.95445298275654 40.871866946418095,-74.14946030697529 40.647182343199475,-73.91874741635029 40.52933655076082,-73.69490098080341 40.704465763751266,-73.95445298275654 40.871866946418095))";
+
+replace into segments set
+    segment_id = 1,
+    valid_interval = "day",
+    request_criteria = "youspan.biz";
+
+replace into segments set
+    segment_id = 2,
+    valid_interval = "day",
+    purchase_criteria = "Photobug";

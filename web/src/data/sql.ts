@@ -1,3 +1,4 @@
+import rawFunctions from "@/sql/functions.sql?raw";
 import rawProcedures from "@/sql/procedures.sql?raw";
 import rawSchema from "@/sql/schema.sql?raw";
 
@@ -26,22 +27,35 @@ export const PROCEDURES = rawProcedures
   .map((s) => s.replace("//", ""))
   .map(parseCreateStmt);
 
+export const FUNCTIONS = rawFunctions
+  .replaceAll(/DELIMITER (\/\/|;)/g, "")
+  .split(/(?<=END \/\/)/)
+  .filter((s) => !!s.trim())
+  .map((s) => s.replace("//", ""))
+  .map(parseCreateStmt);
+
 export const SEED_DATA = [
   `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`,
   "REPLACE INTO cities VALUES (0, 'new york', 'POINT(-74.006 40.7128)', 0.5)",
   "REPLACE INTO customers VALUES (0, 's2cellular')",
   `
+    REPLACE INTO segments SET
+      segment_id = 0,
+      valid_interval = "day",
+      purchase_criteria = "Photobug"
+  `,
+  `
     REPLACE INTO offers SET
-        offer_id = 0,
-        customer_id = 0,
-        enabled = true,
+      offer_id = 0,
+      customer_id = 0,
+      enabled = true,
 
-        notification_zone = 'POLYGON((-74.0085465553596 40.73811655378369,-73.99275370867991 40.73811655378369,-73.99275370867991 40.72627932318957,-74.0085465553596 40.72627932318957,-74.0085465553596 40.73811655378369))',
-        notification_criteria = '[]',
+      notification_zone = 'POLYGON((-74.0085465553596 40.73811655378369,-73.99275370867991 40.73811655378369,-73.99275370867991 40.72627932318957,-74.0085465553596 40.72627932318957,-74.0085465553596 40.73811655378369))',
+      segment_ids = '[0]',
 
-        notification_content = 'Buy an eWatch, 50% off',
-        notification_target = 'example.com?offer=1234',
+      notification_content = 'Buy an eWatch, 50% off',
+      notification_target = 'example.com?offer=1234',
 
-        maximum_bid_cents = 10
+      maximum_bid_cents = 10
   `,
 ];

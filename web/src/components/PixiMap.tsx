@@ -1,8 +1,10 @@
+import { mapBounds } from "@/data/recoil";
 import { Box, Link } from "@chakra-ui/react";
 import { useColorModeValue } from "@chakra-ui/system";
 import { Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import React, { useLayoutEffect, useState } from "react";
+import { useSetRecoilState } from "recoil";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -24,8 +26,6 @@ const cartoDBProvider =
     `https://a.basemaps.cartocdn.com/${flavor}/${z}/${x}/${y}${
       dpr >= 2 ? "@2x" : ""
     }.png`;
-
-// https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png
 
 export const DEFAULT_CENTER = [40.756480069543976, -73.95583135057566] as [
   number,
@@ -99,15 +99,20 @@ const PixiMapLayer = ({
 export const PixiMap = ({ renderer }: { renderer: PixiRenderer }) => {
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [zoom, setZoom] = useState(12);
+  const setBounds = useSetRecoilState(mapBounds);
 
   const attribution = (
     <>
-      Map tiles by{" "}
-      <Link isExternal href="http://maps.stamen.com">
-        Stamen Design
+      Map tiles &copy;{" "}
+      <Link isExternal href="https://stadiamaps.com/">
+        Stadia Maps
       </Link>
-      , under CC BY 3.0. Data by{" "}
-      <Link isExternal href="https://osm.org">
+      , &copy;{" "}
+      <Link isExternal href="https://openmaptiles.org">
+        OpenMapTiles
+      </Link>
+      , data &copy;{" "}
+      <Link isExternal href="https://openstreetmap.org">
         OpenStreetMap
       </Link>
       , under ODbL.
@@ -122,9 +127,10 @@ export const PixiMap = ({ renderer }: { renderer: PixiRenderer }) => {
         maxZoom={20}
         center={center}
         zoom={zoom}
-        onBoundsChanged={({ center, zoom }) => {
+        onBoundsChanged={({ center, zoom, bounds }) => {
           setCenter(center);
           setZoom(zoom);
+          setBounds(bounds);
         }}
         attribution={attribution}
       >

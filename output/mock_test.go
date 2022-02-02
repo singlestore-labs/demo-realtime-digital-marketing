@@ -5,6 +5,7 @@ import (
 	"s2cellular/data"
 	"s2cellular/util"
 
+	olc "github.com/google/open-location-code/go"
 	"github.com/ungerik/go3d/float64/vec2"
 )
 
@@ -23,9 +24,11 @@ func NewMockBatch(rnd *util.RandGen, partitionId int, size int) *MockBatch {
 	for i := 0; i < size; i++ {
 		vendor := data.ChooseVendor(rnd.Next())
 
+		offset := vec2.T{rand.Float64(), rand.Float64()}
 		locs[i] = Location{
-			SubscriberId: int64(i),
-			Offset:       vec2.T{rand.Float64(), rand.Float64()},
+			SubscriberId:     int64(i),
+			Offset:           offset,
+			OpenLocationCode: olc.Encode(offset[1], offset[0], 12),
 		}
 		reqs[i] = Request{
 			SubscriberId: int64(i),

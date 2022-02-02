@@ -1,50 +1,31 @@
-with
-    subscribers as (
-        select distinct city_id, subscriber_id
-        from locations
-    )
 select
-    phase_2.*,
-    criteria.table_col AS criteria,
-    json_length(notification_criteria) AS num_criteria,
-    row_number() over (partition by offer_id, city_id, subscriber_id) as rownum
+    subscriber.city_id,
+    subscriber.subscriber_id,
+    criteria.num_filters,
+    row_number() over (partition by segment_id, city_id, subscriber_id) as rownum
 from
-    phase_2
-    LEFT JOIN TABLE(JSON_TO_ARRAY(notification_criteria)) criteria
-on
-    IF(criteria.table_col::$filter = "location", exists (
+    subscribers as subscriber,
+    (
+        select
+            segment_id,
+            json_length(criteria) as num_filters,
+            table_col::$filter as filter,
+            table_col::$`interval` as filter_interval,
+            table_col::$value as filter_value
+        from segments, TABLE(JSON_TO_ARRAY(criteria))
+    ) as criteria
+WHERE
+    IF(criteria.filter = "location", exists (
         select * from locations
         where
-            phase_2.city_id = locations.city_id
-            and phase_2.subscriber_id = locations.subscriber_id
-            and ts >= case criteria.table_col::$`interval`
+            subscriber.city_id = locations.city_id
+            and subscriber.subscriber_id = locations.subscriber_id
+            and ts >= case criteria.filter_interval
+                when "minute" then NOW() - INTERVAL 1 MINUTE
+                when "hour" then NOW() - INTERVAL 1 HOUR
                 when "day" then NOW() - INTERVAL 1 DAY
                 when "week" then NOW() - INTERVAL 1 WEEK
                 when "month" then NOW() - INTERVAL 1 MONTH
             end
-            and geography_contains(criteria.table_col::$value, locations.lonlat)
-    ), false)
-    OR IF(criteria.table_col::$filter = "request", exists (
-        select * from requests
-        where
-            phase_2.city_id = requests.city_id
-            and phase_2.subscriber_id = requests.subscriber_id
-            and ts >= case criteria.table_col::$`interval`
-                when "day" then NOW() - INTERVAL 1 DAY
-                when "week" then NOW() - INTERVAL 1 WEEK
-                when "month" then NOW() - INTERVAL 1 MONTH
-            end
-            and requests.domain = criteria.table_col::$value
-    ), false)
-    OR IF(criteria.table_col::$filter = "purchase", exists (
-        select * from purchases
-        where
-            phase_2.city_id = purchases.city_id
-            and phase_2.subscriber_id = purchases.subscriber_id
-            and ts >= case criteria.table_col::$`interval`
-                when "day" then NOW() - INTERVAL 1 DAY
-                when "week" then NOW() - INTERVAL 1 WEEK
-                when "month" then NOW() - INTERVAL 1 MONTH
-            end
-            and purchases.vendor = criteria.table_col::$value
+            and geography_contains(criteria.filter_value, locations.lonlat)
     ), false)

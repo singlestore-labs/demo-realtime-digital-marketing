@@ -52,8 +52,6 @@ type Props = {
   onClose(): void;
 };
 
-// TODO: show connection status details in the drawer
-
 type ConfigInputProps = {
   id: string;
   label: string;

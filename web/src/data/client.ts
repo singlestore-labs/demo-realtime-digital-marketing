@@ -41,6 +41,10 @@ export class SQLError extends Error {
   isUnknownDatabase() {
     return this.code === 1049;
   }
+
+  isDatabaseRecovering() {
+    return this.code === 2269;
+  }
 }
 
 export const QueryOne = async <T = Row>(

@@ -1,5 +1,6 @@
 import { ConnectionConfig } from "@/data/client";
 import { NotificationTuple } from "@/data/queries";
+import { Bounds } from "pigeon-maps";
 import { atom, AtomEffect, DefaultValue, selector } from "recoil";
 
 const localStorageEffect =
@@ -57,8 +58,8 @@ export const connectionConfig = selector<ConnectionConfig>({
 });
 
 export const ScaleFactors = {
-  small: { maxRows: 1000000 },
-  large: { maxRows: 1000000000 },
+  small: { maxRows: 1e6 },
+  large: { maxRows: 1e9 },
 };
 export type ScaleFactor = keyof typeof ScaleFactors;
 
@@ -74,7 +75,7 @@ export const simulatorEnabled = atom<boolean>({
   effects_UNSTABLE: [localStorageEffect()],
 });
 
-export const MAX_NOTIFICATIONS = 1000;
+export const MAX_NOTIFICATIONS = 100;
 
 export const notificationsBuffer = atom<NotificationTuple[]>({
   key: "notificationsBuffer",
@@ -88,7 +89,6 @@ export const notifications = selector<NotificationTuple[]>({
     if (newValue instanceof DefaultValue) {
       return set(notificationsBuffer, []);
     }
-    // TODO: optimize this to reuse the existing array when buffer is full
     const buffer = get(notificationsBuffer);
     const newBuffer = [...buffer, ...newValue];
     if (newBuffer.length > MAX_NOTIFICATIONS) {
@@ -96,4 +96,12 @@ export const notifications = selector<NotificationTuple[]>({
     }
     set(notificationsBuffer, newBuffer);
   },
+  cachePolicy_UNSTABLE: {
+    eviction: "most-recent",
+  },
+});
+
+export const mapBounds = atom<Bounds | undefined>({
+  key: "mapBounds",
+  default: undefined,
 });

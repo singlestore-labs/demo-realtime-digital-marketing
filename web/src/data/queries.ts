@@ -8,7 +8,7 @@ import {
   SQLError,
 } from "@/data/client";
 import { ScaleFactor, ScaleFactors } from "@/data/recoil";
-import { PROCEDURES, SEED_DATA, TABLES } from "@/data/sql";
+import { FUNCTIONS, PROCEDURES, SEED_DATA, TABLES } from "@/data/sql";
 
 export const connectionState = async (config: ConnectionConfig) => {
   try {
@@ -29,20 +29,26 @@ export const hasSchema = async (config: ConnectionConfig) => {
     const procedures = (await QueryTuples(config, "SHOW PROCEDURES"))
       .map((r) => r[0])
       .sort();
+    const functions = (await QueryTuples(config, "SHOW FUNCTIONS"))
+      .map((r) => r[0])
+      .sort();
 
     return (
       TABLES.every(({ name }) => tables.includes(name)) &&
-      PROCEDURES.every(({ name }) => procedures.includes(name))
+      PROCEDURES.every(({ name }) => procedures.includes(name)) &&
+      FUNCTIONS.every(({ name }) => functions.includes(name))
     );
   } catch (e) {
-    if (e instanceof SQLError && e.isUnknownDatabase()) {
+    if (
+      e instanceof SQLError &&
+      (e.isUnknownDatabase() || e.isDatabaseRecovering())
+    ) {
       return false;
     }
     throw e;
   }
 };
 
-// TODO: support skipping drop database
 export const resetSchema = async (
   config: ConnectionConfig,
   progress: (msg: string, status: "info" | "success") => void
@@ -55,6 +61,10 @@ export const resetSchema = async (
 
   for (const obj of TABLES) {
     progress(`Creating table: ${obj.name}`, "info");
+    await Exec(config, obj.createStmt);
+  }
+  for (const obj of FUNCTIONS) {
+    progress(`Creating function: ${obj.name}`, "info");
     await Exec(config, obj.createStmt);
   }
   for (const obj of PROCEDURES) {
@@ -270,14 +280,13 @@ export const queryNotifications = (
     config,
     `
       SELECT
-        LAST(ts) AS ts,
-        LAST(offer_id) AS offer_id,
-        GEOGRAPHY_LONGITUDE(LAST(lonlat)) AS lon,
-        GEOGRAPHY_LATITUDE(LAST(lonlat)) AS lat
+        ts,
+        offer_id,
+        GEOGRAPHY_LONGITUDE(lonlat) AS lon,
+        GEOGRAPHY_LATITUDE(lonlat) AS lat
       FROM notifications
       WHERE ts > ?
-      GROUP BY city_id, subscriber_id
-      ORDER BY ts DESC
+      ORDER BY ts ASC
       LIMIT ${limit}
     `,
     since

@@ -1,29 +1,30 @@
 import { PixiRenderer } from "@/components/PixiMap";
 import { NotificationTuple } from "@/data/queries";
+import { mapBounds } from "@/data/recoil";
 import { NotificationSubscriber } from "@/data/useNotifications";
 import "@pixi/graphics-extras";
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
+import { Bounds } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import { useCallback } from "react";
+import { useRecoilCallback } from "recoil";
 
 type Props = {
   subscribe: (sub: NotificationSubscriber) => void;
   unsubscribe: (sub: NotificationSubscriber) => void;
 };
 
-const COLORS = [
-  0x03a8a0, 0x039c4b, 0x66d313, 0xfedf17, 0xff0984, 0x21409a, 0x04adff,
-  0xe48873, 0xf16623, 0xf44546,
-];
-
-// TODO: remove COLORS array (or move it somewhere, we only use one color)
-// TODO: filter new notifications for visible notifications (i.e. ignore things we can't see)
-
 export const useNotificationsRenderer = ({
   subscribe,
   unsubscribe,
-}: Props): PixiRenderer =>
-  useCallback(
+}: Props): PixiRenderer => {
+  const getBounds = useRecoilCallback(
+    ({ snapshot }) =>
+      () =>
+        snapshot.getPromise(mapBounds)
+  );
+
+  return useCallback(
     ({ latLngToPixel }) => {
       console.log("NotificationsRenderer: Setup");
 
@@ -37,8 +38,8 @@ export const useNotificationsRenderer = ({
 
         const container = new PIXI.Container();
 
-        const markerColor = COLORS[6];
-        const pulseColor = COLORS[6];
+        const markerColor = 0x04adff;
+        const pulseColor = 0x04adff;
 
         const marker = new PIXI.Graphics();
         marker.beginFill(markerColor).drawCircle(0, 0, 5).endFill();
@@ -56,6 +57,13 @@ export const useNotificationsRenderer = ({
 
         const update = (delta: number) => {
           elapsed += delta / 60;
+
+          if (elapsed > lifetime) {
+            scene.removeChild(container);
+            pulses.splice(pulses.indexOf(update), 1);
+            return;
+          }
+
           const t = (elapsed % lifetime) / lifetime;
 
           const eased = easeQuadOut(t);
@@ -74,12 +82,6 @@ export const useNotificationsRenderer = ({
             marker.alpha = 1 - easeExp((t - cutoff) / (1 - cutoff));
           }
 
-          if (elapsed > lifetime) {
-            scene.removeChild(container);
-            pulses.splice(pulses.indexOf(update), 1);
-            return;
-          }
-
           const [x, y] = latLngToPixel([lat, lon]);
           container.x = x;
           container.y = y;
@@ -89,9 +91,23 @@ export const useNotificationsRenderer = ({
         pulses.push(update);
       };
 
-      const handleNotifications = (newNotifications: NotificationTuple[]) => {
+      const boundsContains = (bounds: Bounds, lat: number, lng: number) => {
+        return (
+          lat <= bounds.ne[0] &&
+          lng <= bounds.ne[1] &&
+          lat >= bounds.sw[0] &&
+          lng >= bounds.sw[1]
+        );
+      };
+
+      const handleNotifications = async (
+        newNotifications: NotificationTuple[]
+      ) => {
+        const bounds = await getBounds();
         for (const [, , lon, lat] of newNotifications) {
-          startPulse(lon, lat);
+          if (!bounds || boundsContains(bounds, lat, lon)) {
+            startPulse(lon, lat);
+          }
         }
       };
       subscribe(handleNotifications);
@@ -109,5 +125,6 @@ export const useNotificationsRenderer = ({
         },
       };
     },
-    [subscribe, unsubscribe]
+    [getBounds, subscribe, unsubscribe]
   );
+};

@@ -9,6 +9,7 @@ import (
 type Location struct {
 	SubscriberId int64
 	Offset       vec2.T
+	OpenLocationCode string
 }
 
 type Request struct {

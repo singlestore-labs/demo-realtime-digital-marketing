@@ -10,6 +10,26 @@ Handling dynamic criteria within the matching algorithm is too expensive. Need t
 - need a segmentation matching query to update the subscriber_segments table
 - this query will need to run frequently as data changes
 
+Experimental segmentation query... still running super slowly. Not sure how I want this to execute...
+
+```sql
+select count(*) from (
+select *
+from
+    segments,
+    locations
+where
+    geography_contains(segments.location_criteria, locations.lonlat)
+    and ts >= case segments.valid_interval
+        when "minute" then NOW() - INTERVAL 1 MINUTE
+        when "hour" then NOW() - INTERVAL 1 HOUR
+        when "day" then NOW() - INTERVAL 1 DAY
+        when "week" then NOW() - INTERVAL 1 WEEK
+        when "month" then NOW() - INTERVAL 1 MONTH
+    end
+)
+```
+
 # matching
 
 Once we have segmentation, offers should be modified to contain a list of segment IDs. The matching algorithm will need to use json_contains_array to filter offers.
@@ -18,8 +38,6 @@ Need to update subscribers.last_notification as well as write out the notificati
 
 # frontend framework
 
-- talks to singlestore via HTTP API
-- will manage pipelines dynamically
 - ingest rates
 - map visualization
   - live notifications showing up on map
