@@ -117,13 +117,13 @@ export const ensurePipelinesExist = async (
   );
 
   await Promise.all(
-    pipelines.map((city) => {
+    pipelines.map(async (city) => {
       console.log(
         `recreating pipeline ${city.pipelineName} for city ${city.cityName}`
       );
 
       if (city.pipelineName.startsWith("locations_")) {
-        return Exec(
+        await Exec(
           config,
           `
             CREATE OR REPLACE PIPELINE ${city.pipelineName}
@@ -147,7 +147,7 @@ export const ensurePipelinesExist = async (
           city.diameter
         );
       } else if (city.pipelineName.startsWith("requests_")) {
-        return Exec(
+        await Exec(
           config,
           `
             CREATE OR REPLACE PIPELINE ${city.pipelineName}
@@ -162,7 +162,7 @@ export const ensurePipelinesExist = async (
           city.cityId
         );
       } else if (city.pipelineName.startsWith("purchases_")) {
-        return Exec(
+        await Exec(
           config,
           `
             CREATE OR REPLACE PIPELINE ${city.pipelineName}
@@ -177,6 +177,12 @@ export const ensurePipelinesExist = async (
           city.cityId
         );
       }
+
+      await Exec(
+        config,
+        `ALTER PIPELINE ${city.pipelineName} SET OFFSETS EARLIEST DROP ORPHAN FILES`
+      );
+      await Exec(config, `START PIPELINE IF NOT RUNNING ${city.pipelineName}`);
     })
   );
 };
@@ -206,7 +212,10 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
   await Promise.all(
     pipelines.map(async ([name]) => {
       console.log("restarting pipeline", name);
-      await Exec(config, `ALTER PIPELINE ${name} SET OFFSETS EARLIEST`);
+      await Exec(
+        config,
+        `ALTER PIPELINE ${name} SET OFFSETS EARLIEST DROP ORPHAN FILES`
+      );
       await Exec(config, `START PIPELINE IF NOT RUNNING ${name}`);
     })
   );
@@ -226,6 +235,7 @@ export const truncateTimeseriesTables = async (
       FROM information_schema.table_statistics
       WHERE
         database_name = ?
+        AND partition_type = "Master"
         AND table_name IN ("locations", "requests", "purchases", "notifications")
       GROUP BY table_name
       HAVING count > ${maxRows}
@@ -237,26 +247,47 @@ export const truncateTimeseriesTables = async (
     oversizedTables.map(async ({ name, count }) => {
       const delta = count - maxRows;
 
-      // only run delete if we are going to delete at least 20% of the data
-      if (delta < maxRows * 0.2) {
-        return;
-      }
-
-      const { ts } = await QueryOne<{ ts: string }>(
+      const { ts, cumulative_count } = await QueryOne<{
+        ts: string | null;
+        cumulative_count: number | null;
+      }>(
         config,
         `
-        SELECT
-          MAX(ts) AS ts
-        FROM (
-          SELECT * FROM ${name}
-          ORDER BY ts ASC
-          LIMIT ${delta}
-        )
-      `
+          SELECT
+            LAST(ts, ts) :> DATETIME(6) AS ts,
+            LAST(cumulative_count, ts) :> BIGINT AS cumulative_count
+          FROM (
+            SELECT
+              MAX(max_value) OVER w AS ts,
+              SUM(rows_count - deleted_rows_count) OVER w AS cumulative_count
+            FROM
+              information_schema.columnar_segments s,
+              information_schema.distributed_partitions p
+            WHERE
+              s.node_id = p.node_id
+              AND s.partition = p.ordinal
+              AND p.role = "Master"
+              AND s.database_name = ?
+              AND s.table_name = ?
+              AND s.column_name = "ts"
+            WINDOW w AS (
+              PARTITION BY s.database_name, s.table_name, s.column_name
+              ORDER BY min_value ASC
+              RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+          )
+          WHERE cumulative_count <= ${delta}
+        `,
+        config.database || "s2cellular",
+        name
       );
 
-      console.log(`removing ${delta} rows from ${name} (up to ${ts})`);
-      await Exec(config, `DELETE FROM ${name} WHERE ts <= ?`, ts);
+      if (ts !== null) {
+        console.log(
+          `removing ${cumulative_count} rows from ${name} older than ${ts}`
+        );
+        await Exec(config, `DELETE FROM ${name} WHERE ts <= ?`, ts);
+      }
     })
   );
 };

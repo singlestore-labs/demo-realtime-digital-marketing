@@ -59,19 +59,7 @@ BEGIN
             SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
             FROM segments
             WHERE segments.purchase_criteria IS NOT NULL
-        )
-    UNION ALL
-    SELECT DISTINCT city_id, subscriber_id, segment_id
-    FROM segments, purchases
-    WHERE
-        segments.purchase_criteria IS NOT NULL
-        AND purchases.vendor = segments.purchase_criteria
-        AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-        AND ts >= (
-            SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
-            FROM segments
-            WHERE segments.purchase_criteria IS NOT NULL
-        )
+        );
 
     _count = row_count();
 

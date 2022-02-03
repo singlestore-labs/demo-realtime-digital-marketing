@@ -7,8 +7,9 @@ import {
   connectionHost,
   connectionPassword,
   connectionUser,
+  isScaleFactor,
   ScaleFactors,
-  simulatorEnabled,
+  simulatorEnabled
 } from "@/data/recoil";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import {
@@ -41,7 +42,7 @@ import {
   Switch,
   useBoolean,
   useDisclosure,
-  useToast,
+  useToast
 } from "@chakra-ui/react";
 import React, { ReactNode, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -217,7 +218,7 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
                   value={scaleFactor}
                   onChange={(ev) => {
                     const v = ev.target.value;
-                    if (v === "small" || v === "large") {
+                    if (isScaleFactor(v)) {
                       setScaleFactor(v);
                     }
                   }}

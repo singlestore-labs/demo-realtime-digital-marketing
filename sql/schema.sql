@@ -24,8 +24,15 @@ create table if not exists locations (
     ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
     lonlat GEOGRAPHYPOINT NOT NULL,
 
+    -- TODO: write encode_open_location_code UDF
+    -- olc_8 AS encode_open_location_code(lonlat, 8) PERSISTED TEXT,
+    -- KEY (olc_8) USING HASH,
+    -- olc_6 AS encode_open_location_code(lonlat, 6) PERSISTED TEXT,
+    -- KEY (olc_6) USING HASH,
+
     SHARD KEY (city_id, subscriber_id),
     SORT KEY (ts),
+
     KEY (city_id, subscriber_id) USING HASH
 );
 

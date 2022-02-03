@@ -3,7 +3,6 @@ package gen
 import (
 	"s2cellular/output"
 
-	olc "github.com/google/open-location-code/go"
 )
 
 type Batch struct {
@@ -53,7 +52,6 @@ func FillBatch(state *State, batch *Batch) {
 		batch.locations[i].SubscriberId = subscriber.Id
 		batch.locations[i].Offset[0] = subscriber.Location[0]
 		batch.locations[i].Offset[1] = subscriber.Location[1]
-		batch.locations[i].OpenLocationCode = olc.Encode(subscriber.Location[1], subscriber.Location[0], 12)
 
 		if subscriber.LastRequestDomain != "" {
 			batch.requests[numRequests].SubscriberId = subscriber.Id

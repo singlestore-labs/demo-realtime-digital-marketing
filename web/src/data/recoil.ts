@@ -58,14 +58,17 @@ export const connectionConfig = selector<ConnectionConfig>({
 });
 
 export const ScaleFactors = {
-  small: { maxRows: 1e6 },
-  large: { maxRows: 1e9 },
+  "small-16": { maxRows: 50_000_000 },
+  "small-32": { maxRows: 100_000_000 },
 };
 export type ScaleFactor = keyof typeof ScaleFactors;
 
+export const isScaleFactor = (value: string): value is ScaleFactor =>
+  Object.keys(ScaleFactors).includes(value);
+
 export const configScaleFactor = atom<ScaleFactor>({
   key: "configScaleFactor",
-  default: "small",
+  default: "small-16",
   effects_UNSTABLE: [localStorageEffect()],
 });
 
