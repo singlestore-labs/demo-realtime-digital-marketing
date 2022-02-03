@@ -1,6 +1,14 @@
 import { SQLError } from "@/data/client";
 import { RepeatIcon, WarningTwoIcon } from "@chakra-ui/icons";
-import { Box, Center, Code, Heading, Stack, Text } from "@chakra-ui/react";
+import {
+  Button,
+  Center,
+  Code,
+  Heading,
+  HStack,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import React from "react";
 import dedent from "ts-dedent";
 
@@ -42,35 +50,44 @@ export class ErrorBoundary extends React.Component<unknown, State> {
       if (error instanceof SQLError) {
         info = (
           <>
-            <Text>An error occurred while running the following query:</Text>
-            <Center>
-              <Code display="block" whiteSpace="pre" textAlign="left" p={6}>
-                {dedent(error.sql)}
-              </Code>
-            </Center>
+            <Text textAlign="center">
+              An error occurred while running the following query:
+            </Text>
+            <Code display="block" whiteSpace={["inherit", "pre"]} p={6}>
+              {dedent(error.sql)}
+            </Code>
           </>
         );
       }
 
       return (
-        <Stack textAlign="center" mt={10} gap={4}>
-          <Box textAlign="center">
-            <WarningTwoIcon boxSize={20} color="red" />
-          </Box>
-          <Stack gap={2}>
-            <Heading size="xl">{error.message}</Heading>
+        <Center my={10}>
+          <Stack gap={4} maxW="container.md">
+            <Center>
+              <WarningTwoIcon boxSize={20} color="red" />
+            </Center>
+            <Heading size="xl" textAlign="center">
+              {error.message}
+            </Heading>
             {info}
+            <HStack justify="center" gap={4}>
+              <Button
+                onClick={() => this.setState({ error: undefined })}
+                size="sm"
+              >
+                Dismiss Error
+              </Button>
+              <Button
+                onClick={() => window.location.reload()}
+                size="sm"
+                colorScheme="blue"
+                leftIcon={<RepeatIcon />}
+              >
+                Reload
+              </Button>
+            </HStack>
           </Stack>
-          <Heading
-            onClick={() => window.location.reload()}
-            color="blue.500"
-            _hover={{ cursor: "pointer", color: "blue.400" }}
-            size="sm"
-          >
-            <RepeatIcon mr={2} position="relative" bottom="1px" />
-            Reload
-          </Heading>
-        </Stack>
+        </Center>
       );
     }
 

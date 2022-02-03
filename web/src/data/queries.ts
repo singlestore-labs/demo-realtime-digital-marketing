@@ -91,6 +91,8 @@ export const ensurePipelinesExist = async (
     diameter: number;
   };
 
+  const scaleFactorPrefix = ScaleFactors[scaleFactor].prefix;
+
   const pipelines = await Query<Row>(
     config,
     `
@@ -111,7 +113,7 @@ export const ensurePipelinesExist = async (
         AND pipelines.pipeline_name = expected.pipelineName
       WHERE
         pipelines.pipeline_name IS NULL
-        OR config_json::$connection_string NOT LIKE "%${scaleFactor}%"
+        OR config_json::$connection_string NOT LIKE "%${scaleFactorPrefix}%"
     `,
     config.database || "s2cellular"
   );
@@ -127,7 +129,7 @@ export const ensurePipelinesExist = async (
           config,
           `
             CREATE OR REPLACE PIPELINE ${city.pipelineName}
-            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactor}/locations.*'
+            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactorPrefix}/locations.*'
             INTO PROCEDURE process_locations FORMAT PARQUET (
               subscriber_id <- subscriberid,
               @offset_x <- offsetX,
@@ -138,7 +140,7 @@ export const ensurePipelinesExist = async (
               lonlat = GEOGRAPHY_POINT(
                 ? + (@offset_x * ?),
                 ? + (@offset_y * ?)
-              );
+              )
           `,
           city.cityId,
           city.lon,
@@ -151,7 +153,7 @@ export const ensurePipelinesExist = async (
           config,
           `
             CREATE OR REPLACE PIPELINE ${city.pipelineName}
-            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactor}/requests.*'
+            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactorPrefix}/requests.*'
             INTO TABLE requests FORMAT PARQUET (
               subscriber_id <- subscriberid,
               domain <- domain
@@ -166,7 +168,7 @@ export const ensurePipelinesExist = async (
           config,
           `
             CREATE OR REPLACE PIPELINE ${city.pipelineName}
-            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactor}/purchases.*'
+            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactorPrefix}/purchases.*'
             INTO TABLE purchases FORMAT PARQUET (
               subscriber_id <- subscriberid,
               vendor <- vendor
@@ -294,6 +296,9 @@ export const truncateTimeseriesTables = async (
 
 export const runMatchingProcess = (config: ConnectionConfig) =>
   Exec(config, `CALL run_matching_process()`);
+
+export const runUpdateSegments = (config: ConnectionConfig) =>
+  Exec(config, `CALL update_segments()`);
 
 export type NotificationTuple = [
   ts: string,

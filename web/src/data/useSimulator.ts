@@ -3,6 +3,7 @@ import {
   ensurePipelinesAreRunning,
   ensurePipelinesExist,
   runMatchingProcess,
+  runUpdateSegments,
   truncateTimeseriesTables,
 } from "@/data/queries";
 import {
@@ -41,7 +42,13 @@ export const useSimulator = () => {
   });
 
   const matchingTick = useCallback(
-    (ctx: AbortController) => runMatchingProcess({ ...config, ctx }),
+    (ctx: AbortController) => {
+      const cfgWithCtx = { ...config, ctx };
+      return Promise.all([
+        runUpdateSegments(cfgWithCtx),
+        runMatchingProcess(cfgWithCtx),
+      ]);
+    },
     [config]
   );
 
