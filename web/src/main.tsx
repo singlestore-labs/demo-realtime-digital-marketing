@@ -29,7 +29,7 @@ ReactDOM.render(
       <ErrorBoundary>
         <SWRWrapper>
           <RecoilRoot>
-            <BrowserRouter>
+            <BrowserRouter basename={import.meta.env.BASE_URL}>
               <App />
             </BrowserRouter>
           </RecoilRoot>

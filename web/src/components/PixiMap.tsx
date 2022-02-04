@@ -103,19 +103,8 @@ export const PixiMap = ({ renderer }: { renderer: PixiRenderer }) => {
 
   const attribution = (
     <>
-      Map tiles &copy;{" "}
-      <Link isExternal href="https://stadiamaps.com/">
-        Stadia Maps
-      </Link>
-      , &copy;{" "}
-      <Link isExternal href="https://openmaptiles.org">
-        OpenMapTiles
-      </Link>
-      , data &copy;{" "}
-      <Link isExternal href="https://openstreetmap.org">
-        OpenStreetMap
-      </Link>
-      , under ODbL.
+      © <Link href="https://osm.org">OpenStreetMap</Link> contributors, ©{" "}
+      <Link href="https://carto.com/about-carto/">CARTO</Link>
     </>
   );
 
@@ -123,7 +112,7 @@ export const PixiMap = ({ renderer }: { renderer: PixiRenderer }) => {
     <Box borderRadius="lg" overflow="hidden" height="100%">
       <Map
         dprs={[1, 2]}
-        provider={stadiaProvider(useColorModeValue("smooth", "smooth_dark"))}
+        provider={cartoDBProvider(useColorModeValue("light_all", "dark_all"))}
         maxZoom={20}
         center={center}
         zoom={zoom}
