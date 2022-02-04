@@ -1,0 +1,49 @@
+name: on push
+on: [push]
+jobs:
+  test-go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "^1.17"
+
+      - name: Checkout source
+        uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Test
+        run: go test ./...
+
+  deploy-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+
+      - name: Install & cache web dependencies
+        uses: bahmutov/npm-install@v1
+        with:
+          working-directory: web
+
+      - name: Check typescript
+        run: yarn run tsc
+        working-directory: web
+
+      - name: Build
+        run: yarn run vite build --base="/demo-s2cellular/"
+        working-directory: web
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4.2.3
+        with:
+          branch: gh-pages
+          folder: web/dist
