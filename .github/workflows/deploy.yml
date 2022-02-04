@@ -10,8 +10,8 @@ jobs:
       - name: Install & cache web dependencies
         uses: bahmutov/npm-install@v1
         with:
-          working_directory: web
+          working-directory: web
 
       - name: Build
         run: yarn build
-        working_directory: web
+        working-directory: web
