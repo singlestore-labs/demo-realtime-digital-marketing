@@ -7,8 +7,8 @@ import {
   QueryTuples,
   SQLError,
 } from "@/data/client";
-import { ScaleFactor, ScaleFactors } from "@/data/recoil";
 import { FUNCTIONS, PROCEDURES, SEED_DATA, TABLES } from "@/data/sql";
+import { ScaleFactor, ScaleFactors } from "@/scalefactors";
 
 export const connectionState = async (config: ConnectionConfig) => {
   try {
@@ -59,12 +59,12 @@ export const resetSchema = async (
   progress("Creating database", "info");
   await ExecNoDb(config, "CREATE DATABASE `" + config.database + "`");
 
-  for (const obj of TABLES) {
-    progress(`Creating table: ${obj.name}`, "info");
-    await Exec(config, obj.createStmt);
-  }
   for (const obj of FUNCTIONS) {
     progress(`Creating function: ${obj.name}`, "info");
+    await Exec(config, obj.createStmt);
+  }
+  for (const obj of TABLES) {
+    progress(`Creating table: ${obj.name}`, "info");
     await Exec(config, obj.createStmt);
   }
   for (const obj of PROCEDURES) {

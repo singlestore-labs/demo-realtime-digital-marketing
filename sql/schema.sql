@@ -98,33 +98,34 @@ create table if not exists notifications (
 );
 
 create rowstore reference table segments (
-  segment_id BIGINT NOT NULL PRIMARY KEY,
+  segment_id BIGINT NOT NULL,
 
   valid_interval ENUM ("minute", "hour", "day", "week", "month") NOT NULL,
   filter_kind ENUM ("olc_8", "olc_6", "request", "purchase") NOT NULL,
   filter_value TEXT NOT NULL,
 
+  PRIMARY KEY (segment_id),
   UNIQUE KEY (valid_interval, filter_kind, filter_value),
   KEY (filter_kind, filter_value)
 );
 
-create rowstore table subscriber_segments (
+create table subscriber_segments (
   city_id BIGINT NOT NULL,
   subscriber_id BIGINT NOT NULL,
   segment_id BIGINT NOT NULL,
 
-  PRIMARY KEY (city_id, subscriber_id, segment_id),
+  SORT KEY (city_id, subscriber_id, segment_id),
   SHARD KEY (city_id, subscriber_id)
 );
 
-create view match_offers_to_subscribers as (
-  with
+CREATE VIEW match_offers_to_subscribers AS (
+  WITH
     phase_1 as (
       SELECT *
       FROM
         offers,
         subscribers
-      where
+      WHERE
         offers.enabled = TRUE
 
         -- match offers to subscribers based on current location
@@ -136,16 +137,16 @@ create view match_offers_to_subscribers as (
           OR subscribers.last_notification < NOW() - INTERVAL 1 MINUTE
         )
 
-        -- only match (offer, subscriber) pairs such that
-        -- there is no matching notification in the last minute
-        AND NOT EXISTS (
-          SELECT * FROM notifications n
-          WHERE
-            ts > NOW() - INTERVAL 1 MINUTE
-            AND offers.offer_id = n.offer_id
-            AND subscribers.city_id = n.city_id
-            AND subscribers.subscriber_id = n.subscriber_id
-        )
+      -- only match (offer, subscriber) pairs such that
+      -- there is no matching notification in the last minute
+      AND NOT EXISTS (
+        SELECT * FROM notifications n
+        WHERE
+          ts > NOW() - INTERVAL 1 MINUTE
+          AND offers.offer_id = n.offer_id
+          AND subscribers.city_id = n.city_id
+          AND subscribers.subscriber_id = n.subscriber_id
+      )
     ),
     phase_2 as (
       select
@@ -175,4 +176,54 @@ create view match_offers_to_subscribers as (
     partition by city_id, subscriber_id
     order by maximum_bid_cents asc
   )
+);
+
+create view dynamic_subscriber_segments as (
+  SELECT city_id, subscriber_id, segment_id
+  FROM segments, locations
+  WHERE
+    segments.filter_kind = "olc_8"
+    AND segments.filter_value = locations.olc_8
+    AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
+    AND ts >= (
+      SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
+      FROM segments
+      WHERE segments.filter_kind = "olc_8"
+    )
+  UNION
+  SELECT city_id, subscriber_id, segment_id
+  FROM segments, locations
+  WHERE
+    segments.filter_kind = "olc_6"
+    AND segments.filter_value = locations.olc_6
+    AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
+    AND ts >= (
+      SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
+      FROM segments
+      WHERE segments.filter_kind = "olc_6"
+    )
+  UNION
+  SELECT city_id, subscriber_id, segment_id
+  FROM segments, requests
+  WHERE
+    segments.filter_kind = "request"
+    AND segments.filter_value = requests.domain
+    AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
+    AND ts >= (
+      SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
+      FROM segments
+      WHERE segments.filter_kind = "request"
+    )
+  UNION
+  SELECT city_id, subscriber_id, segment_id
+  FROM segments, purchases
+  WHERE
+    segments.filter_kind = "purchase"
+    AND segments.filter_value = purchases.vendor
+    AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
+    AND ts >= (
+      SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
+      FROM segments
+      WHERE segments.filter_kind = "purchase"
+    )
 );

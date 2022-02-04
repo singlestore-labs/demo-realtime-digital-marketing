@@ -7,10 +7,9 @@ import {
   connectionHost,
   connectionPassword,
   connectionUser,
-  isScaleFactor,
-  ScaleFactors,
-  simulatorEnabled
+  simulatorEnabled,
 } from "@/data/recoil";
+import { isScaleFactor, ScaleFactors } from "@/scalefactors";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import {
   Alert,
@@ -42,7 +41,7 @@ import {
   Switch,
   useBoolean,
   useDisclosure,
-  useToast
+  useToast,
 } from "@chakra-ui/react";
 import React, { ReactNode, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";

@@ -42,18 +42,23 @@ export const useSimulator = () => {
   });
 
   const matchingTick = useCallback(
-    (ctx: AbortController) => {
-      const cfgWithCtx = { ...config, ctx };
-      return Promise.all([
-        runUpdateSegments(cfgWithCtx),
-        runMatchingProcess(cfgWithCtx),
-      ]);
-    },
+    (ctx: AbortController) => runMatchingProcess({ ...config, ctx }),
     [config]
   );
 
   useTick(matchingTick, {
     name: "SimulatorMatcher",
+    enabled: initialized && enabled,
+    intervalMS: TICK_INTERVAL_MATCH,
+  });
+
+  const updateSegmentsTick = useCallback(
+    (ctx: AbortController) => runUpdateSegments({ ...config, ctx }),
+    [config]
+  );
+
+  useTick(updateSegmentsTick, {
+    name: "SimulatorUpdateSegments",
     enabled: initialized && enabled,
     intervalMS: TICK_INTERVAL_MATCH,
   });

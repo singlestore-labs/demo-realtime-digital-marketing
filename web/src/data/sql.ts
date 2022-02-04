@@ -69,6 +69,14 @@ const WASHINGTON_SQUARE = polygonToSQL([
   [-73.9997423, 40.7337629],
 ]);
 
+const BRUNSWICK_1 = polygonToSQL([
+  [-74.4468984, 40.4781127],
+  [-74.4497744, 40.472612],
+  [-74.4413824, 40.4664579],
+  [-74.4346859, 40.469233],
+  [-74.4468984, 40.4781127],
+]);
+
 export const SEED_DATA = [
   `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`,
   "REPLACE INTO cities VALUES (0, 'new york', 'POINT(-74.006 40.7128)', 0.5)",
@@ -88,5 +96,11 @@ export const SEED_DATA = [
   defineOffer(5, "Feedmix 10% off", WASHINGTON_SQUARE, [
     { interval: "minute", kind: "olc_6", value: "87G8P2" },
     { interval: "week", kind: "purchase", value: "Feedmix" },
+  ]),
+
+  "REPLACE INTO cities VALUES (1, 'new brunswick', 'POINT(-74.451813 40.485687)', 0.5)",
+  defineOffer(10, "10% off", BRUNSWICK_1, [
+    { interval: "hour", kind: "olc_6", value: "87G7FG" },
+    { interval: "week", kind: "purchase", value: "Skyvu" },
   ]),
 ].flat(5);

@@ -29,7 +29,13 @@ AS
 DECLARE
     _ts DATETIME = NOW(6);
     _count BIGINT;
+    _num_subscriber_segments_q QUERY(c INT) = SELECT COUNT(*) FROM subscriber_segments;
+    _num_subscriber_segments INT = SCALAR(_num_subscriber_segments_q);
 BEGIN
+    IF (_num_subscriber_segments = 0) THEN
+        RETURN 0;
+    END IF;
+
     INSERT INTO notifications SELECT _ts, * FROM match_offers_to_subscribers;
 
     _count = row_count();
@@ -53,55 +59,7 @@ BEGIN
     DELETE FROM subscriber_segments;
 
     INSERT INTO subscriber_segments
-    SELECT * FROM (
-        SELECT DISTINCT city_id, subscriber_id, segment_id
-        FROM segments, locations
-        WHERE
-            segments.filter_kind = "olc_8"
-            AND segments.filter_value = locations.olc_8
-            AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-            AND ts >= (
-                SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
-                FROM segments
-                WHERE segments.filter_kind = "olc_8"
-            )
-        UNION ALL
-        SELECT DISTINCT city_id, subscriber_id, segment_id
-        FROM segments, locations
-        WHERE
-            segments.filter_kind = "olc_6"
-            AND segments.filter_value = locations.olc_6
-            AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-            AND ts >= (
-                SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
-                FROM segments
-                WHERE segments.filter_kind = "olc_6"
-            )
-        UNION ALL
-        SELECT DISTINCT city_id, subscriber_id, segment_id
-        FROM segments, requests
-        WHERE
-            segments.filter_kind = "request"
-            AND segments.filter_value = requests.domain
-            AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-            AND ts >= (
-                SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
-                FROM segments
-                WHERE segments.filter_kind = "request"
-            )
-        UNION ALL
-        SELECT DISTINCT city_id, subscriber_id, segment_id
-        FROM segments, purchases
-        WHERE
-            segments.filter_kind = "purchase"
-            AND segments.filter_value = purchases.vendor
-            AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-            AND ts >= (
-                SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
-                FROM segments
-                WHERE segments.filter_kind = "purchase"
-            )
-    );
+    SELECT * FROM dynamic_subscriber_segments;
 
     _count = row_count();
 
