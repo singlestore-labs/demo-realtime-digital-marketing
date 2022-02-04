@@ -12,8 +12,12 @@ jobs:
         with:
           working-directory: web
 
+      - name: Check typescript
+        run: yarn run tsc
+        working-directory: web
+
       - name: Build
-        run: yarn build
+        run: yarn run vite build --base="/demo-s2cellular/"
         working-directory: web
 
       - name: Deploy
