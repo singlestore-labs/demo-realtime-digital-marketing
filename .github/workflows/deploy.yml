@@ -1,0 +1,17 @@
+name: Deploy
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+
+      - name: Install & cache web dependencies
+        uses: bahmutov/npm-install@v1
+        with:
+          working_directory: web
+
+      - name: Build
+        run: yarn build
+        working_directory: web
