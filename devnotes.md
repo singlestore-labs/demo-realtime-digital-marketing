@@ -58,3 +58,10 @@ Need to update subscribers.last_notification as well as write out the notificati
 - Check TODOs
 - configure pipeline size?
 - configure database partitions?
+
+# helpful links
+
+- draw a polygon
+  https://www.keene.edu/campus/maps/tool/
+- lookup a plus code
+  https://plus.codes/map

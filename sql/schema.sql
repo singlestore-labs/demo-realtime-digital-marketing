@@ -11,10 +11,17 @@ create rowstore table if not exists subscribers (
   city_id BIGINT NOT NULL,
   subscriber_id BIGINT NOT NULL,
   current_location GEOGRAPHYPOINT NOT NULL,
+
+  PRIMARY KEY (city_id, subscriber_id),
+  INDEX (current_location)
+);
+
+create rowstore table if not exists subscribers_last_notification (
+  city_id BIGINT NOT NULL,
+  subscriber_id BIGINT NOT NULL,
   last_notification DATETIME(6),
 
   PRIMARY KEY (city_id, subscriber_id),
-  INDEX (current_location),
   INDEX (last_notification)
 );
 
@@ -121,10 +128,15 @@ create table subscriber_segments (
 CREATE VIEW match_offers_to_subscribers AS (
   WITH
     phase_1 as (
-      SELECT *
+      SELECT offers.*, subscribers.*
       FROM
         offers,
         subscribers
+      -- grab last notification time for each subscriber
+      LEFT JOIN subscribers_last_notification ON (
+        subscribers.city_id = subscribers_last_notification.city_id
+        AND subscribers.subscriber_id = subscribers_last_notification.subscriber_id
+      )
       WHERE
         offers.enabled = TRUE
 
@@ -133,8 +145,8 @@ CREATE VIEW match_offers_to_subscribers AS (
 
         -- ensure we don't spam subscribers
         AND (
-          subscribers.last_notification IS NULL
-          OR subscribers.last_notification < NOW() - INTERVAL 1 MINUTE
+          subscribers_last_notification.last_notification IS NULL
+          OR subscribers_last_notification.last_notification < NOW() - INTERVAL 1 MINUTE
         )
 
       -- only match (offer, subscriber) pairs such that

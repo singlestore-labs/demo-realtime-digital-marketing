@@ -65,9 +65,12 @@ export const useTick = (
           return;
         }
 
+        const start = +Date.now();
+
         await tick(ctx);
 
-        setTimeout(outerTick, intervalMS);
+        const duration = +Date.now() - start;
+        setTimeout(outerTick, Math.max(0, intervalMS - duration));
       } catch (e) {
         if (ctx.signal.aborted) {
           return;

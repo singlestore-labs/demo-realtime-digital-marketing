@@ -7,6 +7,8 @@ import stringHash from "string-hash";
 
 export { FUNCTIONS, PROCEDURES, TABLES };
 
+export const S3_LINK = `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`;
+
 type Segment = {
   interval: "minute" | "hour" | "day" | "week" | "month";
   kind: "olc_8" | "olc_6" | "purchase" | "request";
@@ -78,7 +80,6 @@ const BRUNSWICK_1 = polygonToSQL([
 ]);
 
 export const SEED_DATA = [
-  `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`,
   "REPLACE INTO cities VALUES (0, 'new york', 'POINT(-74.006 40.7128)', 0.5)",
   "REPLACE INTO customers VALUES (0, 's2cellular')",
 
@@ -97,10 +98,16 @@ export const SEED_DATA = [
     { interval: "minute", kind: "olc_6", value: "87G8P2" },
     { interval: "week", kind: "purchase", value: "Feedmix" },
   ]),
+  defineOffer(3, "10% off everything!", CENTRAL_PARK, [
+    { interval: "week", kind: "olc_6", value: "87G8Q2" },
+  ]),
 
   "REPLACE INTO cities VALUES (1, 'new brunswick', 'POINT(-74.451813 40.485687)', 0.5)",
   defineOffer(10, "10% off", BRUNSWICK_1, [
     { interval: "hour", kind: "olc_6", value: "87G7FG" },
     { interval: "week", kind: "purchase", value: "Skyvu" },
+  ]),
+  defineOffer(3, "sales bonanza!!!", BRUNSWICK_1, [
+    { interval: "week", kind: "olc_6", value: "87G7FH" },
   ]),
 ].flat(5);

@@ -10,7 +10,7 @@ CREATE OR REPLACE PROCEDURE process_locations (
 AS
 BEGIN
     INSERT INTO subscribers
-    SELECT city_id, subscriber_id, lonlat, NULL
+    SELECT city_id, subscriber_id, lonlat
     FROM _batch
     ON DUPLICATE KEY UPDATE current_location = VALUES(current_location);
 
@@ -29,19 +29,13 @@ AS
 DECLARE
     _ts DATETIME = NOW(6);
     _count BIGINT;
-    _num_subscriber_segments_q QUERY(c INT) = SELECT COUNT(*) FROM subscriber_segments;
-    _num_subscriber_segments INT = SCALAR(_num_subscriber_segments_q);
 BEGIN
-    IF (_num_subscriber_segments = 0) THEN
-        RETURN 0;
-    END IF;
-
     INSERT INTO notifications SELECT _ts, * FROM match_offers_to_subscribers;
 
     _count = row_count();
 
-    INSERT INTO subscribers
-    SELECT city_id, subscriber_id, lonlat, ts
+    INSERT INTO subscribers_last_notification
+    SELECT city_id, subscriber_id, ts
     FROM notifications
     WHERE ts = _ts
     ON DUPLICATE KEY UPDATE last_notification = _ts;

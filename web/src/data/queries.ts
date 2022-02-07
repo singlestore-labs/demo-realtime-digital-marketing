@@ -7,7 +7,7 @@ import {
   QueryTuples,
   SQLError,
 } from "@/data/client";
-import { FUNCTIONS, PROCEDURES, SEED_DATA, TABLES } from "@/data/sql";
+import { FUNCTIONS, PROCEDURES, S3_LINK, SEED_DATA, TABLES } from "@/data/sql";
 import { ScaleFactor, ScaleFactors } from "@/scalefactors";
 
 export const connectionState = async (config: ConnectionConfig) => {
@@ -71,11 +71,17 @@ export const resetSchema = async (
     progress(`Creating procedure: ${obj.name}`, "info");
     await Exec(config, obj.createStmt);
   }
+
+  await Exec(config, S3_LINK);
+  await insertSeedData(config);
+
+  progress("Schema initialized", "success");
+};
+
+export const insertSeedData = async (config: ConnectionConfig) => {
   for (const q of SEED_DATA) {
     await Exec(config, q);
   }
-
-  progress("Schema initialized", "success");
 };
 
 export const ensurePipelinesExist = async (
@@ -220,6 +226,21 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
       );
       await Exec(config, `START PIPELINE IF NOT RUNNING ${name}`);
     })
+  );
+};
+
+export const checkPlans = async (config: ConnectionConfig) => {
+  const badPlans = await Query<{ planId: string }>(
+    config,
+    `
+      SELECT plan_id AS planId
+      FROM information_schema.plancache
+      WHERE plan_warnings LIKE "%empty tables%";
+    `
+  );
+
+  await Promise.all(
+    badPlans.map(({ planId }) => Exec(config, `DROP ${planId} FROM PLANCACHE`))
   );
 };
 

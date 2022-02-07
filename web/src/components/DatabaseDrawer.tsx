@@ -1,5 +1,5 @@
 import { useConnectionState } from "@/data/hooks";
-import { resetSchema } from "@/data/queries";
+import { insertSeedData, resetSchema } from "@/data/queries";
 import {
   configScaleFactor,
   connectionConfig,
@@ -273,6 +273,12 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
                 onChange={() => setSimulatorEnabled(!isSimulatorEnabled)}
               />
             </Alert>
+            {/* TODO: this is debug only, remove */}
+            <Stack>
+              <Button size="sm" onClick={() => insertSeedData(config)}>
+                Update seed data
+              </Button>
+            </Stack>
           </Stack>
         </DrawerBody>
 

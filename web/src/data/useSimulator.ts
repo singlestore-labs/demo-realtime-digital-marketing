@@ -1,5 +1,6 @@
 import { useConnectionState, useTick } from "@/data/hooks";
 import {
+  checkPlans,
   ensurePipelinesAreRunning,
   ensurePipelinesExist,
   runMatchingProcess,
@@ -16,6 +17,7 @@ import { useRecoilValue } from "recoil";
 
 const TICK_INTERVAL_MONITOR = 10 * 1000;
 const TICK_INTERVAL_MATCH = 1 * 1000;
+const TICK_INTERVAL_SEGMENTS = 10 * 1000;
 
 export const useSimulator = () => {
   const config = useRecoilValue(connectionConfig);
@@ -30,6 +32,7 @@ export const useSimulator = () => {
         ensurePipelinesExist(cfgWithCtx, scaleFactor),
         ensurePipelinesAreRunning(cfgWithCtx),
         truncateTimeseriesTables(cfgWithCtx, scaleFactor),
+        checkPlans(cfgWithCtx),
       ]);
     },
     [config, scaleFactor]
@@ -60,6 +63,6 @@ export const useSimulator = () => {
   useTick(updateSegmentsTick, {
     name: "SimulatorUpdateSegments",
     enabled: initialized && enabled,
-    intervalMS: TICK_INTERVAL_MATCH,
+    intervalMS: TICK_INTERVAL_SEGMENTS,
   });
 };
