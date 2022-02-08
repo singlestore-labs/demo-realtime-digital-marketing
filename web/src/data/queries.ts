@@ -244,30 +244,64 @@ export const checkPlans = async (config: ConnectionConfig) => {
   );
 };
 
-export const truncateTimeseriesTables = async (
-  config: ConnectionConfig,
-  scaleFactor: ScaleFactor
-) => {
-  const { maxRows } = ScaleFactors[scaleFactor];
-  const oversizedTables = await Query<{ name: string; count: number }>(
+/*
+// We only need to count the metrics from the agreggators. The rows will always
+// pass through an aggregator, so a row will be counted once in the leaf and
+// once in the aggregator.
+export const SQL_CLUSTER_THROUGHPUT = `
+    SELECT 
+        VARIABLE_NAME AS variableName, 
+        SUM(cast(VARIABLE_VALUE as UNSIGNED)) AS variableValue, 
+        NOW(6) AS readTime
+    FROM
+        INFORMATION_SCHEMA.MV_GLOBAL_STATUS 
+    WHERE 
+        (
+            variable_name = 'Rows_affected_by_writes' OR
+            variable_name = 'Rows_returned_by_reads'
+        ) AND 
+        (
+            NODE_TYPE = 'MA' OR
+            NODE_TYPE = 'CA'
+        )
+    GROUP BY
+        VARIABLE_NAME;
+`;
+
+*/
+
+export const estimatedRowCount = (config: ConnectionConfig, tables: string[]) =>
+  Query<{ tableName: string; count: number }>(
     config,
     `
       SELECT
-        table_name AS name,
+        table_name AS tableName,
         SUM(rows) AS count
       FROM information_schema.table_statistics
       WHERE
         database_name = ?
         AND partition_type = "Master"
-        AND table_name IN ("locations", "requests", "purchases", "notifications")
+        AND table_name IN (${tables.map((name) => `"${name}"`).join(",")})
       GROUP BY table_name
-      HAVING count > ${maxRows}
     `,
     config.database || "s2cellular"
   );
 
+export const truncateTimeseriesTables = async (
+  config: ConnectionConfig,
+  scaleFactor: ScaleFactor
+) => {
+  const { maxRows } = ScaleFactors[scaleFactor];
+  const tableCounts = await estimatedRowCount(config, [
+    "locations",
+    "requests",
+    "purchases",
+    "notifications",
+  ]);
+  const oversizedTables = tableCounts.filter((table) => table.count > maxRows);
+
   await Promise.all(
-    oversizedTables.map(async ({ name, count }) => {
+    oversizedTables.map(async ({ tableName, count }) => {
       const delta = count - maxRows;
 
       const { ts, cumulative_count } = await QueryOne<{
@@ -302,14 +336,14 @@ export const truncateTimeseriesTables = async (
           WHERE cumulative_count <= ${delta}
         `,
         config.database || "s2cellular",
-        name
+        tableName
       );
 
       if (ts !== null) {
         console.log(
-          `removing ${cumulative_count} rows from ${name} older than ${ts}`
+          `removing ${cumulative_count} rows from ${tableName} older than ${ts}`
         );
-        await Exec(config, `DELETE FROM ${name} WHERE ts <= ?`, ts);
+        await Exec(config, `DELETE FROM ${tableName} WHERE ts <= ?`, ts);
       }
     })
   );

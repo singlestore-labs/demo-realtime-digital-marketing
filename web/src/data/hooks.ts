@@ -1,8 +1,9 @@
 import { SQLError } from "@/data/client";
-import { connectionState } from "@/data/queries";
-import { connectionConfig } from "@/data/recoil";
-import { useEffect } from "react";
-import { useRecoilValue } from "recoil";
+import { connectionState, resetSchema } from "@/data/queries";
+import { connectionConfig, simulatorEnabled } from "@/data/recoil";
+import { useToast } from "@chakra-ui/react";
+import { useCallback, useEffect } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR from "swr";
 
 export const useConnectionState = () => {
@@ -94,4 +95,53 @@ export const useTick = (
       ctx.abort();
     };
   }, [enabled, tick, intervalMS, name]);
+};
+
+export const useResetSchema = ({
+  before,
+  after,
+}: {
+  before: () => void;
+  after: () => void;
+}) => {
+  const config = useRecoilValue(connectionConfig);
+  const { reset: resetConnectionState } = useConnectionState();
+  const [isSimulatorEnabled, setSimulatorEnabled] =
+    useRecoilState(simulatorEnabled);
+  const toast = useToast();
+
+  return useCallback(async () => {
+    // pre schema reset
+    const simulatorEnabledBefore = isSimulatorEnabled;
+    setSimulatorEnabled(false);
+    before();
+
+    // reset schema
+    await resetSchema(config, (title, status) => {
+      const id = "reset-schema";
+      if (toast.isActive(id)) {
+        toast.update(id, {
+          title,
+          status,
+          duration: 3000,
+          isClosable: status === "success",
+        });
+      } else {
+        toast({ id, title, status });
+      }
+    });
+
+    // post schema reset
+    after();
+    resetConnectionState();
+    setSimulatorEnabled(simulatorEnabledBefore);
+  }, [
+    isSimulatorEnabled,
+    setSimulatorEnabled,
+    before,
+    config,
+    after,
+    resetConnectionState,
+    toast,
+  ]);
 };

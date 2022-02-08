@@ -63,7 +63,8 @@ export const Nav = () => {
 
   const links = (
     <>
-      <NavLink to="/">Dashboard</NavLink>
+      <NavLink to="/">Overview</NavLink>
+      <NavLink to="/map">Map</NavLink>
     </>
   );
 

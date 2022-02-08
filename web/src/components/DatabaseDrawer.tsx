@@ -1,8 +1,7 @@
+import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState } from "@/data/hooks";
-import { insertSeedData, resetSchema } from "@/data/queries";
 import {
   configScaleFactor,
-  connectionConfig,
   connectionDatabase,
   connectionHost,
   connectionPassword,
@@ -13,15 +12,8 @@ import { isScaleFactor, ScaleFactors } from "@/scalefactors";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import {
   Alert,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   AlertIcon,
   AlertTitle,
-  Button,
   Drawer,
   DrawerBody,
   DrawerCloseButton,
@@ -36,15 +28,11 @@ import {
   Link,
   Select,
   SimpleGrid,
-  Spinner,
   Stack,
   Switch,
-  useBoolean,
-  useDisclosure,
-  useToast,
 } from "@chakra-ui/react";
-import React, { ReactNode, useCallback } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import React, { ReactNode } from "react";
+import { useRecoilState } from "recoil";
 
 type Props = {
   finalFocusRef: React.RefObject<HTMLButtonElement>;
@@ -97,48 +85,7 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
 
-  const config = useRecoilValue(connectionConfig);
-  const {
-    connected,
-    initialized,
-    reset: resetConnectionState,
-  } = useConnectionState();
-
-  const resetSchemaDialog = useDisclosure();
-  const [resettingSchema, resettingSchemaCtrl] = useBoolean();
-  const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
-  const toast = useToast();
-
-  const onResetSchema = useCallback(async () => {
-    const simulatorEnabledBefore = isSimulatorEnabled;
-    setSimulatorEnabled(false);
-    resettingSchemaCtrl.on();
-    await resetSchema(config, (title, status) => {
-      const id = "reset-schema";
-      if (toast.isActive(id)) {
-        toast.update(id, {
-          title,
-          status,
-          duration: 3000,
-          isClosable: status === "success",
-        });
-      } else {
-        toast({ id, title, status });
-      }
-    });
-    resettingSchemaCtrl.off();
-    resetSchemaDialog.onClose();
-    resetConnectionState();
-    setSimulatorEnabled(simulatorEnabledBefore);
-  }, [
-    config,
-    resetConnectionState,
-    resetSchemaDialog,
-    resettingSchemaCtrl,
-    toast,
-    isSimulatorEnabled,
-    setSimulatorEnabled,
-  ]);
+  const { connected, initialized } = useConnectionState();
 
   return (
     <Drawer
@@ -244,17 +191,15 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
             >
               <AlertIcon />
               <AlertTitle>schema</AlertTitle>
-              <Button
+              <ResetSchemaButton
                 position="absolute"
                 right={4}
                 top={3}
                 size="xs"
                 colorScheme={initialized ? "green" : "red"}
-                disabled={!connected}
-                onClick={resetSchemaDialog.onOpen}
               >
                 {initialized ? "Reset" : "Setup"}
-              </Button>
+              </ResetSchemaButton>
             </Alert>
             <Alert
               status={isSimulatorEnabled ? "success" : "warning"}
@@ -273,53 +218,11 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
                 onChange={() => setSimulatorEnabled(!isSimulatorEnabled)}
               />
             </Alert>
-            {/* TODO: this is debug only, remove */}
-            <Stack>
-              <Button size="sm" onClick={() => insertSeedData(config)}>
-                Update seed data
-              </Button>
-            </Stack>
           </Stack>
         </DrawerBody>
 
         <DrawerFooter></DrawerFooter>
       </DrawerContent>
-      <AlertDialog
-        isOpen={resetSchemaDialog.isOpen}
-        onClose={resetSchemaDialog.onClose}
-        closeOnEsc={false}
-        closeOnOverlayClick={false}
-        leastDestructiveRef={cancelResetSchemaBtn}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              {initialized ? "Reset" : "Setup"} {database}
-            </AlertDialogHeader>
-            <AlertDialogBody>
-              This will {initialized ? "recreate" : "create"} database{" "}
-              {database}. Are you sure?
-            </AlertDialogBody>
-            <AlertDialogFooter>
-              <Button
-                ref={cancelResetSchemaBtn}
-                onClick={resetSchemaDialog.onClose}
-                disabled={resettingSchema}
-              >
-                Cancel
-              </Button>
-              <Button
-                disabled={resettingSchema}
-                colorScheme="red"
-                onClick={onResetSchema}
-                ml={3}
-              >
-                {resettingSchema ? <Spinner /> : "Reset Schema"}
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
     </Drawer>
   );
 };

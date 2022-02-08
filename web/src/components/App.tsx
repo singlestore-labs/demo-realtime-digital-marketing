@@ -1,5 +1,6 @@
-import { Dashboard } from "@/components/Dashboard";
+import { Map } from "@/components/Map";
 import { Nav } from "@/components/Nav";
+import { Overview } from "@/components/Overview";
 import { useSimulator } from "@/data/useSimulator";
 import { Box, Flex } from "@chakra-ui/react";
 import { Route, Routes } from "react-router-dom";
@@ -12,7 +13,8 @@ function App() {
       <Nav />
       <Box m={4} flex="1">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Overview />} />
+          <Route path="/map" element={<Map />} />
         </Routes>
       </Box>
     </Flex>

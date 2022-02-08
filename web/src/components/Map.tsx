@@ -3,7 +3,7 @@ import { useNotifications } from "@/data/useNotifications";
 import { useNotificationsRenderer } from "@/render/notifications";
 import { Flex, Heading, Stack } from "@chakra-ui/react";
 
-export const Dashboard = () => {
+export const Map = () => {
   const notificationEmitter = useNotifications();
   const renderer = useNotificationsRenderer(notificationEmitter);
 

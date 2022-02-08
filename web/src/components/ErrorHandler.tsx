@@ -1,9 +1,10 @@
+import { CodeBlock } from "@/components/CodeBlock";
 import { SQLError } from "@/data/client";
 import { RepeatIcon, WarningTwoIcon } from "@chakra-ui/icons";
 import {
   Button,
   Center,
-  Code,
+  Container,
   Heading,
   HStack,
   Stack,
@@ -53,16 +54,14 @@ export class ErrorBoundary extends React.Component<unknown, State> {
             <Text textAlign="center">
               An error occurred while running the following query:
             </Text>
-            <Code display="block" whiteSpace={["inherit", "pre"]} p={6}>
-              {dedent(error.sql)}
-            </Code>
+            <CodeBlock>{dedent(error.sql)}</CodeBlock>
           </>
         );
       }
 
       return (
-        <Center my={10}>
-          <Stack gap={4} maxW="container.md">
+        <Container maxW="container.md" my={10}>
+          <Stack gap={4}>
             <Center>
               <WarningTwoIcon boxSize={20} color="red" />
             </Center>
@@ -87,7 +86,7 @@ export class ErrorBoundary extends React.Component<unknown, State> {
               </Button>
             </HStack>
           </Stack>
-        </Center>
+        </Container>
       );
     }
 
