@@ -6,7 +6,7 @@ export type ConnectionConfig = {
   ctx?: AbortController;
 };
 
-type SQLValue =
+export type SQLValue =
   | string
   | number
   | boolean
@@ -14,7 +14,7 @@ type SQLValue =
   | { [key: string]: SQLValue }
   | SQLValue[];
 
-type Row = { [key: string]: SQLValue };
+export type Row = { [key: string]: SQLValue };
 
 const regexSQLErrorCode = /^Error (?<code>\d+):/;
 

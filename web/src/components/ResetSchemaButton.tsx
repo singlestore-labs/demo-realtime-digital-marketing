@@ -41,8 +41,9 @@ export const ResetSchemaButton = (props: Props) => {
   return (
     <>
       <Button
-        disabled={!connected}
+        disabled={!connected || props.disabled}
         onClick={resetSchemaDialog.onOpen}
+        colorScheme={initialized ? "green" : "red"}
         {...props}
       />
 
@@ -76,7 +77,13 @@ export const ResetSchemaButton = (props: Props) => {
                 onClick={onResetSchema}
                 ml={3}
               >
-                {resettingSchema ? <Spinner /> : "Reset Schema"}
+                {resettingSchema ? (
+                  <Spinner />
+                ) : initialized ? (
+                  "Reset Schema"
+                ) : (
+                  "Setup Schema"
+                )}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

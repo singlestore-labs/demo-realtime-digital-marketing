@@ -100,3 +100,8 @@ export const mapBounds = atom<Bounds | undefined>({
   key: "mapBounds",
   default: undefined,
 });
+
+export const databaseDrawerIsOpen = atom({
+  key: "databaseDrawerIsOpen",
+  default: false,
+});

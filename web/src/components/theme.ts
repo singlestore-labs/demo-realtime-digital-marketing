@@ -8,4 +8,11 @@ export const chakraTheme = extendTheme({
     body: "InterVariable, sans-serif",
     mono: '"Source Code ProVariable", monospace',
   },
+  components: {
+    Link: {
+      baseStyle: (props: { colorMode: "light" | "dark" }) => ({
+        color: props.colorMode === "light" ? "blue.600" : "blue.300",
+      }),
+    },
+  },
 });

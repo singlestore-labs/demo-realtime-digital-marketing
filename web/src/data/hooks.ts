@@ -1,21 +1,45 @@
 import { SQLError } from "@/data/client";
-import { connectionState, resetSchema } from "@/data/queries";
+import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
+import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 import { useToast } from "@chakra-ui/react";
 import { useCallback, useEffect } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR from "swr";
 
-export const useConnectionState = () => {
+const defaultSchemaObjects = Object.fromEntries(
+  [
+    TABLES.map(({ name }) => [name, false]),
+    PROCEDURES.map(({ name }) => [name, false]),
+    FUNCTIONS.map(({ name }) => [name, false]),
+  ].flat()
+);
+
+export const useSchemaObjects = (paused = false) => {
   const config = useRecoilValue(connectionConfig);
-  const { data, mutate } = useSWR(["connectionState", config], () =>
-    connectionState(config)
-  );
+  const isPaused = useCallback(() => paused, [paused]);
+  return useSWR(["schemaObjects", config], () => schemaObjects(config), {
+    isPaused,
+    fallbackData: defaultSchemaObjects,
+  });
+};
+
+export const useConnectionState = () => {
+  // we are using ES6 spread syntax to remove database from config
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { database, ...config } = useRecoilValue(connectionConfig);
+
+  const connected = useSWR(["isConnected", config], () => isConnected(config));
+  const schemaObjs = useSchemaObjects(!connected.data);
+
   return {
-    connected: false,
-    initialized: false,
-    reset: mutate,
-    ...data,
+    connected: !!connected.data,
+    initialized:
+      !!connected.data && Object.values(schemaObjs.data || []).every(Boolean),
+    reset: () => {
+      connected.mutate();
+      schemaObjs.mutate();
+    },
   };
 };
 
@@ -123,11 +147,11 @@ export const useResetSchema = ({
         toast.update(id, {
           title,
           status,
-          duration: 3000,
+          duration: status === "success" ? 3000 : null,
           isClosable: status === "success",
         });
       } else {
-        toast({ id, title, status });
+        toast({ id, title, status, duration: null });
       }
     });
 

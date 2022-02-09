@@ -10,43 +10,76 @@ import {
 import { FUNCTIONS, PROCEDURES, S3_LINK, SEED_DATA, TABLES } from "@/data/sql";
 import { ScaleFactor, ScaleFactors } from "@/scalefactors";
 
-export const connectionState = async (config: ConnectionConfig) => {
+export const isConnected = async (config: ConnectionConfig) => {
   try {
-    return {
-      connected: true,
-      initialized: await hasSchema(config),
-    };
+    await ExecNoDb(config, "SELECT 1");
+    return true;
   } catch (e) {
-    return { connected: false };
+    return false;
   }
 };
 
 export const hasSchema = async (config: ConnectionConfig) => {
-  try {
-    const tables = (await QueryTuples(config, "SHOW TABLES"))
-      .map((r) => r[0])
-      .sort();
-    const procedures = (await QueryTuples(config, "SHOW PROCEDURES"))
-      .map((r) => r[0])
-      .sort();
-    const functions = (await QueryTuples(config, "SHOW FUNCTIONS"))
-      .map((r) => r[0])
-      .sort();
+  const objects = await schemaObjects(config);
+  return Object.values(objects).every((x) => x);
+};
 
-    return (
-      TABLES.every(({ name }) => tables.includes(name)) &&
-      PROCEDURES.every(({ name }) => procedures.includes(name)) &&
-      FUNCTIONS.every(({ name }) => functions.includes(name))
-    );
+type schemaObjInfo = {
+  tables: string[];
+  procedures: string[];
+  functions: string[];
+};
+
+export const schemaObjects = async (
+  config: ConnectionConfig
+): Promise<{ [key: string]: boolean }> => {
+  let objs: schemaObjInfo = { tables: [], procedures: [], functions: [] };
+
+  try {
+    objs = (
+      await QueryTuples<[keyof schemaObjInfo, string]>(
+        config,
+        `
+          SELECT "tables", table_name
+          FROM information_schema.tables
+          WHERE table_schema = ?
+          UNION ALL
+          SELECT (
+            CASE routine_type
+              WHEN 'PROCEDURE' THEN 'procedures'
+              WHEN 'FUNCTION' THEN 'functions'
+            END
+          ), routine_name
+          FROM information_schema.routines
+          WHERE routine_schema = ?
+        `,
+        config.database || "s2cellular",
+        config.database || "s2cellular"
+      )
+    ).reduce((acc, [type, name]) => {
+      acc[type].push(name);
+      return acc;
+    }, objs);
   } catch (e) {
     if (
-      e instanceof SQLError &&
-      (e.isUnknownDatabase() || e.isDatabaseRecovering())
+      !(
+        e instanceof SQLError &&
+        (e.isUnknownDatabase() || e.isDatabaseRecovering())
+      )
     ) {
-      return false;
+      throw e;
     }
-    throw e;
   }
+
+  const { tables, procedures, functions } = objs;
+
+  return Object.fromEntries(
+    [
+      TABLES.map(({ name }) => [name, tables.includes(name)]),
+      PROCEDURES.map(({ name }) => [name, procedures.includes(name)]),
+      FUNCTIONS.map(({ name }) => [name, functions.includes(name)]),
+    ].flat()
+  );
 };
 
 export const resetSchema = async (
@@ -84,31 +117,35 @@ export const insertSeedData = async (config: ConnectionConfig) => {
   }
 };
 
-export const ensurePipelinesExist = async (
+export const pipelineStatus = async (
   config: ConnectionConfig,
   scaleFactor: ScaleFactor
 ) => {
+  const scaleFactorPrefix = ScaleFactors[scaleFactor].prefix;
   type Row = {
     cityId: number;
     cityName: string;
-    pipelineName: string;
     lon: number;
     lat: number;
     diameter: number;
+    pipelineName: string;
+    needsUpdate: boolean;
   };
 
-  const scaleFactorPrefix = ScaleFactors[scaleFactor].prefix;
-
-  const pipelines = await Query<Row>(
+  return await Query<Row>(
     config,
     `
       SELECT
         expected.city_id AS cityId,
         expected.city_name AS cityName,
-        pipelineName,
         GEOGRAPHY_LONGITUDE(expected.centroid) AS lon,
         GEOGRAPHY_LATITUDE(expected.centroid) AS lat,
-        expected.diameter
+        expected.diameter,
+        pipelineName,
+        (
+          pipelines.pipeline_name IS NULL
+          OR config_json::$connection_string NOT LIKE "%${scaleFactorPrefix}%"
+        ) AS needsUpdate
       FROM (
         SELECT cities.*, CONCAT(prefix.table_col, cities.city_id) AS pipelineName
         FROM s2cellular.cities
@@ -117,24 +154,31 @@ export const ensurePipelinesExist = async (
       LEFT JOIN information_schema.pipelines
         ON pipelines.database_name = ?
         AND pipelines.pipeline_name = expected.pipelineName
-      WHERE
-        pipelines.pipeline_name IS NULL
-        OR config_json::$connection_string NOT LIKE "%${scaleFactorPrefix}%"
     `,
     config.database || "s2cellular"
   );
+};
+
+export const ensurePipelinesExist = async (
+  config: ConnectionConfig,
+  scaleFactor: ScaleFactor
+) => {
+  const scaleFactorPrefix = ScaleFactors[scaleFactor].prefix;
+  const pipelines = await pipelineStatus(config, scaleFactor);
 
   await Promise.all(
-    pipelines.map(async (city) => {
-      console.log(
-        `recreating pipeline ${city.pipelineName} for city ${city.cityName}`
-      );
+    pipelines
+      .filter((p) => p.needsUpdate)
+      .map(async (pipeline) => {
+        console.log(
+          `recreating pipeline ${pipeline.pipelineName} for city ${pipeline.cityName}`
+        );
 
-      if (city.pipelineName.startsWith("locations_")) {
-        await Exec(
-          config,
-          `
-            CREATE OR REPLACE PIPELINE ${city.pipelineName}
+        if (pipeline.pipelineName.startsWith("locations_")) {
+          await Exec(
+            config,
+            `
+            CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
             AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactorPrefix}/locations.*'
             INTO PROCEDURE process_locations FORMAT PARQUET (
               subscriber_id <- subscriberid,
@@ -148,17 +192,17 @@ export const ensurePipelinesExist = async (
                 ? + (@offset_y * ?)
               )
           `,
-          city.cityId,
-          city.lon,
-          city.diameter,
-          city.lat,
-          city.diameter
-        );
-      } else if (city.pipelineName.startsWith("requests_")) {
-        await Exec(
-          config,
-          `
-            CREATE OR REPLACE PIPELINE ${city.pipelineName}
+            pipeline.cityId,
+            pipeline.lon,
+            pipeline.diameter,
+            pipeline.lat,
+            pipeline.diameter
+          );
+        } else if (pipeline.pipelineName.startsWith("requests_")) {
+          await Exec(
+            config,
+            `
+            CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
             AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactorPrefix}/requests.*'
             INTO TABLE requests FORMAT PARQUET (
               subscriber_id <- subscriberid,
@@ -167,13 +211,13 @@ export const ensurePipelinesExist = async (
             SET ts = NOW(),
               city_id = ?;
           `,
-          city.cityId
-        );
-      } else if (city.pipelineName.startsWith("purchases_")) {
-        await Exec(
-          config,
-          `
-            CREATE OR REPLACE PIPELINE ${city.pipelineName}
+            pipeline.cityId
+          );
+        } else if (pipeline.pipelineName.startsWith("purchases_")) {
+          await Exec(
+            config,
+            `
+            CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
             AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactorPrefix}/purchases.*'
             INTO TABLE purchases FORMAT PARQUET (
               subscriber_id <- subscriberid,
@@ -182,16 +226,23 @@ export const ensurePipelinesExist = async (
             SET ts = NOW(),
               city_id = ?;
           `,
-          city.cityId
-        );
-      }
+            pipeline.cityId
+          );
+        }
 
-      await Exec(
-        config,
-        `ALTER PIPELINE ${city.pipelineName} SET OFFSETS EARLIEST DROP ORPHAN FILES`
-      );
-      await Exec(config, `START PIPELINE IF NOT RUNNING ${city.pipelineName}`);
-    })
+        await Exec(
+          config,
+          `ALTER PIPELINE ${pipeline.pipelineName} SET OFFSETS EARLIEST DROP ORPHAN FILES`
+        );
+        await Exec(
+          config,
+          `START PIPELINE IF NOT RUNNING ${pipeline.pipelineName}`
+        );
+
+        console.log(
+          `finished creating pipeline ${pipeline.pipelineName} for city ${pipeline.cityName}`
+        );
+      })
   );
 };
 
