@@ -2,7 +2,12 @@ import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { MarkdownText } from "@/components/MarkdownText";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState, useSchemaObjects } from "@/data/hooks";
-import { ensurePipelinesExist, pipelineStatus } from "@/data/queries";
+import {
+  ensurePipelinesExist,
+  estimatedRowCount,
+  insertSeedData,
+  pipelineStatus,
+} from "@/data/queries";
 import {
   configScaleFactor,
   connectionConfig,
@@ -24,10 +29,16 @@ import {
   Input,
   SimpleGrid,
   Spinner,
+  Stat,
+  StatArrow,
+  StatGroup,
+  StatHelpText,
+  StatLabel,
+  StatNumber,
   useBoolean,
   useColorMode,
 } from "@chakra-ui/react";
-import { ReactNode, useCallback } from "react";
+import { ReactNode, useCallback, useRef } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -189,6 +200,29 @@ const PipelinesSection = () => {
     workingCtrl.off();
   }, [workingCtrl, config, scaleFactor, pipelines]);
 
+  const lastRowCounts = useRef<{ [key: string]: number }>({});
+
+  const rowCounts = useSWR(
+    ["estimatedRowCount", config],
+    async () => {
+      const counts = await estimatedRowCount(config, [
+        "locations",
+        "requests",
+        "purchases",
+      ]);
+
+      return counts.map((info) => {
+        let delta = 0;
+        if (lastRowCounts.current[info.tableName]) {
+          delta = info.count - lastRowCounts.current[info.tableName];
+        }
+        lastRowCounts.current[info.tableName] = info.count;
+        return { ...info, delta };
+      });
+    },
+    { refreshInterval: 1000 }
+  );
+
   return (
     <Section
       completed={completed}
@@ -220,7 +254,54 @@ const PipelinesSection = () => {
           </Button>
         </>
       }
-      right={<Box>TODO: show write workload graph</Box>}
+      right={
+        <StatGroup>
+          {rowCounts.data?.map((info) => (
+            <Stat key={info.tableName}>
+              <StatLabel>{info.tableName}</StatLabel>
+              <StatNumber>{info.count}</StatNumber>
+              <StatHelpText>
+                <StatArrow type="increase" />
+                {info.delta}
+              </StatHelpText>
+            </Stat>
+          ))}
+        </StatGroup>
+      }
+    />
+  );
+};
+
+const OffersSection = () => {
+  const config = useRecoilValue(connectionConfig);
+  const [working, workingCtrl] = useBoolean();
+  const [done, doneCtrl] = useBoolean();
+  const onSeedData = useCallback(async () => {
+    workingCtrl.on();
+    await insertSeedData(config);
+    workingCtrl.off();
+    doneCtrl.on();
+  }, [config, doneCtrl, workingCtrl]);
+
+  return (
+    <Section
+      // TODO: check offers exist
+      completed={done}
+      title="Offers"
+      left={
+        <MarkdownText>
+          {`
+            S2 Cellular matches subscriber devices to offers which are paid for
+            by advertisers. Let's create those now.
+          `}
+        </MarkdownText>
+      }
+      right={
+        <Button onClick={onSeedData} disabled={working || done}>
+          {working && <Spinner mr={2} />}
+          {working ? "loading..." : done ? "loaded!" : "load seed data"}
+        </Button>
+      }
     />
   );
 };
@@ -301,6 +382,7 @@ export const Overview = () => {
         </Requires>
         <Requires r={initialized}>
           <PipelinesSection />
+          <OffersSection />
           <SegmentationSection />
           <MatchingSection />
         </Requires>

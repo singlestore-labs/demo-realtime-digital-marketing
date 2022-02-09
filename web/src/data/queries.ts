@@ -9,6 +9,7 @@ import {
 } from "@/data/client";
 import { FUNCTIONS, PROCEDURES, S3_LINK, SEED_DATA, TABLES } from "@/data/sql";
 import { ScaleFactor, ScaleFactors } from "@/scalefactors";
+import stringHash from "string-hash";
 
 export const isConnected = async (config: ConnectionConfig) => {
   try {
@@ -111,10 +112,46 @@ export const resetSchema = async (
   progress("Schema initialized", "success");
 };
 
-export const insertSeedData = async (config: ConnectionConfig) => {
-  for (const q of SEED_DATA) {
-    await Exec(config, q);
-  }
+export const insertSeedData = (config: ConnectionConfig) =>
+  Promise.all(SEED_DATA.map((q) => Exec(config, q)));
+
+export type SegmentConfig = {
+  kind: "olc_8" | "olc_6" | "purchase" | "request";
+  interval: "minute" | "hour" | "day" | "week" | "month";
+  value: string;
+};
+
+export type OfferConfig = {
+  bidCents: number;
+  message: string;
+  zone: string;
+  segments: SegmentConfig[];
+};
+
+export const createOffers = async (
+  config: ConnectionConfig,
+  offers: OfferConfig[]
+) => {
+  const seenSegments = new Set();
+  const segments = offers.flatMap(({ segments }) =>
+    segments
+      .map((s) => ({
+        id: stringHash(`${s.interval}-${s.kind}-${s.value}`),
+        segment: s,
+      }))
+      .filter((s) => (seenSegments.has(s.id) ? false : seenSegments.add(s.id)))
+  );
+
+  // TODO: start up here - we need to create all the segments and offers in two multi-inserts
+  // then switch insertSeedData to use this instead of the old one
+  await Exec(
+    config,
+    `
+    REPLACE INTO segments
+  `
+  );
+
+  return 1;
 };
 
 export const pipelineStatus = async (

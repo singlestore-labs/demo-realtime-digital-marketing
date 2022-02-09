@@ -27,6 +27,9 @@
       "@/sql/*": [
         "../sql/*"
       ],
+      "nyc_polygons.json": [
+        "../data/nyc_polygons.json"
+      ],
     }
   },
   "include": [

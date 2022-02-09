@@ -3,11 +3,28 @@ import { polygonToSQL } from "@/geo";
 import FUNCTIONS from "@/sql/functions.sql";
 import PROCEDURES from "@/sql/procedures.sql";
 import TABLES from "@/sql/schema.sql";
+import NYC_POLYGONS from "nyc_polygons.json";
 import stringHash from "string-hash";
 
 export { FUNCTIONS, PROCEDURES, TABLES };
 
 export const S3_LINK = `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`;
+
+const CENTRAL_PARK = polygonToSQL([
+  [-73.9582079, 40.8019855],
+  [-73.9827617, 40.7683217],
+  [-73.972116, 40.7636412],
+  [-73.9470472, 40.7978272],
+  [-73.9582079, 40.8019855],
+]);
+
+const WASHINGTON_SQUARE = polygonToSQL([
+  [-73.9997423, 40.7337629],
+  [-74.0031335, 40.7281694],
+  [-73.9966516, 40.7252749],
+  [-73.991801, 40.7308361],
+  [-73.9997423, 40.7337629],
+]);
 
 type Segment = {
   interval: "minute" | "hour" | "day" | "week" | "month";
@@ -55,30 +72,6 @@ const defineOffer = (
   ];
 };
 
-const CENTRAL_PARK = polygonToSQL([
-  [-73.9582079, 40.8019855],
-  [-73.9827617, 40.7683217],
-  [-73.972116, 40.7636412],
-  [-73.9470472, 40.7978272],
-  [-73.9582079, 40.8019855],
-]);
-
-const WASHINGTON_SQUARE = polygonToSQL([
-  [-73.9997423, 40.7337629],
-  [-74.0031335, 40.7281694],
-  [-73.9966516, 40.7252749],
-  [-73.991801, 40.7308361],
-  [-73.9997423, 40.7337629],
-]);
-
-const BRUNSWICK_1 = polygonToSQL([
-  [-74.4468984, 40.4781127],
-  [-74.4497744, 40.472612],
-  [-74.4413824, 40.4664579],
-  [-74.4346859, 40.469233],
-  [-74.4468984, 40.4781127],
-]);
-
 export const SEED_DATA = [
   "REPLACE INTO cities VALUES (0, 'new york', 'POINT(-74.006 40.7128)', 0.5)",
   "REPLACE INTO customers VALUES (0, 's2cellular')",
@@ -102,12 +95,9 @@ export const SEED_DATA = [
     { interval: "week", kind: "olc_6", value: "87G8Q2" },
   ]),
 
-  "REPLACE INTO cities VALUES (1, 'new brunswick', 'POINT(-74.451813 40.485687)', 0.5)",
-  defineOffer(10, "10% off", BRUNSWICK_1, [
-    { interval: "hour", kind: "olc_6", value: "87G7FG" },
-    { interval: "week", kind: "purchase", value: "Skyvu" },
-  ]),
-  defineOffer(3, "sales bonanza!!!", BRUNSWICK_1, [
-    { interval: "week", kind: "olc_6", value: "87G7FH" },
-  ]),
+  NYC_POLYGONS.map((poly) =>
+    defineOffer(8, "10% off nyc neighborhood", poly, [
+      { interval: "week", kind: "olc_6", value: "87G8P2" },
+    ])
+  ),
 ].flat(5);
