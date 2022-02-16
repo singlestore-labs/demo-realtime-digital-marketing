@@ -28,3 +28,28 @@ Matching -> sample notifications generated
   https://www.keene.edu/campus/maps/tool/
 - lookup a plus code
   https://plus.codes/map
+
+# next steps:
+
+- overview page
+  - render offer polygons? something like showing all of the offers on a map might be a good way to explain offers
+    - create offer modal (can reuse on other page - build offer form separate from model)
+      - should support loading & editing an existing offer
+    - draw offer on polygon
+    - when defining a segment should show num matching subscribers in real time
+    - give one or two examples of offers + segments
+  - segmentation
+    - update segments button with time taken
+    - provide estimate of how much work it needs to do based on the data
+    - viz could be pick a segment and specify number of matching subscribers
+      - or a bar chart of segments/num subscribers
+  - matching
+    - explain matching
+    - match button with time taken
+    - show table of last notifications sent & amount paid & offer id
+- map page
+  - stats: num subscribers, num offers, num cities, num segments
+  - line graphs: locations, requests, purchases, notifications
+  - duration stats: update segments, run matching process
+  - offer creator
+  - visualize offers on the map?

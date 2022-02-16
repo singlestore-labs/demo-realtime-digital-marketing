@@ -13,6 +13,7 @@ import {
   connectionConfig,
   connectionDatabase,
 } from "@/data/recoil";
+import { useTimeseries } from "@/data/useTimeseries";
 import { CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -29,16 +30,20 @@ import {
   Input,
   SimpleGrid,
   Spinner,
-  Stat,
-  StatArrow,
-  StatGroup,
-  StatHelpText,
-  StatLabel,
-  StatNumber,
+  Text,
   useBoolean,
   useColorMode,
 } from "@chakra-ui/react";
-import { ReactNode, useCallback, useRef } from "react";
+import {
+  AnimatedAxis,
+  AnimatedLineSeries,
+  Axis,
+  Grid as VisxGrid,
+  Tooltip,
+  XYChart,
+} from "@visx/xychart";
+import { format } from "d3-format";
+import { ReactNode, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -200,28 +205,27 @@ const PipelinesSection = () => {
     workingCtrl.off();
   }, [workingCtrl, config, scaleFactor, pipelines]);
 
-  const lastRowCounts = useRef<{ [key: string]: number }>({});
-
-  const rowCounts = useSWR(
-    ["estimatedRowCount", config],
-    async () => {
+  const data = useTimeseries({
+    name: "estimatedRowCount",
+    emptyValue: { locations: 0, requests: 0, purchases: 0 },
+    fetcher: useCallback(async () => {
       const counts = await estimatedRowCount(config, [
         "locations",
         "requests",
         "purchases",
       ]);
 
-      return counts.map((info) => {
-        let delta = 0;
-        if (lastRowCounts.current[info.tableName]) {
-          delta = info.count - lastRowCounts.current[info.tableName];
-        }
-        lastRowCounts.current[info.tableName] = info.count;
-        return { ...info, delta };
-      });
-    },
-    { refreshInterval: 1000 }
-  );
+      return counts.reduce(
+        (acc, { tableName, count }) => {
+          acc[tableName] = count;
+          return acc;
+        },
+        { locations: 0, requests: 0, purchases: 0 }
+      );
+    }, [config]),
+    limit: 5,
+    intervalMS: 1000,
+  });
 
   return (
     <Section
@@ -255,18 +259,66 @@ const PipelinesSection = () => {
         </>
       }
       right={
-        <StatGroup>
-          {rowCounts.data?.map((info) => (
-            <Stat key={info.tableName}>
-              <StatLabel>{info.tableName}</StatLabel>
-              <StatNumber>{info.count}</StatNumber>
-              <StatHelpText>
-                <StatArrow type="increase" />
-                {info.delta}
-              </StatHelpText>
-            </Stat>
-          ))}
-        </StatGroup>
+        <XYChart
+          height={300}
+          xScale={{ type: "time" }}
+          yScale={{ type: "linear" }}
+        >
+          <Axis orientation="bottom" />
+          <AnimatedAxis orientation="left" tickFormat={format("~s")} />
+          <VisxGrid columns={false} numTicks={4} />
+          <AnimatedLineSeries
+            dataKey="locations"
+            data={data}
+            xAccessor={(datum) => datum?.ts}
+            yAccessor={(datum) => datum?.locations}
+          />
+          <AnimatedLineSeries
+            dataKey="requests"
+            data={data}
+            xAccessor={(datum) => datum?.ts}
+            yAccessor={(datum) => datum?.requests}
+          />
+          <AnimatedLineSeries
+            dataKey="purchases"
+            data={data}
+            xAccessor={(datum) => datum?.ts}
+            yAccessor={(datum) => datum?.purchases}
+          />
+          <Tooltip<typeof data[0]>
+            showVerticalCrosshair
+            showSeriesGlyphs
+            detectBounds={false}
+            renderTooltip={({ tooltipData, colorScale }) => {
+              if (!colorScale || !tooltipData) {
+                return null;
+              }
+              return Object.keys(tooltipData.datumByKey)
+                .sort(
+                  (a, b) =>
+                    // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
+                    tooltipData.datumByKey[b].datum[b] -
+                    // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
+                    tooltipData.datumByKey[a].datum[a]
+                )
+                .map((key) => {
+                  const { datum } = tooltipData.datumByKey[key];
+                  // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
+                  const value = datum[key] as number;
+                  return (
+                    <Text
+                      mb={1}
+                      key={key}
+                      color={colorScale(key)}
+                      fontSize="sm"
+                    >
+                      {key}: {format(".0~s")(value)}
+                    </Text>
+                  );
+                });
+            }}
+          />
+        </XYChart>
       }
     />
   );

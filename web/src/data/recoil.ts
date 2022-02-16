@@ -23,25 +23,25 @@ const localStorageEffect =
 export const connectionHost = atom({
   key: "connectionHost",
   default: "http://127.0.0.1",
-  effects_UNSTABLE: [localStorageEffect()],
+  effects: [localStorageEffect()],
 });
 
 export const connectionUser = atom({
   key: "connectionUser",
   default: "root",
-  effects_UNSTABLE: [localStorageEffect()],
+  effects: [localStorageEffect()],
 });
 
 export const connectionPassword = atom({
   key: "connectionPassword",
   default: "",
-  effects_UNSTABLE: [localStorageEffect()],
+  effects: [localStorageEffect()],
 });
 
 export const connectionDatabase = atom({
   key: "connectionDatabase",
   default: "s2cellular",
-  effects_UNSTABLE: [localStorageEffect()],
+  effects: [localStorageEffect()],
 });
 
 export const connectionConfig = selector<ConnectionConfig>({
@@ -61,13 +61,13 @@ export const connectionConfig = selector<ConnectionConfig>({
 export const configScaleFactor = atom<ScaleFactor>({
   key: "configScaleFactor",
   default: "small",
-  effects_UNSTABLE: [localStorageEffect()],
+  effects: [localStorageEffect()],
 });
 
 export const simulatorEnabled = atom<boolean>({
   key: "simulatorEnabled",
   default: true,
-  effects_UNSTABLE: [localStorageEffect()],
+  effects: [localStorageEffect()],
 });
 
 export const MAX_NOTIFICATIONS = 100;

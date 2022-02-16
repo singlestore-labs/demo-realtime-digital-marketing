@@ -358,13 +358,16 @@ export const SQL_CLUSTER_THROUGHPUT = `
 
 */
 
-export const estimatedRowCount = (config: ConnectionConfig, tables: string[]) =>
-  Query<{ tableName: string; count: number }>(
+export const estimatedRowCount = <TableName extends string>(
+  config: ConnectionConfig,
+  tables: TableName[]
+) =>
+  Query<{ tableName: TableName; count: number }>(
     config,
     `
       SELECT
         table_name AS tableName,
-        SUM(rows) AS count
+        SUM(rows) :> BIGINT AS count
       FROM information_schema.table_statistics
       WHERE
         database_name = ?
