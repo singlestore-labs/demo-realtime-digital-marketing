@@ -18,6 +18,7 @@ import { CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
+  Center,
   Container,
   Divider,
   FormControl,
@@ -42,6 +43,7 @@ import {
   Tooltip,
   XYChart,
 } from "@visx/xychart";
+import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 import { format } from "d3-format";
 import { ReactNode, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -227,6 +229,98 @@ const PipelinesSection = () => {
     intervalMS: 1000,
   });
 
+  const emptyChart = data.every(
+    (d) => d.locations + d.purchases + d.requests === 0
+  );
+
+  const ensurePipelinesButton = (
+    <Button
+      colorScheme="blue"
+      size="sm"
+      onClick={onEnsurePipelines}
+      disabled={completed}
+    >
+      {(working || completed) && <Spinner mr={2} />}
+      {working
+        ? "Creating Pipelines"
+        : completed
+        ? "...waiting for data"
+        : "Create pipelines"}
+    </Button>
+  );
+
+  const renderTooltip = useCallback(
+    ({ tooltipData, colorScale }: RenderTooltipParams<typeof data[0]>) => {
+      if (!colorScale || !tooltipData) {
+        return null;
+      }
+      return Object.keys(tooltipData.datumByKey)
+        .sort(
+          (a, b) =>
+            // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
+            tooltipData.datumByKey[b].datum[b] -
+            // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
+            tooltipData.datumByKey[a].datum[a]
+        )
+        .map((key) => {
+          const { datum } = tooltipData.datumByKey[key];
+          // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
+          const value = datum[key] as number;
+          return (
+            <Text mb={1} key={key} color={colorScale(key)} fontSize="sm">
+              {key}: {format(".4~s")(value)}
+            </Text>
+          );
+        });
+    },
+    []
+  );
+
+  const chart = (
+    <XYChart
+      height={300}
+      xScale={{ type: "time" }}
+      yScale={{ type: "log", base: 10, nice: true }}
+      theme={colorMode === "light" ? lightTheme : darkTheme}
+    >
+      <Axis orientation="bottom" numTicks={3} />
+      <Axis
+        orientation="right"
+        tickFormat={(v) => {
+          const e = Math.log10(v);
+          if (e !== Math.floor(e)) {
+            // ignore non-exact power of ten
+            return;
+          }
+          return format("~s")(v);
+        }}
+      />
+      <AnimatedLineSeries
+        dataKey="locations"
+        data={data}
+        xAccessor={(datum) => datum?.ts}
+        yAccessor={(datum) => datum?.locations}
+      />
+      <AnimatedLineSeries
+        dataKey="requests"
+        data={data}
+        xAccessor={(datum) => datum?.ts}
+        yAccessor={(datum) => datum?.requests}
+      />
+      <AnimatedLineSeries
+        dataKey="purchases"
+        data={data}
+        xAccessor={(datum) => datum?.ts}
+        yAccessor={(datum) => datum?.purchases}
+      />
+      <Tooltip
+        showVerticalCrosshair
+        detectBounds={false}
+        renderTooltip={renderTooltip}
+      />
+    </XYChart>
+  );
+
   return (
     <Section
       completed={completed}
@@ -243,92 +337,10 @@ const PipelinesSection = () => {
             [2]: https://aws.amazon.com/s3/
           `}
           </MarkdownText>
-          <Button
-            colorScheme="blue"
-            size="sm"
-            onClick={onEnsurePipelines}
-            disabled={completed}
-          >
-            {working && <Spinner mr={2} />}
-            {working
-              ? "Creating Pipelines"
-              : completed
-              ? "Pipelines are already setup"
-              : "Create pipelines"}
-          </Button>
         </>
       }
       right={
-        <XYChart
-          height={300}
-          xScale={{ type: "time" }}
-          yScale={{ type: "log", base: 10, nice: true }}
-          theme={colorMode === "light" ? lightTheme : darkTheme}
-        >
-          <Axis orientation="bottom" />
-          <Axis
-            orientation="left"
-            tickFormat={(v) => {
-              const e = Math.log10(v);
-              if (e !== Math.floor(e)) {
-                // ignore non-exact power of ten
-                return;
-              }
-              return format("~s")(v);
-            }}
-          />
-          <AnimatedLineSeries
-            dataKey="locations"
-            data={data}
-            xAccessor={(datum) => datum?.ts}
-            yAccessor={(datum) => datum?.locations}
-          />
-          <AnimatedLineSeries
-            dataKey="requests"
-            data={data}
-            xAccessor={(datum) => datum?.ts}
-            yAccessor={(datum) => datum?.requests}
-          />
-          <AnimatedLineSeries
-            dataKey="purchases"
-            data={data}
-            xAccessor={(datum) => datum?.ts}
-            yAccessor={(datum) => datum?.purchases}
-          />
-          <Tooltip<typeof data[0]>
-            showVerticalCrosshair
-            showSeriesGlyphs
-            detectBounds={false}
-            renderTooltip={({ tooltipData, colorScale }) => {
-              if (!colorScale || !tooltipData) {
-                return null;
-              }
-              return Object.keys(tooltipData.datumByKey)
-                .sort(
-                  (a, b) =>
-                    // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-                    tooltipData.datumByKey[b].datum[b] -
-                    // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-                    tooltipData.datumByKey[a].datum[a]
-                )
-                .map((key) => {
-                  const { datum } = tooltipData.datumByKey[key];
-                  // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-                  const value = datum[key] as number;
-                  return (
-                    <Text
-                      mb={1}
-                      key={key}
-                      color={colorScale(key)}
-                      fontSize="sm"
-                    >
-                      {key}: {format(".4~s")(value)}
-                    </Text>
-                  );
-                });
-            }}
-          />
-        </XYChart>
+        emptyChart ? <Center h="100%">{ensurePipelinesButton}</Center> : chart
       }
     />
   );
