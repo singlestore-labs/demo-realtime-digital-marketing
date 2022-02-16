@@ -35,10 +35,10 @@ import {
   useColorMode,
 } from "@chakra-ui/react";
 import {
-  AnimatedAxis,
   AnimatedLineSeries,
   Axis,
-  Grid as VisxGrid,
+  darkTheme,
+  lightTheme,
   Tooltip,
   XYChart,
 } from "@visx/xychart";
@@ -189,6 +189,7 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
 };
 
 const PipelinesSection = () => {
+  const { colorMode } = useColorMode();
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const pipelines = useSWR(["pipelineStatus", config, scaleFactor], () =>
@@ -207,7 +208,6 @@ const PipelinesSection = () => {
 
   const data = useTimeseries({
     name: "estimatedRowCount",
-    emptyValue: { locations: 0, requests: 0, purchases: 0 },
     fetcher: useCallback(async () => {
       const counts = await estimatedRowCount(config, [
         "locations",
@@ -262,11 +262,21 @@ const PipelinesSection = () => {
         <XYChart
           height={300}
           xScale={{ type: "time" }}
-          yScale={{ type: "linear" }}
+          yScale={{ type: "log", base: 10, nice: true }}
+          theme={colorMode === "light" ? lightTheme : darkTheme}
         >
           <Axis orientation="bottom" />
-          <AnimatedAxis orientation="left" tickFormat={format("~s")} />
-          <VisxGrid columns={false} numTicks={4} />
+          <Axis
+            orientation="left"
+            tickFormat={(v) => {
+              const e = Math.log10(v);
+              if (e !== Math.floor(e)) {
+                // ignore non-exact power of ten
+                return;
+              }
+              return format("~s")(v);
+            }}
+          />
           <AnimatedLineSeries
             dataKey="locations"
             data={data}
@@ -312,7 +322,7 @@ const PipelinesSection = () => {
                       color={colorScale(key)}
                       fontSize="sm"
                     >
-                      {key}: {format(".0~s")(value)}
+                      {key}: {format(".4~s")(value)}
                     </Text>
                   );
                 });

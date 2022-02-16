@@ -1,5 +1,4 @@
-import dayjs from "dayjs";
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import useSWR from "swr";
 
 export type TimeseriesOpts<T> = {
@@ -7,23 +6,12 @@ export type TimeseriesOpts<T> = {
   name: string;
   limit: number;
   intervalMS: number;
-  emptyValue: T;
 };
 
 export const useTimeseries = <T>(
   opts: TimeseriesOpts<T>
 ): (T & { ts: Date })[] => {
-  const defaultValue = useMemo(() => {
-    const now = dayjs().startOf("second");
-    return Array(opts.limit)
-      .fill(opts.emptyValue)
-      .map((x, i) => ({
-        ...x,
-        ts: now.subtract((opts.limit - i) * opts.intervalMS, "ms").toDate(),
-      }));
-  }, [opts.emptyValue, opts.intervalMS, opts.limit]);
-
-  const cache = useRef<(T & { ts: Date })[]>(defaultValue);
+  const cache = useRef<(T & { ts: Date })[]>([]);
 
   const { data } = useSWR(
     ["timeseries", opts.name],
@@ -44,5 +32,5 @@ export const useTimeseries = <T>(
     }
   );
 
-  return data || defaultValue;
+  return data || [];
 };
