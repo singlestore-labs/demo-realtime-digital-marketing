@@ -1,5 +1,6 @@
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { MarkdownText } from "@/components/MarkdownText";
+import { OfferMap } from "@/components/OfferMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState, useSchemaObjects } from "@/data/hooks";
 import {
@@ -326,9 +327,8 @@ const PipelinesSection = () => {
       completed={completed}
       title="Ingest data"
       left={
-        <>
-          <MarkdownText>
-            {`
+        <MarkdownText>
+          {`
             S2 Cellular needs location, request, and purchase history from each
             of it's subscribers in real time. We will simulate these streams by
             using [SingleStore Pipelines][1] to ingest data from [AWS S3][2].
@@ -336,8 +336,7 @@ const PipelinesSection = () => {
             [1]: https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html
             [2]: https://aws.amazon.com/s3/
           `}
-          </MarkdownText>
-        </>
+        </MarkdownText>
       }
       right={
         emptyChart ? <Center h="100%">{ensurePipelinesButton}</Center> : chart
@@ -363,19 +362,20 @@ const OffersSection = () => {
       completed={done}
       title="Offers"
       left={
-        <MarkdownText>
-          {`
-            S2 Cellular matches subscriber devices to offers which are paid for
-            by advertisers. Let's create those now.
-          `}
-        </MarkdownText>
+        <>
+          <MarkdownText>
+            {`
+              S2 Cellular matches subscriber devices to offers which are paid for
+              by advertisers. Let's create those now.
+            `}
+          </MarkdownText>
+          <Button onClick={onSeedData} disabled={working || done}>
+            {working && <Spinner mr={2} />}
+            {working ? "loading..." : done ? "loaded!" : "load seed data"}
+          </Button>
+        </>
       }
-      right={
-        <Button onClick={onSeedData} disabled={working || done}>
-          {working && <Spinner mr={2} />}
-          {working ? "loading..." : done ? "loaded!" : "load seed data"}
-        </Button>
-      }
+      right={<OfferMap height={300} defaultZoom={11} />}
     />
   );
 };

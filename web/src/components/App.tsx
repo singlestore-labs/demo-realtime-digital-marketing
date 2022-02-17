@@ -1,5 +1,5 @@
-import { Map } from "@/components/Map";
 import { Nav } from "@/components/Nav";
+import { NotificationsMap } from "@/components/NotificationsMap";
 import { Overview } from "@/components/Overview";
 import { useSimulator } from "@/data/useSimulator";
 import { Box, Flex } from "@chakra-ui/react";
@@ -14,7 +14,7 @@ function App() {
       <Box m={4} flex="1">
         <Routes>
           <Route path="/" element={<Overview />} />
-          <Route path="/map" element={<Map />} />
+          <Route path="/map" element={<NotificationsMap />} />
         </Routes>
       </Box>
     </Flex>

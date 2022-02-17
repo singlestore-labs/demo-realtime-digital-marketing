@@ -8,7 +8,9 @@ import {
   SQLError,
 } from "@/data/client";
 import { FUNCTIONS, PROCEDURES, S3_LINK, SEED_DATA, TABLES } from "@/data/sql";
+import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor, ScaleFactors } from "@/scalefactors";
+import { Bounds } from "pigeon-maps";
 import stringHash from "string-hash";
 
 export const isConnected = async (config: ConnectionConfig) => {
@@ -453,10 +455,11 @@ export type NotificationTuple = [
   lat: number
 ];
 
-export const queryNotifications = (
+export const queryNotificationsInBounds = (
   config: ConnectionConfig,
   since: string,
-  limit: number
+  limit: number,
+  bounds: Bounds
 ) =>
   QueryTuples<NotificationTuple>(
     config,
@@ -467,9 +470,33 @@ export const queryNotifications = (
         GEOGRAPHY_LONGITUDE(lonlat) AS lon,
         GEOGRAPHY_LATITUDE(lonlat) AS lat
       FROM notifications
-      WHERE ts > ?
+      WHERE
+        ts > ?
+        AND GEOGRAPHY_CONTAINS(?, lonlat)
       ORDER BY ts ASC
       LIMIT ${limit}
     `,
-    since
+    since,
+    boundsToWKTPolygon(bounds)
+  );
+
+export const queryOffersInBounds = (
+  config: ConnectionConfig,
+  limit: number,
+  bounds?: Bounds
+) =>
+  QueryTuples<NotificationTuple>(
+    config,
+    `
+      SELECT
+        offer_id AS offerId,
+        notification_zone AS notificationZone,
+        notification_content AS notificationContent,
+        notification_target AS notificationTarget,
+        maximum_bid_cents AS maximumBidCents
+      FROM offers
+      WHERE (? IS NULL OR GEOGRAPHY_INTERSECTS(?, notification_zone))
+      LIMIT ${limit}
+    `,
+    bounds ? boundsToWKTPolygon(bounds) : null
   );

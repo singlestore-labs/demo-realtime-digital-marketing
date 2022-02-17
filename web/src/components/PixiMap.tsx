@@ -1,10 +1,8 @@
-import { mapBounds } from "@/data/recoil";
 import { Box, Link } from "@chakra-ui/react";
-import { useColorModeValue } from "@chakra-ui/system";
-import { Map, PigeonProps, Point } from "pigeon-maps";
+import "@pixi/graphics-extras";
+import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import React, { useLayoutEffect, useState } from "react";
-import { useSetRecoilState } from "recoil";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -13,56 +11,61 @@ const stamenProvider =
       dpr >= 2 ? "@2x" : ""
     }.png`;
 
-const stadiaProvider =
-  (flavor: "smooth" | "smooth_dark") =>
-  (x: number, y: number, z: number, dpr = 1) =>
-    `https://tiles.stadiamaps.com/tiles/alidade_${flavor}/${z}/${x}/${y}${
-      dpr >= 2 ? "@2x" : ""
-    }.png`;
-
-const cartoDBProvider =
-  (flavor: "light_all" | "dark_all") =>
-  (x: number, y: number, z: number, dpr = 1) =>
-    `https://a.basemaps.cartocdn.com/${flavor}/${z}/${x}/${y}${
-      dpr >= 2 ? "@2x" : ""
-    }.png`;
+const stamenAttribution = (
+  <>
+    Map tiles by <Link href="http://stamen.com">Stamen Design</Link>, under{" "}
+    <Link href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</Link>.
+    Data by <Link href="http://openstreetmap.org">OpenStreetMap</Link>, under{" "}
+    <Link href="http://www.openstreetmap.org/copyright">ODbL</Link>.
+  </>
+);
 
 export const DEFAULT_CENTER = [40.756480069543976, -73.95583135057566] as [
   number,
   number
 ];
+export const DEFAULT_ZOOM = 12;
 
 type RendererConfig = {
+  scene: PIXI.Container;
   width: number;
   height: number;
+  getBounds: () => Bounds | undefined;
   latLngToPixel: (latLng: Point) => Point;
 };
 
-export type PixiRenderer = (ctx: RendererConfig) => {
-  scene: PIXI.Container;
-  draw: (delta: number) => void;
-  destroy: () => void;
+export type UsePixiRenderer = (ctx: RendererConfig) => {
+  setup?: () => void;
+  update?: (delta: number) => void;
 };
 
-type PixiMapLayerProps = { renderer: PixiRenderer } & PigeonProps;
+type PixiMapLayerProps = {
+  useRenderer: UsePixiRenderer;
+} & Omit<RendererConfig, "scene">;
 
 const PixiMapLayer = ({
-  mapState,
+  width,
+  height,
+  getBounds,
   latLngToPixel,
-  renderer,
+  useRenderer,
 }: PixiMapLayerProps) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  const { width, height } = mapState || { width: 0, height: 0 };
+
+  const sceneRef = useRef(new PIXI.Container());
+  const { setup, update } = useRenderer({
+    scene: sceneRef.current,
+    width,
+    height,
+    getBounds,
+    latLngToPixel,
+  });
 
   useLayoutEffect(() => {
     if (!canvasRef.current) {
       // We expect canvasRef to always be set here because we are using
       // useLayoutEffect which fires syncronously after the component mounts.
       throw new Error("No canvas ref");
-    }
-
-    if (width <= 0 || height <= 0 || !latLngToPixel) {
-      return;
     }
 
     console.log("PixiMapLayer: Setup");
@@ -75,55 +78,91 @@ const PixiMapLayer = ({
       antialias: true,
     });
 
-    const { scene, draw, destroy } = renderer({ width, height, latLngToPixel });
+    const scene = sceneRef.current;
     app.stage.addChild(scene);
 
-    app.ticker.add((delta) => {
-      draw(delta);
-    });
+    setup?.();
+    if (update) {
+      app.ticker.add((delta) => {
+        update(delta);
+      });
+    }
 
     return () => {
       console.log("PixiMapLayer: Destroy");
-      destroy();
+      app.stage.removeChild(scene);
       app.destroy(false, {
-        children: true,
+        children: false,
         texture: true,
         baseTexture: true,
       });
     };
-  }, [width, height, latLngToPixel, renderer]);
+  }, [height, setup, update, width]);
 
   return <canvas ref={canvasRef} />;
 };
 
-export const PixiMap = ({ renderer }: { renderer: PixiRenderer }) => {
-  const [center, setCenter] = useState(DEFAULT_CENTER);
-  const [zoom, setZoom] = useState(12);
-  const setBounds = useSetRecoilState(mapBounds);
+type RequiresInitLayerProps = {
+  useRenderer: UsePixiRenderer;
+  getBounds: () => Bounds | undefined;
+} & PigeonProps;
 
-  const attribution = (
-    <>
-      © <Link href="https://osm.org">OpenStreetMap</Link> contributors, ©{" "}
-      <Link href="https://carto.com/about-carto/">CARTO</Link>
-    </>
-  );
+const RequiresInitLayer = ({
+  mapState,
+  latLngToPixel,
+  useRenderer,
+  getBounds,
+}: RequiresInitLayerProps) => {
+  const { width, height } = mapState || { width: 0, height: 0 };
+  if (width <= 0 || height <= 0 || !latLngToPixel) {
+    return null;
+  }
 
   return (
-    <Box borderRadius="lg" overflow="hidden" height="100%">
+    <PixiMapLayer
+      useRenderer={useRenderer}
+      width={width}
+      height={height}
+      getBounds={getBounds}
+      latLngToPixel={latLngToPixel}
+    />
+  );
+};
+
+export type PixiMapProps = {
+  useRenderer: UsePixiRenderer;
+  height?: number | string;
+  defaultCenter?: [number, number];
+  defaultZoom?: number;
+};
+
+export const PixiMap = ({
+  useRenderer,
+  height = "100%",
+  defaultCenter = DEFAULT_CENTER,
+  defaultZoom = DEFAULT_ZOOM,
+}: PixiMapProps) => {
+  const [center, setCenter] = useState(defaultCenter);
+  const [zoom, setZoom] = useState(defaultZoom);
+  const boundsRef = useRef<Bounds | undefined>();
+  const getBounds = useCallback(() => boundsRef.current, []);
+
+  return (
+    <Box borderRadius="lg" overflow="hidden" height={height}>
       <Map
         dprs={[1, 2]}
-        provider={cartoDBProvider(useColorModeValue("light_all", "dark_all"))}
+        provider={stamenProvider("toner-lite")}
+        attribution={stamenAttribution}
         maxZoom={20}
         center={center}
         zoom={zoom}
         onBoundsChanged={({ center, zoom, bounds }) => {
           setCenter(center);
           setZoom(zoom);
-          setBounds(bounds);
+          boundsRef.current = bounds;
         }}
-        attribution={attribution}
       >
-        <PixiMapLayer renderer={renderer} />
+        <RequiresInitLayer useRenderer={useRenderer} getBounds={getBounds} />
       </Map>
     </Box>
   );

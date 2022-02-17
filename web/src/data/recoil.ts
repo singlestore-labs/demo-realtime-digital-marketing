@@ -1,7 +1,5 @@
 import { ConnectionConfig } from "@/data/client";
-import { NotificationTuple } from "@/data/queries";
-import { Bounds } from "pigeon-maps";
-import { atom, AtomEffect, DefaultValue, selector } from "recoil";
+import { atom, AtomEffect, selector } from "recoil";
 import { ScaleFactor } from "../scalefactors";
 
 const localStorageEffect =
@@ -68,37 +66,6 @@ export const simulatorEnabled = atom<boolean>({
   key: "simulatorEnabled",
   default: true,
   effects: [localStorageEffect()],
-});
-
-export const MAX_NOTIFICATIONS = 100;
-
-export const notificationsBuffer = atom<NotificationTuple[]>({
-  key: "notificationsBuffer",
-  default: [],
-});
-
-export const notifications = selector<NotificationTuple[]>({
-  key: "notifications",
-  get: ({ get }) => get(notificationsBuffer),
-  set: ({ set, get }, newValue) => {
-    if (newValue instanceof DefaultValue) {
-      return set(notificationsBuffer, []);
-    }
-    const buffer = get(notificationsBuffer);
-    const newBuffer = [...buffer, ...newValue];
-    if (newBuffer.length > MAX_NOTIFICATIONS) {
-      newBuffer.splice(0, newBuffer.length - MAX_NOTIFICATIONS);
-    }
-    set(notificationsBuffer, newBuffer);
-  },
-  cachePolicy_UNSTABLE: {
-    eviction: "most-recent",
-  },
-});
-
-export const mapBounds = atom<Bounds | undefined>({
-  key: "mapBounds",
-  default: undefined,
 });
 
 export const databaseDrawerIsOpen = atom({
