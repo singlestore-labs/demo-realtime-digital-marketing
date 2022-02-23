@@ -2,7 +2,7 @@ import { Box, Link } from "@chakra-ui/react";
 import "@pixi/graphics-extras";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -30,7 +30,7 @@ type RendererConfig = {
   scene: PIXI.Container;
   width: number;
   height: number;
-  getBounds: () => Bounds | undefined;
+  bounds: Bounds;
   latLngToPixel: (latLng: Point) => Point;
 };
 
@@ -46,7 +46,7 @@ type PixiMapLayerProps = {
 const PixiMapLayer = ({
   width,
   height,
-  getBounds,
+  bounds,
   latLngToPixel,
   useRenderer,
 }: PixiMapLayerProps) => {
@@ -57,7 +57,7 @@ const PixiMapLayer = ({
     scene: sceneRef.current,
     width,
     height,
-    getBounds,
+    bounds,
     latLngToPixel,
   });
 
@@ -104,17 +104,15 @@ const PixiMapLayer = ({
 
 type RequiresInitLayerProps = {
   useRenderer: UsePixiRenderer;
-  getBounds: () => Bounds | undefined;
 } & PigeonProps;
 
 const RequiresInitLayer = ({
   mapState,
   latLngToPixel,
   useRenderer,
-  getBounds,
 }: RequiresInitLayerProps) => {
-  const { width, height } = mapState || { width: 0, height: 0 };
-  if (width <= 0 || height <= 0 || !latLngToPixel) {
+  const { width, height, bounds } = mapState || { width: 0, height: 0 };
+  if (width <= 0 || height <= 0 || !latLngToPixel || !bounds) {
     return null;
   }
 
@@ -123,7 +121,7 @@ const RequiresInitLayer = ({
       useRenderer={useRenderer}
       width={width}
       height={height}
-      getBounds={getBounds}
+      bounds={bounds}
       latLngToPixel={latLngToPixel}
     />
   );
@@ -144,8 +142,6 @@ export const PixiMap = ({
 }: PixiMapProps) => {
   const [center, setCenter] = useState(defaultCenter);
   const [zoom, setZoom] = useState(defaultZoom);
-  const boundsRef = useRef<Bounds | undefined>();
-  const getBounds = useCallback(() => boundsRef.current, []);
 
   return (
     <Box borderRadius="lg" overflow="hidden" height={height}>
@@ -156,13 +152,12 @@ export const PixiMap = ({
         maxZoom={20}
         center={center}
         zoom={zoom}
-        onBoundsChanged={({ center, zoom, bounds }) => {
+        onBoundsChanged={({ center, zoom }) => {
           setCenter(center);
           setZoom(zoom);
-          boundsRef.current = bounds;
         }}
       >
-        <RequiresInitLayer useRenderer={useRenderer} getBounds={getBounds} />
+        <RequiresInitLayer useRenderer={useRenderer} />
       </Map>
     </Box>
   );

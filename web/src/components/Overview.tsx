@@ -4,6 +4,7 @@ import { OfferMap } from "@/components/OfferMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState, useSchemaObjects } from "@/data/hooks";
 import {
+  countOffers,
   ensurePipelinesExist,
   estimatedRowCount,
   insertSeedData,
@@ -59,7 +60,10 @@ const Section = (props: {
   const { completed, title, left, right } = props;
   const { colorMode } = useColorMode();
 
-  const opacity = completed ? 0.8 : 1;
+  const colorSuffix = colorMode === "light" ? ".300" : ".500";
+  const textColor = completed ? "gray" + colorSuffix : undefined;
+  const iconColor = (completed ? "green" : "gray") + colorSuffix;
+
   const iconProps: IconProps = {
     boxSize: 6,
     position: "relative",
@@ -69,24 +73,14 @@ const Section = (props: {
 
   return (
     <>
-      <GridItem opacity={opacity}>
-        <Heading as="h2" size="lg" mb={4}>
-          {completed ? (
-            <CheckCircleIcon
-              color={colorMode === "light" ? "green.200" : "green.600"}
-              {...iconProps}
-            />
-          ) : (
-            <CheckCircleIcon
-              color={colorMode === "light" ? "gray.200" : "gray.600"}
-              {...iconProps}
-            />
-          )}
+      <GridItem>
+        <Heading as="h2" size="lg" mb={4} color={textColor}>
+          <CheckCircleIcon color={iconColor} {...iconProps} />
           {title}
         </Heading>
         {left}
       </GridItem>
-      <GridItem opacity={opacity}>{right}</GridItem>
+      <GridItem>{right}</GridItem>
     </>
   );
 };
@@ -226,7 +220,7 @@ const PipelinesSection = () => {
         { locations: 0, requests: 0, purchases: 0 }
       );
     }, [config]),
-    limit: 5,
+    limit: 30,
     intervalMS: 1000,
   });
 
@@ -348,13 +342,16 @@ const PipelinesSection = () => {
 const OffersSection = () => {
   const config = useRecoilValue(connectionConfig);
   const [working, workingCtrl] = useBoolean();
-  const [done, doneCtrl] = useBoolean();
+  const numOffers = useSWR(["countOffers", config], () => countOffers(config));
+
   const onSeedData = useCallback(async () => {
     workingCtrl.on();
     await insertSeedData(config);
+    numOffers.mutate();
     workingCtrl.off();
-    doneCtrl.on();
-  }, [config, doneCtrl, workingCtrl]);
+  }, [config, numOffers, workingCtrl]);
+
+  const done = !!numOffers.data;
 
   return (
     <Section
@@ -365,17 +362,39 @@ const OffersSection = () => {
         <>
           <MarkdownText>
             {`
-              S2 Cellular matches subscriber devices to offers which are paid for
-              by advertisers. Let's create those now.
+              S2 Cellular allows any company to place offers. Each offer has a
+              maximum bid price, activation zone, list of segments, and
+              notification content. As subscribers move around, they are
+              continuously matched to offers based on their location and
+              whichever segments they are members of. If multiple offers match
+              the offer with the highest bid price will be selected.
+            `}
+            {!done &&
+              `
+                Press the "load offers" button on the right to create some
+                sample offers in New York City.
+            `}
+            {done &&
+              `
+                The map to your right displays a polygon representing each
+                offer's activation zone. Hover over a polygon to see it's exact
+                boundary. There are ${numOffers.data} offers in the database.
             `}
           </MarkdownText>
-          <Button onClick={onSeedData} disabled={working || done}>
-            {working && <Spinner mr={2} />}
-            {working ? "loading..." : done ? "loaded!" : "load seed data"}
-          </Button>
         </>
       }
-      right={<OfferMap height={300} defaultZoom={11} />}
+      right={
+        !done ? (
+          <Center h="100%">
+            <Button onClick={onSeedData} disabled={working}>
+              {working && <Spinner mr={2} />}
+              {working ? "loading..." : done ? "loaded offers!" : "load offers"}
+            </Button>
+          </Center>
+        ) : (
+          <OfferMap height={300} defaultZoom={11} />
+        )
+      }
     />
   );
 };

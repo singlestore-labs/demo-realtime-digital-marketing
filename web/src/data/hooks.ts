@@ -3,7 +3,7 @@ import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 import { useToast } from "@chakra-ui/react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -17,11 +17,14 @@ const defaultSchemaObjects = Object.fromEntries(
 
 export const useSchemaObjects = (paused = false) => {
   const config = useRecoilValue(connectionConfig);
-  const isPaused = useCallback(() => paused, [paused]);
-  return useSWR(["schemaObjects", config], () => schemaObjects(config), {
-    isPaused,
-    fallbackData: defaultSchemaObjects,
-  });
+  return useSWR(
+    ["schemaObjects", config, paused],
+    () => schemaObjects(config),
+    {
+      isPaused: () => paused,
+      fallbackData: defaultSchemaObjects,
+    }
+  );
 };
 
 export const useConnectionState = () => {
@@ -168,4 +171,13 @@ export const useResetSchema = ({
     resetConnectionState,
     toast,
   ]);
+};
+
+export const useDebounce = <T>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 };

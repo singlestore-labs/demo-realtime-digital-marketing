@@ -480,23 +480,31 @@ export const queryNotificationsInBounds = (
     boundsToWKTPolygon(bounds)
   );
 
+export type Offer = {
+  offerId: number;
+  notificationZone: string;
+};
+
 export const queryOffersInBounds = (
   config: ConnectionConfig,
   limit: number,
-  bounds?: Bounds
+  bounds: Bounds
 ) =>
-  QueryTuples<NotificationTuple>(
+  Query<Offer>(
     config,
     `
       SELECT
         offer_id AS offerId,
-        notification_zone AS notificationZone,
-        notification_content AS notificationContent,
-        notification_target AS notificationTarget,
-        maximum_bid_cents AS maximumBidCents
+        notification_zone AS notificationZone
       FROM offers
-      WHERE (? IS NULL OR GEOGRAPHY_INTERSECTS(?, notification_zone))
+      WHERE GEOGRAPHY_INTERSECTS(?, notification_zone)
       LIMIT ${limit}
     `,
-    bounds ? boundsToWKTPolygon(bounds) : null
+    boundsToWKTPolygon(bounds)
   );
+
+export const countOffers = (config: ConnectionConfig) =>
+  QueryOne<{ count: number }>(
+    config,
+    "SELECT COUNT(*) AS count FROM offers"
+  ).then((result) => result.count);

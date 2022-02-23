@@ -1,5 +1,5 @@
 import { UsePixiRenderer } from "@/components/PixiMap";
-import { useConnectionState, useTick } from "@/data/hooks";
+import { useConnectionState, useDebounce } from "@/data/hooks";
 import { queryNotificationsInBounds } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
@@ -7,8 +7,10 @@ import { Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import { useCallback, useRef } from "react";
 import { useRecoilValue } from "recoil";
+import useSWR from "swr";
 
 const MAX_NOTIFICATIONS = 100;
+const REFRESH_INTERVAL = 1000;
 
 class Pulse extends PIXI.Container {
   static lifetime = 1.5;
@@ -38,11 +40,12 @@ class Pulse extends PIXI.Container {
     this.addChild(this.pulse);
   }
 
-  update(latLngToPixel: (latlng: Point) => Point, delta: number): boolean {
+  update(latLngToPixel: (latlng: Point) => Point, delta: number) {
     this.age += delta / 60;
 
     if (this.age > Pulse.lifetime && this.parent) {
-      return false;
+      this.parent.removeChild(this);
+      return;
     }
 
     const t = (this.age % Pulse.lifetime) / Pulse.lifetime;
@@ -66,63 +69,53 @@ class Pulse extends PIXI.Container {
     const [x, y] = latLngToPixel(this.latlng);
     this.x = x;
     this.y = y;
-
-    return true;
   }
 }
 
 export const useNotificationsRenderer: UsePixiRenderer = ({
   scene,
   latLngToPixel,
-  getBounds,
+  bounds,
 }) => {
   const timestampCursor = useRef(new Date().toISOString());
-
   const config = useRecoilValue(connectionConfig);
-  const tick = useCallback(
-    async (ctx: AbortController) => {
-      const cfgWithCtx = { ...config, ctx };
-      const bounds = getBounds();
-      if (!bounds) {
-        return;
-      }
-      const newNotifications = await queryNotificationsInBounds(
-        cfgWithCtx,
-        timestampCursor.current,
-        MAX_NOTIFICATIONS,
-        bounds
-      );
-      if (newNotifications.length > 0) {
-        timestampCursor.current =
-          newNotifications[newNotifications.length - 1][0];
-
-        for (const [, , lng, lat] of newNotifications) {
-          scene.addChild(new Pulse([lat, lng]));
-        }
-      }
-    },
-    [config, getBounds, scene]
-  );
-
   const enabled = useRecoilValue(simulatorEnabled);
   const { initialized } = useConnectionState();
-  useTick(tick, {
-    name: "Notifications",
-    enabled: initialized && enabled,
-    intervalMS: 1000,
-  });
+  const debouncedBounds = useDebounce(bounds, 50);
+
+  useSWR(
+    ["notifications", config, initialized, enabled, debouncedBounds],
+    () =>
+      queryNotificationsInBounds(
+        config,
+        timestampCursor.current,
+        MAX_NOTIFICATIONS,
+        debouncedBounds
+      ),
+    {
+      refreshInterval: REFRESH_INTERVAL,
+      isPaused: () => !initialized || !enabled,
+      onSuccess: (newNotifications) => {
+        if (newNotifications.length > 0) {
+          timestampCursor.current =
+            newNotifications[newNotifications.length - 1][0];
+
+          for (const [, , lng, lat] of newNotifications) {
+            scene.addChild(new Pulse([lat, lng]));
+          }
+        }
+      },
+    }
+  );
 
   return {
     update: useCallback(
       (delta) => {
-        const toRemove = [];
-        for (let i = 0; i < scene.children.length; i++) {
-          const pulse = scene.children[i] as Pulse;
-          if (!pulse.update(latLngToPixel, delta)) {
-            toRemove.push(pulse);
-          }
+        // iterate in reverse since Pulses remove themselves when invisible
+        for (let i = scene.children.length - 1; i >= 0; i--) {
+          const child = scene.children[i] as Pulse;
+          child.update(latLngToPixel, delta);
         }
-        scene.removeChild(...toRemove);
       },
       [latLngToPixel, scene]
     ),

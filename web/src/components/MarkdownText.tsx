@@ -24,10 +24,19 @@ const theme: Components = ChakraUIRenderer({
   },
 });
 
-export const MarkdownText = ({ children, ...props }: ReactMarkdownOptions) => {
+type Props = {
+  children: string | (string | false | undefined | null)[];
+} & Omit<ReactMarkdownOptions, "children">;
+
+export const MarkdownText = ({ children, ...props }: Props) => {
   return (
     <ReactMarkdown {...props} skipHtml components={theme}>
-      {dedent(children)}
+      {Array.isArray(children)
+        ? children
+            .filter((x) => x)
+            .map((child) => dedent(child || ""))
+            .join("\n\n")
+        : dedent(children)}
     </ReactMarkdown>
   );
 };
