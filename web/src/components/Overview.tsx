@@ -1,14 +1,18 @@
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { MarkdownText } from "@/components/MarkdownText";
 import { OfferMap } from "@/components/OfferMap";
+import { PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
-import { useConnectionState, useSchemaObjects } from "@/data/hooks";
+import { ConnectionConfig } from "@/data/client";
+import { useConnectionState, useSchemaObjects, useTimer } from "@/data/hooks";
 import {
-  countOffers,
+  checkPlans,
   ensurePipelinesExist,
-  estimatedRowCount,
+  estimatedRowCountObj,
   insertSeedData,
   pipelineStatus,
+  runMatchingProcess,
+  runUpdateSegments,
 } from "@/data/queries";
 import {
   configScaleFactor,
@@ -16,6 +20,12 @@ import {
   connectionDatabase,
 } from "@/data/recoil";
 import { useTimeseries } from "@/data/useTimeseries";
+import { formatMs, formatNumber } from "@/format";
+import {
+  useNotificationsDataKey,
+  useNotificationsRenderer,
+} from "@/render/useNotificationsRenderer";
+import { ScaleFactor } from "@/scalefactors";
 import { CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -36,6 +46,7 @@ import {
   Text,
   useBoolean,
   useColorMode,
+  VStack,
 } from "@chakra-ui/react";
 import {
   AnimatedLineSeries,
@@ -47,9 +58,9 @@ import {
 } from "@visx/xychart";
 import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 import { format } from "d3-format";
-import { ReactNode, useCallback } from "react";
+import { ReactNode, useCallback, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 
 const Section = (props: {
   completed: boolean;
@@ -149,6 +160,7 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
                 colorScheme="blue"
                 size="sm"
                 disabled={initialized}
+                includeSeedData={false}
               >
                 {initialized ? "Schema is setup" : "Setup schema"}
               </ResetSchemaButton>
@@ -185,14 +197,25 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
   );
 };
 
+const usePipelineStatus = (
+  config: ConnectionConfig,
+  scaleFactor: ScaleFactor,
+  enabled = true
+) => {
+  const pipelines = useSWR(
+    ["pipelineStatus", config, scaleFactor],
+    () => pipelineStatus(config, scaleFactor),
+    { isPaused: () => !enabled }
+  );
+  const completed = !!pipelines.data?.every((p) => !p.needsUpdate);
+  return { pipelines, completed };
+};
+
 const PipelinesSection = () => {
   const { colorMode } = useColorMode();
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
-  const pipelines = useSWR(["pipelineStatus", config, scaleFactor], () =>
-    pipelineStatus(config, scaleFactor)
-  );
-  const completed = !!pipelines.data?.every((p) => !p.needsUpdate);
+  const { pipelines, completed } = usePipelineStatus(config, scaleFactor);
 
   const [working, workingCtrl] = useBoolean();
 
@@ -205,28 +228,17 @@ const PipelinesSection = () => {
 
   const data = useTimeseries({
     name: "estimatedRowCount",
-    fetcher: useCallback(async () => {
-      const counts = await estimatedRowCount(config, [
-        "locations",
-        "requests",
-        "purchases",
-      ]);
-
-      return counts.reduce(
-        (acc, { tableName, count }) => {
-          acc[tableName] = count;
-          return acc;
-        },
-        { locations: 0, requests: 0, purchases: 0 }
-      );
-    }, [config]),
+    fetcher: useCallback(
+      () => estimatedRowCountObj(config, "locations", "requests", "purchases"),
+      [config]
+    ),
     limit: 30,
     intervalMS: 1000,
   });
 
-  const emptyChart = data.every(
-    (d) => d.locations + d.purchases + d.requests === 0
-  );
+  const emptyChart =
+    data.length < 2 ||
+    data.every((d) => d.locations + d.purchases + d.requests === 0);
 
   const ensurePipelinesButton = (
     <Button
@@ -273,23 +285,13 @@ const PipelinesSection = () => {
 
   const chart = (
     <XYChart
-      height={300}
+      height={220}
       xScale={{ type: "time" }}
-      yScale={{ type: "log", base: 10, nice: true }}
+      yScale={{ type: "sqrt", nice: true }}
       theme={colorMode === "light" ? lightTheme : darkTheme}
     >
-      <Axis orientation="bottom" numTicks={3} />
-      <Axis
-        orientation="right"
-        tickFormat={(v) => {
-          const e = Math.log10(v);
-          if (e !== Math.floor(e)) {
-            // ignore non-exact power of ten
-            return;
-          }
-          return format("~s")(v);
-        }}
-      />
+      <Axis orientation="bottom" numTicks={5} />
+      <Axis orientation="right" numTicks={3} tickFormat={format("~s")} />
       <AnimatedLineSeries
         dataKey="locations"
         data={data}
@@ -333,29 +335,46 @@ const PipelinesSection = () => {
         </MarkdownText>
       }
       right={
-        emptyChart ? <Center h="100%">{ensurePipelinesButton}</Center> : chart
+        emptyChart ? <Center h={220}>{ensurePipelinesButton}</Center> : chart
       }
     />
   );
 };
 
+const useTableCounts = (config: ConnectionConfig, enabled = true) =>
+  useSWR(
+    ["overviewTableCounts", config],
+    () =>
+      estimatedRowCountObj(
+        config,
+        "locations",
+        "notifications",
+        "offers",
+        "purchases",
+        "requests",
+        "segments",
+        "subscriber_segments",
+        "subscribers"
+      ),
+    { isPaused: () => !enabled }
+  );
+
 const OffersSection = () => {
   const config = useRecoilValue(connectionConfig);
   const [working, workingCtrl] = useBoolean();
-  const numOffers = useSWR(["countOffers", config], () => countOffers(config));
+  const tableCounts = useTableCounts(config);
 
   const onSeedData = useCallback(async () => {
     workingCtrl.on();
     await insertSeedData(config);
-    numOffers.mutate();
+    tableCounts.mutate();
     workingCtrl.off();
-  }, [config, numOffers, workingCtrl]);
+  }, [config, tableCounts, workingCtrl]);
 
-  const done = !!numOffers.data;
+  const done = !!tableCounts.data?.offers;
 
   return (
     <Section
-      // TODO: check offers exist
       completed={done}
       title="Offers"
       left={
@@ -378,7 +397,7 @@ const OffersSection = () => {
               `
                 The map to your right displays a polygon representing each
                 offer's activation zone. Hover over a polygon to see it's exact
-                boundary. There are ${numOffers.data} offers in the database.
+                boundary. There are ${tableCounts.data?.offers} offers in the database.
             `}
           </MarkdownText>
         </>
@@ -400,47 +419,261 @@ const OffersSection = () => {
 };
 
 const SegmentationSection = () => {
+  const config = useRecoilValue(connectionConfig);
+  const tableCounts = useTableCounts(config);
+  const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
+
+  const done = !!tableCounts.data?.subscriber_segments;
+
+  const onClick = useCallback(async () => {
+    startTimer();
+    if (await checkPlans(config)) {
+      // recompile the plan
+      await runUpdateSegments(config);
+      // reset timer
+      startTimer();
+    }
+    await runUpdateSegments(config);
+    stopTimer();
+
+    tableCounts.mutate();
+  }, [config, tableCounts, startTimer, stopTimer]);
+
+  let workEstimate;
+  if (elapsed && tableCounts.data) {
+    const { segments, subscriber_segments, locations, requests, purchases } =
+      tableCounts.data;
+    const durationFormatted = formatMs(elapsed);
+    const estRows = formatNumber(locations + requests + purchases);
+    const seg = formatNumber(segments);
+    const memberships = formatNumber(subscriber_segments);
+    workEstimate = (
+      <MarkdownText>
+        {`
+          The last update evaluated ${estRows} rows against ${seg} segments
+          producing ${memberships} segment memberships.
+          
+          **This process took ${durationFormatted}**.
+        `}
+      </MarkdownText>
+    );
+  }
+
   return (
     <Section
-      // TODO: check segments exist
-      completed={false}
+      completed={done}
       title="Segmentation"
       left={
         <MarkdownText>
           {`
+            As mentioned above, each offer includes a list of segments. A
+            segment is defined by a simple rule like "bought a coffee in the
+            last day" or "visited the grocery store in the last week". While we
+            could evaluate all of the segments dynamically when matching offers
+            to subscribers, we would be wasting a lot of compute time since
+            segment memberships don't change very often. Instead we will
+            use a routine to periodically cache the mapping between subscribers
+            and segments.
+
+            Click the button to run the update interactively, or run the following query in your favorite SQL client:
+
+                select * from dynamic_subscriber_segments;
           `}
         </MarkdownText>
       }
-      right={<Box>Coming soon</Box>}
+      right={
+        <Center h="100%">
+          <VStack gap={4} textAlign="center">
+            <Button disabled={isRunning} onClick={onClick}>
+              {isRunning && <Spinner mr={2} />}
+              {isRunning ? "...running" : "Match subscribers to segments"}
+            </Button>
+            {workEstimate}
+          </VStack>
+        </Center>
+      }
     />
   );
 };
 
 const MatchingSection = () => {
+  const config = useRecoilValue(connectionConfig);
+  const tableCounts = useTableCounts(config);
+  const notificationsDataKey = useNotificationsDataKey();
+  const { mutate: swrMutate } = useSWRConfig();
+
+  const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
+  const [sentNotifications, setSentNotifications] = useState(0);
+
+  const done = !!tableCounts.data?.notifications;
+
+  const onClick = useCallback(async () => {
+    startTimer();
+    if (await checkPlans(config)) {
+      // recompile the plan
+      await runMatchingProcess(config, "second");
+      // reset timer
+      startTimer();
+    }
+    setSentNotifications(await runMatchingProcess(config, "second"));
+    stopTimer();
+
+    tableCounts.mutate();
+    swrMutate(notificationsDataKey);
+  }, [
+    config,
+    startTimer,
+    stopTimer,
+    tableCounts,
+    swrMutate,
+    notificationsDataKey,
+  ]);
+
+  let workEstimate;
+  if (elapsed && tableCounts.data) {
+    const { offers, subscribers, subscriber_segments, notifications } =
+      tableCounts.data;
+    const estRows = formatNumber(offers * subscribers + notifications);
+    const memberships = formatNumber(subscriber_segments);
+    const durationFormatted = formatMs(elapsed);
+    const sentNotifs = formatNumber(sentNotifications);
+    workEstimate = (
+      <MarkdownText>
+        {`
+          The last update evaluated up to ${estRows} notification opportunities
+          against ${memberships} segment memberships generating ${sentNotifs}
+          notifications. This process took ${durationFormatted}.
+        `}
+      </MarkdownText>
+    );
+  }
+
   return (
     <Section
-      // TODO: check notifications exist
-      completed={false}
+      completed={done}
       title="Matching"
       left={
         <MarkdownText>
           {`
+            Now that we have offers and have assigned subscribers to segments,
+            we are finally able to send notifications to subscriber's devices.
+            In this demo, rather than actually sending notifications we will
+            insert them into a table called "notifications".
+
+            Note that quickly generating notifications multiple times will
+            sometimes send zero notifications. This is expected behavior in
+            order to not to spam subscribers.
+
+            Click the button to generate notifications interactively, or run the
+            following query in your favorite SQL client:
+
+                select * from match_offers_to_subscribers("second");
           `}
         </MarkdownText>
       }
-      right={<Box>Coming soon</Box>}
+      right={
+        <Center h="100%">
+          <VStack gap={4} w="100%">
+            <Button disabled={isRunning} onClick={onClick}>
+              {isRunning && <Spinner mr={2} />}
+              {isRunning ? "...running" : "Generate notifications"}
+            </Button>
+            <Box width="100%">
+              <PixiMap
+                height={250}
+                defaultZoom={11}
+                useRenderer={useNotificationsRenderer}
+              />
+            </Box>
+            {workEstimate}
+          </VStack>
+        </Center>
+      }
     />
   );
 };
 
-const Requires = (p: { r: boolean; children: ReactNode }) =>
-  p.r ? <>{p.children}</> : null;
+const SummarySection = () => {
+  return (
+    <Section
+      completed={true}
+      title="Putting it all together"
+      left={
+        <MarkdownText>
+          {`
+            Nice job! At this point you are ready to step into the shoes of a S2
+            Cellular data engineer. Here are some recommendations on what to do next:
+
+            * Visit the [live demo dashboard][1]
+            * Explore the s2cellular database in SingleStore Studio
+
+            [1]: map
+          `}
+        </MarkdownText>
+      }
+      right={null}
+    />
+  );
+};
 
 export const Overview = () => {
+  const config = useRecoilValue(connectionConfig);
+  const scaleFactor = useRecoilValue(configScaleFactor);
   const { connected, initialized } = useConnectionState();
+  const { completed: pipelinesCompleted } = usePipelineStatus(
+    config,
+    scaleFactor,
+    connected && initialized
+  );
+  const { data: tableCounts } = useTableCounts(
+    config,
+    connected && initialized
+  );
+
+  const sectionDefinitions = [
+    {
+      completed: connected,
+      component: <ConnectionSection key="connection" connected={connected} />,
+    },
+    {
+      completed: initialized,
+      component: <SchemaSection key="schema" initialized={initialized} />,
+    },
+    {
+      completed: pipelinesCompleted,
+      component: <PipelinesSection key="pipelines" />,
+    },
+    {
+      completed: tableCounts ? tableCounts.offers > 0 : false,
+      component: <OffersSection key="offers" />,
+    },
+    {
+      completed: tableCounts ? tableCounts.subscriber_segments > 0 : false,
+      component: <SegmentationSection key="segmentation" />,
+    },
+    {
+      completed: tableCounts ? tableCounts.notifications > 0 : false,
+      component: <MatchingSection key="matching" />,
+    },
+    {
+      completed: true,
+      component: <SummarySection key="summary" />,
+    },
+  ];
+
+  let lastCompleted = true;
+  const sections = [];
+  for (const { completed, component } of sectionDefinitions) {
+    if (lastCompleted) {
+      sections.push(component);
+      lastCompleted = completed;
+    } else {
+      break;
+    }
+  }
 
   return (
-    <Container maxW="container.lg" mt={10} mb={20}>
+    <Container maxW="container.lg" mt={10} mb="30vh">
       <Box maxW="container.md" mb={10} px={0}>
         <MarkdownText>
           {`
@@ -469,16 +702,7 @@ export const Overview = () => {
         rowGap={10}
         templateColumns={["minmax(0, 1fr)", null, "repeat(2, minmax(0, 1fr))"]}
       >
-        <ConnectionSection connected={connected} />
-        <Requires r={connected}>
-          <SchemaSection initialized={initialized} />
-        </Requires>
-        <Requires r={initialized}>
-          <PipelinesSection />
-          <OffersSection />
-          <SegmentationSection />
-          <MatchingSection />
-        </Requires>
+        {sections}
       </Grid>
     </Container>
   );

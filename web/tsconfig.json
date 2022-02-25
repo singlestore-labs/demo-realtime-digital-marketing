@@ -2,11 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
     "skipLibCheck": false,
     "esModuleInterop": false,
@@ -21,18 +17,10 @@
     "jsx": "react-jsx",
     "baseUrl": "./",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/sql/*": [
-        "../sql/*"
-      ],
-      "nyc_polygons.json": [
-        "../data/nyc_polygons.json"
-      ],
+      "@/*": ["./src/*"],
+      "@/sql/*": ["../sql/*"],
+      "@/static-data/*": ["../data/*"]
     }
   },
-  "include": [
-    "./src"
-  ]
+  "include": ["./src"]
 }

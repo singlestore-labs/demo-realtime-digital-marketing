@@ -3,12 +3,11 @@ import { polygonToSQL } from "@/geo";
 import FUNCTIONS from "@/sql/functions.sql";
 import PROCEDURES from "@/sql/procedures.sql";
 import TABLES from "@/sql/schema.sql";
-import NYC_POLYGONS from "nyc_polygons.json";
+import NYC_POLYGONS from "@/static-data/nyc_polygons.json";
+import VENDORS from "@/static-data/vendors.json";
 import stringHash from "string-hash";
 
 export { FUNCTIONS, PROCEDURES, TABLES };
-
-export const S3_LINK = `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`;
 
 const CENTRAL_PARK = polygonToSQL([
   [-73.9582079, 40.8019855],
@@ -72,10 +71,19 @@ const defineOffer = (
   ];
 };
 
-export const SEED_DATA = [
+export const BASE_DATA = [
+  `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`,
   "REPLACE INTO cities VALUES (0, 'new york', 'POINT(-74.006 40.7128)', 0.5)",
   "REPLACE INTO customers VALUES (0, 's2cellular')",
+];
 
+const randomVendor = () => VENDORS[Math.floor(Math.random() * VENDORS.length)];
+const randomVendorDomain = () => {
+  const vendor = randomVendor();
+  return vendor.vendor.toLowerCase() + vendor.tld;
+};
+
+export const SEED_DATA = [
   defineOffer(10, "10% off", CENTRAL_PARK, [
     { interval: "hour", kind: "olc_8", value: "87G7JXR8" },
   ]),
@@ -97,7 +105,7 @@ export const SEED_DATA = [
 
   NYC_POLYGONS.map((poly) =>
     defineOffer(8, "10% off nyc neighborhood", poly, [
-      { interval: "week", kind: "olc_6", value: "87G8P2" },
+      { interval: "week", kind: "request", value: randomVendorDomain() },
     ])
   ),
 ].flat(5);

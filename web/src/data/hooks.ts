@@ -3,7 +3,7 @@ import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 import { useToast } from "@chakra-ui/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -22,6 +22,10 @@ export const useSchemaObjects = (paused = false) => {
     () => schemaObjects(config),
     {
       isPaused: () => paused,
+      refreshInterval: (data) => {
+        const missingObjs = Object.values(data || []).some((x) => !x);
+        return missingObjs ? 500 : 0;
+      },
       fallbackData: defaultSchemaObjects,
     }
   );
@@ -127,9 +131,11 @@ export const useTick = (
 export const useResetSchema = ({
   before,
   after,
+  includeSeedData = true,
 }: {
   before: () => void;
   after: () => void;
+  includeSeedData?: boolean;
 }) => {
   const config = useRecoilValue(connectionConfig);
   const { reset: resetConnectionState } = useConnectionState();
@@ -144,19 +150,23 @@ export const useResetSchema = ({
     before();
 
     // reset schema
-    await resetSchema(config, (title, status) => {
-      const id = "reset-schema";
-      if (toast.isActive(id)) {
-        toast.update(id, {
-          title,
-          status,
-          duration: status === "success" ? 3000 : null,
-          isClosable: status === "success",
-        });
-      } else {
-        toast({ id, title, status, duration: null });
-      }
-    });
+    await resetSchema(
+      config,
+      (title, status) => {
+        const id = "reset-schema";
+        if (toast.isActive(id)) {
+          toast.update(id, {
+            title,
+            status,
+            duration: status === "success" ? 3000 : null,
+            isClosable: status === "success",
+          });
+        } else {
+          toast({ id, title, status, duration: null });
+        }
+      },
+      includeSeedData
+    );
 
     // post schema reset
     after();
@@ -167,6 +177,7 @@ export const useResetSchema = ({
     setSimulatorEnabled,
     before,
     config,
+    includeSeedData,
     after,
     resetConnectionState,
     toast,
@@ -180,4 +191,37 @@ export const useDebounce = <T>(value: T, delay: number): T => {
     return () => clearTimeout(handler);
   }, [value, delay]);
   return debouncedValue;
+};
+
+export const useTimer = () => {
+  type State = { start?: number; elapsed?: number; isRunning: boolean };
+  type Action = { type: "start" } | { type: "stop" };
+
+  const [{ elapsed, isRunning }, dispatch] = useReducer(
+    (state: State, action: Action): State => {
+      switch (action.type) {
+        case "start":
+          return {
+            start: Math.floor(performance.now()),
+            isRunning: true,
+
+            // keep around last elapsed value
+            elapsed: state.elapsed,
+          };
+        case "stop":
+          return {
+            elapsed: Math.floor(performance.now()) - (state.start || 0),
+            isRunning: false,
+          };
+      }
+    },
+    { isRunning: false }
+  );
+
+  return {
+    elapsed,
+    isRunning,
+    startTimer: () => dispatch({ type: "start" }),
+    stopTimer: () => dispatch({ type: "stop" }),
+  };
 };

@@ -1,11 +1,11 @@
 import { UsePixiRenderer } from "@/components/PixiMap";
 import { useConnectionState, useDebounce } from "@/data/hooks";
 import { queryNotificationsInBounds } from "@/data/queries";
-import { connectionConfig, simulatorEnabled } from "@/data/recoil";
+import { connectionConfig } from "@/data/recoil";
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
 import { Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -72,6 +72,15 @@ class Pulse extends PIXI.Container {
   }
 }
 
+export const useNotificationsDataKey = () => {
+  const config = useRecoilValue(connectionConfig);
+  const { initialized } = useConnectionState();
+  return useMemo(
+    () => ["notifications", config, initialized],
+    [config, initialized]
+  );
+};
+
 export const useNotificationsRenderer: UsePixiRenderer = ({
   scene,
   latLngToPixel,
@@ -79,12 +88,12 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
 }) => {
   const timestampCursor = useRef(new Date().toISOString());
   const config = useRecoilValue(connectionConfig);
-  const enabled = useRecoilValue(simulatorEnabled);
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 50);
+  const swrKey = useNotificationsDataKey();
 
   useSWR(
-    ["notifications", config, initialized, enabled, debouncedBounds],
+    swrKey,
     () =>
       queryNotificationsInBounds(
         config,
@@ -94,7 +103,7 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
       ),
     {
       refreshInterval: REFRESH_INTERVAL,
-      isPaused: () => !initialized || !enabled,
+      isPaused: () => !initialized,
       onSuccess: (newNotifications) => {
         if (newNotifications.length > 0) {
           timestampCursor.current =

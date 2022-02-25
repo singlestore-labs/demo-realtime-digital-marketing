@@ -21,7 +21,9 @@ import { useRecoilValue } from "recoil";
 export interface Props
   extends HTMLChakraProps<"button">,
     ButtonOptions,
-    ThemingProps<"Button"> {}
+    ThemingProps<"Button"> {
+  includeSeedData?: boolean;
+}
 
 export const ResetSchemaButton = (props: Props) => {
   const { connected, initialized } = useConnectionState();
@@ -29,6 +31,7 @@ export const ResetSchemaButton = (props: Props) => {
   const [resettingSchema, resettingSchemaCtrl] = useBoolean();
   const database = useRecoilValue(connectionDatabase);
   const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
+  const { includeSeedData, disabled, ...restProps } = props;
 
   const onResetSchema = useResetSchema({
     before: useCallback(() => resettingSchemaCtrl.on(), [resettingSchemaCtrl]),
@@ -36,15 +39,16 @@ export const ResetSchemaButton = (props: Props) => {
       resettingSchemaCtrl.off();
       resetSchemaDialog.onClose();
     }, [resetSchemaDialog, resettingSchemaCtrl]),
+    includeSeedData,
   });
 
   return (
     <>
       <Button
-        disabled={!connected || props.disabled}
+        disabled={!connected || disabled}
         onClick={resetSchemaDialog.onOpen}
         colorScheme={initialized ? "green" : "red"}
-        {...props}
+        {...restProps}
       />
 
       <AlertDialog

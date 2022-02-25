@@ -125,7 +125,9 @@ create table subscriber_segments (
   SHARD KEY (city_id, subscriber_id)
 );
 
-CREATE VIEW match_offers_to_subscribers AS (
+CREATE OR REPLACE FUNCTION match_offers_to_subscribers(
+  _interval ENUM("second", "minute", "hour", "day", "week", "month")
+) RETURNS TABLE AS RETURN (
   WITH
     phase_1 as (
       SELECT offers.*, subscribers.*
@@ -146,7 +148,7 @@ CREATE VIEW match_offers_to_subscribers AS (
         -- ensure we don't spam subscribers
         AND (
           subscribers_last_notification.last_notification IS NULL
-          OR subscribers_last_notification.last_notification < NOW() - INTERVAL 1 MINUTE
+          OR subscribers_last_notification.last_notification < date_sub_dynamic(NOW(), _interval)
         )
 
       -- only match (offer, subscriber) pairs such that
@@ -154,7 +156,7 @@ CREATE VIEW match_offers_to_subscribers AS (
       AND NOT EXISTS (
         SELECT * FROM notifications n
         WHERE
-          ts > NOW() - INTERVAL 1 MINUTE
+          ts > date_sub_dynamic(NOW(), _interval)
           AND offers.offer_id = n.offer_id
           AND subscribers.city_id = n.city_id
           AND subscribers.subscriber_id = n.subscriber_id

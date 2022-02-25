@@ -24,13 +24,15 @@ BEGIN
     FROM _batch;
 END //
 
-CREATE OR REPLACE PROCEDURE run_matching_process () RETURNS BIGINT
+CREATE OR REPLACE PROCEDURE run_matching_process (
+  _interval ENUM("second", "minute", "hour", "day", "week", "month")
+) RETURNS BIGINT
 AS
 DECLARE
     _ts DATETIME = NOW(6);
     _count BIGINT;
 BEGIN
-    INSERT INTO notifications SELECT _ts, * FROM match_offers_to_subscribers;
+    INSERT INTO notifications SELECT _ts, * FROM match_offers_to_subscribers(_interval);
 
     _count = row_count();
 

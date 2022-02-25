@@ -75,6 +75,12 @@ export const Query = async <T = Row>(
   return data.results[0].rows;
 };
 
+export const QueryNoDb = <T = Row>(
+  config: ConnectionConfig,
+  sql: string,
+  ...args: SQLValue[]
+): Promise<T[]> => Query({ ...config, database: undefined }, sql, ...args);
+
 export const QueryTuples = async <T extends [...SQLValue[]] = SQLValue[]>(
   config: ConnectionConfig,
   sql: string,

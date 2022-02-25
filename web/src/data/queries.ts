@@ -3,11 +3,18 @@ import {
   Exec,
   ExecNoDb,
   Query,
+  QueryNoDb,
   QueryOne,
   QueryTuples,
   SQLError,
 } from "@/data/client";
-import { FUNCTIONS, PROCEDURES, S3_LINK, SEED_DATA, TABLES } from "@/data/sql";
+import {
+  BASE_DATA,
+  FUNCTIONS,
+  PROCEDURES,
+  SEED_DATA,
+  TABLES,
+} from "@/data/sql";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor, ScaleFactors } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
@@ -37,11 +44,12 @@ export const schemaObjects = async (
   config: ConnectionConfig
 ): Promise<{ [key: string]: boolean }> => {
   let objs: schemaObjInfo = { tables: [], procedures: [], functions: [] };
+  const { database, ...configNoDb } = config;
 
   try {
     objs = (
       await QueryTuples<[keyof schemaObjInfo, string]>(
-        config,
+        configNoDb,
         `
           SELECT "tables", table_name
           FROM information_schema.tables
@@ -56,8 +64,8 @@ export const schemaObjects = async (
           FROM information_schema.routines
           WHERE routine_schema = ?
         `,
-        config.database || "s2cellular",
-        config.database || "s2cellular"
+        database || "s2cellular",
+        database || "s2cellular"
       )
     ).reduce((acc, [type, name]) => {
       acc[type].push(name);
@@ -87,7 +95,8 @@ export const schemaObjects = async (
 
 export const resetSchema = async (
   config: ConnectionConfig,
-  progress: (msg: string, status: "info" | "success") => void
+  progress: (msg: string, status: "info" | "success") => void,
+  includeSeedData = true
 ) => {
   progress("Dropping existing schema", "info");
   await ExecNoDb(config, "DROP DATABASE IF EXISTS `" + config.database + "`");
@@ -108,11 +117,18 @@ export const resetSchema = async (
     await Exec(config, obj.createStmt);
   }
 
-  await Exec(config, S3_LINK);
-  await insertSeedData(config);
+  await insertBaseData(config);
+
+  if (includeSeedData) {
+    progress("Creating sample data", "info");
+    await insertSeedData(config);
+  }
 
   progress("Schema initialized", "success");
 };
+
+export const insertBaseData = (config: ConnectionConfig) =>
+  Promise.all(BASE_DATA.map((q) => Exec(config, q)));
 
 export const insertSeedData = (config: ConnectionConfig) =>
   Promise.all(SEED_DATA.map((q) => Exec(config, q)));
@@ -144,8 +160,8 @@ export const createOffers = async (
       .filter((s) => (seenSegments.has(s.id) ? false : seenSegments.add(s.id)))
   );
 
-  // TODO: start up here - we need to create all the segments and offers in two multi-inserts
-  // then switch insertSeedData to use this instead of the old one
+  // TODO: create all the segments and offers in two multi-inserts
+  // then switch insertSeedData to use this instead of the SEED_OFFERS global
   await Exec(
     config,
     `
@@ -319,6 +335,7 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
   );
 };
 
+// returns true if any plans were dropped
 export const checkPlans = async (config: ConnectionConfig) => {
   const badPlans = await Query<{ planId: string }>(
     config,
@@ -332,6 +349,8 @@ export const checkPlans = async (config: ConnectionConfig) => {
   await Promise.all(
     badPlans.map(({ planId }) => Exec(config, `DROP ${planId} FROM PLANCACHE`))
   );
+
+  return badPlans.length > 0;
 };
 
 /*
@@ -362,22 +381,43 @@ export const SQL_CLUSTER_THROUGHPUT = `
 
 export const estimatedRowCount = <TableName extends string>(
   config: ConnectionConfig,
-  tables: TableName[]
-) =>
-  Query<{ tableName: TableName; count: number }>(
+  ...tables: TableName[]
+) => {
+  const tablesSQL = tables.map((name) => `"${name}"`).join(",");
+
+  return QueryNoDb<{ tableName: TableName; count: number }>(
     config,
     `
-      SELECT
-        table_name AS tableName,
-        SUM(rows) :> BIGINT AS count
-      FROM information_schema.table_statistics
-      WHERE
-        database_name = ?
-        AND partition_type = "Master"
-        AND table_name IN (${tables.map((name) => `"${name}"`).join(",")})
-      GROUP BY table_name
+      SELECT tableName, MAX(count) :> BIGINT AS count
+      FROM (
+        SELECT
+          table_name AS tableName,
+          SUM(rows) AS count
+        FROM information_schema.table_statistics
+        WHERE
+          database_name = ?
+          AND partition_type IN ("Master", "Reference")
+          AND table_name IN (${tablesSQL})
+        GROUP BY table_name
+        UNION ALL
+        SELECT table_col AS tableName, 0 AS count
+        FROM TABLE([${tablesSQL}])
+      )
+      GROUP BY tableName
     `,
     config.database || "s2cellular"
+  );
+};
+
+export const estimatedRowCountObj = <TableName extends string>(
+  config: ConnectionConfig,
+  ...tables: TableName[]
+) =>
+  estimatedRowCount(config, ...tables).then((rows) =>
+    rows.reduce((acc, { tableName, count }) => {
+      acc[tableName] = count;
+      return acc;
+    }, {} as { [name in TableName]: number })
   );
 
 export const truncateTimeseriesTables = async (
@@ -385,12 +425,13 @@ export const truncateTimeseriesTables = async (
   scaleFactor: ScaleFactor
 ) => {
   const { maxRows } = ScaleFactors[scaleFactor];
-  const tableCounts = await estimatedRowCount(config, [
+  const tableCounts = await estimatedRowCount(
+    config,
     "locations",
     "requests",
     "purchases",
-    "notifications",
-  ]);
+    "notifications"
+  );
   const oversizedTables = tableCounts.filter((table) => table.count > maxRows);
 
   await Promise.all(
@@ -442,11 +483,30 @@ export const truncateTimeseriesTables = async (
   );
 };
 
-export const runMatchingProcess = (config: ConnectionConfig) =>
-  Exec(config, `CALL run_matching_process()`);
+export type SQLIntervals =
+  | "second"
+  | "minute"
+  | "hour"
+  | "day"
+  | "week"
+  | "month";
 
+// returns number of notifications sent
+export const runMatchingProcess = (
+  config: ConnectionConfig,
+  interval: SQLIntervals = "minute"
+) =>
+  QueryOne<{ RESULT: number }>(
+    config,
+    "ECHO run_matching_process(?)",
+    interval
+  ).then((x) => x.RESULT);
+
+// returns total number of segments after update
 export const runUpdateSegments = (config: ConnectionConfig) =>
-  Exec(config, `CALL update_segments()`);
+  QueryOne<{ RESULT: number }>(config, "ECHO update_segments()").then(
+    (x) => x.RESULT
+  );
 
 export type NotificationTuple = [
   ts: string,
@@ -502,9 +562,3 @@ export const queryOffersInBounds = (
     `,
     boundsToWKTPolygon(bounds)
   );
-
-export const countOffers = (config: ConnectionConfig) =>
-  QueryOne<{ count: number }>(
-    config,
-    "SELECT COUNT(*) AS count FROM offers"
-  ).then((result) => result.count);
