@@ -342,7 +342,8 @@ export const checkPlans = async (config: ConnectionConfig) => {
     `
       SELECT plan_id AS planId
       FROM information_schema.plancache
-      WHERE plan_warnings LIKE "%empty tables%";
+      WHERE
+        plan_warnings LIKE "%empty tables%"
     `
   );
 

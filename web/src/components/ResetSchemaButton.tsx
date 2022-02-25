@@ -64,8 +64,8 @@ export const ResetSchemaButton = (props: Props) => {
               {initialized ? "Reset" : "Setup"} database {database}
             </AlertDialogHeader>
             <AlertDialogBody>
-              This will {initialized ? "recreate" : "create"} database{" "}
-              {database}. Are you sure?
+              This will {initialized ? "recreate" : "create"} the database
+              called {database}. Are you sure?
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button
@@ -77,16 +77,16 @@ export const ResetSchemaButton = (props: Props) => {
               </Button>
               <Button
                 disabled={resettingSchema}
-                colorScheme="red"
+                colorScheme={initialized ? "red" : "green"}
                 onClick={onResetSchema}
                 ml={3}
               >
                 {resettingSchema ? (
                   <Spinner />
                 ) : initialized ? (
-                  "Reset Schema"
+                  "Recreate database"
                 ) : (
-                  "Setup Schema"
+                  "Create database"
                 )}
               </Button>
             </AlertDialogFooter>

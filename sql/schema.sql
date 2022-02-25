@@ -130,12 +130,13 @@ CREATE OR REPLACE FUNCTION match_offers_to_subscribers(
 ) RETURNS TABLE AS RETURN (
   WITH
     phase_1 as (
-      SELECT offers.*, subscribers.*
+      SELECT STRAIGHT_JOIN offers.*, subscribers.*
       FROM
         offers,
         subscribers
       -- grab last notification time for each subscriber
-      LEFT JOIN subscribers_last_notification ON (
+      -- with(table_convert_subselect=true) forces a hash join
+      LEFT JOIN subscribers_last_notification with(table_convert_subselect=true) ON (
         subscribers.city_id = subscribers_last_notification.city_id
         AND subscribers.subscriber_id = subscribers_last_notification.subscriber_id
       )

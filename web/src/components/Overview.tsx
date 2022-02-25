@@ -58,7 +58,7 @@ import {
 } from "@visx/xychart";
 import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 import { format } from "d3-format";
-import { ReactNode, useCallback, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
 
@@ -418,6 +418,67 @@ const OffersSection = () => {
   );
 };
 
+const WarmupSection = ({
+  done,
+  setDone,
+}: {
+  done: boolean;
+  setDone: (done: boolean) => void;
+}) => {
+  const config = useRecoilValue(connectionConfig);
+
+  useEffect(() => {
+    if (done) {
+      return;
+    }
+
+    const ctx = new AbortController();
+    const cfgWithCtx = { ...config, ctx };
+
+    (async () => {
+      try {
+        const startTime = performance.now();
+        await runUpdateSegments(cfgWithCtx);
+        await runMatchingProcess(cfgWithCtx, "second");
+        const duration = performance.now() - startTime;
+        if (duration < 1000 || !(await checkPlans(cfgWithCtx))) {
+          return;
+        }
+
+        for (let i = 0; i < 10; i++) {
+          await runUpdateSegments(cfgWithCtx);
+          await runMatchingProcess(cfgWithCtx, "second");
+
+          if (i > 1 && !(await checkPlans(cfgWithCtx))) {
+            return;
+          }
+        }
+      } catch (e) {
+        if (ctx.signal.aborted) {
+          return;
+        }
+        if (e instanceof DOMException && e.name === "AbortError") {
+          return;
+        }
+        throw e;
+      }
+    })().then(() => setDone(true));
+
+    return () => {
+      ctx.abort();
+    };
+  }, [config, done, setDone]);
+
+  return done ? null : (
+    <GridItem colSpan={[1, 1, 2]}>
+      <Center w="100%" h="200px" color="gray.500">
+        <Spinner size="md" mr={4} />
+        <Heading size="md">Warming up queries...</Heading>
+      </Center>
+    </GridItem>
+  );
+};
+
 const SegmentationSection = () => {
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
@@ -427,12 +488,6 @@ const SegmentationSection = () => {
 
   const onClick = useCallback(async () => {
     startTimer();
-    if (await checkPlans(config)) {
-      // recompile the plan
-      await runUpdateSegments(config);
-      // reset timer
-      startTimer();
-    }
     await runUpdateSegments(config);
     stopTimer();
 
@@ -509,12 +564,6 @@ const MatchingSection = () => {
 
   const onClick = useCallback(async () => {
     startTimer();
-    if (await checkPlans(config)) {
-      // recompile the plan
-      await runMatchingProcess(config, "second");
-      // reset timer
-      startTimer();
-    }
     setSentNotifications(await runMatchingProcess(config, "second"));
     stopTimer();
 
@@ -629,6 +678,7 @@ export const Overview = () => {
     config,
     connected && initialized
   );
+  const [warmupDone, setWarmupDone] = useState(false);
 
   const sectionDefinitions = [
     {
@@ -646,6 +696,12 @@ export const Overview = () => {
     {
       completed: tableCounts ? tableCounts.offers > 0 : false,
       component: <OffersSection key="offers" />,
+    },
+    {
+      completed: warmupDone,
+      component: (
+        <WarmupSection key="warmup" done={warmupDone} setDone={setWarmupDone} />
+      ),
     },
     {
       completed: tableCounts ? tableCounts.subscriber_segments > 0 : false,
