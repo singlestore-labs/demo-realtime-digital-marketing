@@ -1,4 +1,5 @@
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
+import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { OfferMap } from "@/components/OfferMap";
 import { PixiMap } from "@/components/PixiMap";
@@ -19,7 +20,6 @@ import {
   connectionConfig,
   connectionDatabase,
 } from "@/data/recoil";
-import { useTimeseries } from "@/data/useTimeseries";
 import { formatMs, formatNumber } from "@/format";
 import {
   useNotificationsDataKey,
@@ -43,21 +43,10 @@ import {
   Input,
   SimpleGrid,
   Spinner,
-  Text,
   useBoolean,
   useColorMode,
   VStack,
 } from "@chakra-ui/react";
-import {
-  AnimatedLineSeries,
-  Axis,
-  darkTheme,
-  lightTheme,
-  Tooltip,
-  XYChart,
-} from "@visx/xychart";
-import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
-import { format } from "d3-format";
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
@@ -212,7 +201,6 @@ const usePipelineStatus = (
 };
 
 const PipelinesSection = () => {
-  const { colorMode } = useColorMode();
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { pipelines, completed } = usePipelineStatus(config, scaleFactor);
@@ -226,19 +214,13 @@ const PipelinesSection = () => {
     workingCtrl.off();
   }, [workingCtrl, config, scaleFactor, pipelines]);
 
-  const data = useTimeseries({
-    name: "estimatedRowCount",
-    fetcher: useCallback(
-      () => estimatedRowCountObj(config, "locations", "requests", "purchases"),
-      [config]
-    ),
-    limit: 30,
-    intervalMS: 1000,
-  });
+  const data = useIngestChartData(config, "locations", "requests", "purchases");
 
   const emptyChart =
     data.length < 2 ||
-    data.every((d) => d.locations + d.purchases + d.requests === 0);
+    data.every(
+      ({ data }) => data.locations + data.purchases + data.requests === 0
+    );
 
   const ensurePipelinesButton = (
     <Button
@@ -254,68 +236,6 @@ const PipelinesSection = () => {
         ? "...waiting for data"
         : "Create pipelines"}
     </Button>
-  );
-
-  const renderTooltip = useCallback(
-    ({ tooltipData, colorScale }: RenderTooltipParams<typeof data[0]>) => {
-      if (!colorScale || !tooltipData) {
-        return null;
-      }
-      return Object.keys(tooltipData.datumByKey)
-        .sort(
-          (a, b) =>
-            // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-            tooltipData.datumByKey[b].datum[b] -
-            // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-            tooltipData.datumByKey[a].datum[a]
-        )
-        .map((key) => {
-          const { datum } = tooltipData.datumByKey[key];
-          // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-          const value = datum[key] as number;
-          return (
-            <Text mb={1} key={key} color={colorScale(key)} fontSize="sm">
-              {key}: {format(".4~s")(value)}
-            </Text>
-          );
-        });
-    },
-    []
-  );
-
-  const chart = (
-    <XYChart
-      height={220}
-      xScale={{ type: "time" }}
-      yScale={{ type: "sqrt", nice: true }}
-      theme={colorMode === "light" ? lightTheme : darkTheme}
-    >
-      <Axis orientation="bottom" numTicks={5} />
-      <Axis orientation="right" numTicks={3} tickFormat={format("~s")} />
-      <AnimatedLineSeries
-        dataKey="locations"
-        data={data}
-        xAccessor={(datum) => datum?.ts}
-        yAccessor={(datum) => datum?.locations}
-      />
-      <AnimatedLineSeries
-        dataKey="requests"
-        data={data}
-        xAccessor={(datum) => datum?.ts}
-        yAccessor={(datum) => datum?.requests}
-      />
-      <AnimatedLineSeries
-        dataKey="purchases"
-        data={data}
-        xAccessor={(datum) => datum?.ts}
-        yAccessor={(datum) => datum?.purchases}
-      />
-      <Tooltip
-        showVerticalCrosshair
-        detectBounds={false}
-        renderTooltip={renderTooltip}
-      />
-    </XYChart>
   );
 
   return (
@@ -335,7 +255,11 @@ const PipelinesSection = () => {
         </MarkdownText>
       }
       right={
-        emptyChart ? <Center h={220}>{ensurePipelinesButton}</Center> : chart
+        emptyChart || !completed ? (
+          <Center h={220}>{ensurePipelinesButton}</Center>
+        ) : (
+          <IngestChart data={data} height={200} />
+        )
       }
     />
   );

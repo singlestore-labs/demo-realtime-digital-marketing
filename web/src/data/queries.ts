@@ -394,10 +394,19 @@ export const estimatedRowCount = <TableName extends string>(
         SELECT
           table_name AS tableName,
           SUM(rows) AS count
-        FROM information_schema.table_statistics
+        FROM information_schema.table_statistics stats
+        INNER JOIN information_schema.mv_nodes nodes ON (
+          stats.host = nodes.ip_addr
+          AND stats.port = nodes.port
+        )
         WHERE
-          database_name = ?
-          AND partition_type IN ("Master", "Reference")
+          (
+            partition_type = "Master"
+            OR (
+              partition_type = "Reference" AND nodes.type = "MA"
+            )
+          )
+          AND database_name = ?
           AND table_name IN (${tablesSQL})
         GROUP BY table_name
         UNION ALL
@@ -426,60 +435,74 @@ export const truncateTimeseriesTables = async (
   scaleFactor: ScaleFactor
 ) => {
   const { maxRows } = ScaleFactors[scaleFactor];
-  const tableCounts = await estimatedRowCount(
-    config,
+  const tables = [
     "locations",
     "requests",
     "purchases",
-    "notifications"
+    "notifications",
+  ] as const;
+  const tablesSQL = tables.map((name) => `"${name}"`).join(",");
+
+  const oversizedTables = await QueryNoDb<{
+    tableName: typeof tables[number];
+    minTs: number;
+    maxTs: number;
+    count: number;
+  }>(
+    config,
+    `
+      SELECT
+        stats.table_name AS tableName,
+        stats.count,
+        UNIX_TIMESTAMP(minmax.minTs) AS minTs,
+        UNIX_TIMESTAMP(minmax.maxTs) AS maxTs
+      FROM
+        (
+          SELECT database_name, table_name, SUM(rows) AS count
+          FROM information_schema.table_statistics
+          WHERE
+            database_name = ?
+            AND table_name IN (${tablesSQL})
+            AND partition_type = "Master"
+          GROUP BY database_name, table_name
+        ) stats,
+        (
+          SELECT
+            database_name, table_name,
+            MIN(min_value) AS minTs,
+            MAX(max_value) AS maxTs
+          FROM information_schema.columnar_segments
+          WHERE column_name = "ts"
+          GROUP BY database_name, table_name
+        ) minmax
+      WHERE
+        stats.database_name = minmax.database_name
+        AND stats.table_name = minmax.table_name
+        AND stats.count > ?
+    `,
+    config.database || "s2cellular",
+    maxRows
   );
-  const oversizedTables = tableCounts.filter((table) => table.count > maxRows);
 
   await Promise.all(
-    oversizedTables.map(async ({ tableName, count }) => {
+    oversizedTables.map(async ({ tableName, count, minTs, maxTs }) => {
+      // calculate % of count to remove
       const delta = count - maxRows;
+      const deltaPercent = delta / count;
 
-      const { ts, cumulative_count } = await QueryOne<{
-        ts: string | null;
-        cumulative_count: number | null;
-      }>(
-        config,
-        `
-          SELECT
-            LAST(ts, ts) :> DATETIME(6) AS ts,
-            LAST(cumulative_count, ts) :> BIGINT AS cumulative_count
-          FROM (
-            SELECT
-              MAX(max_value) OVER w AS ts,
-              SUM(rows_count - deleted_rows_count) OVER w AS cumulative_count
-            FROM
-              information_schema.columnar_segments s,
-              information_schema.distributed_partitions p
-            WHERE
-              s.node_id = p.node_id
-              AND s.partition = p.ordinal
-              AND p.role = "Master"
-              AND s.database_name = ?
-              AND s.table_name = ?
-              AND s.column_name = "ts"
-            WINDOW w AS (
-              PARTITION BY s.database_name, s.table_name, s.column_name
-              ORDER BY min_value ASC
-              RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-            )
-          )
-          WHERE cumulative_count <= ${delta}
-        `,
-        config.database || "s2cellular",
-        tableName
-      );
-
-      if (ts !== null) {
-        console.log(
-          `removing ${cumulative_count} rows from ${tableName} older than ${ts}`
-        );
-        await Exec(config, `DELETE FROM ${tableName} WHERE ts <= ?`, ts);
+      if (deltaPercent < 0.2) {
+        return;
       }
+
+      const ts = new Date((minTs + deltaPercent * (maxTs - minTs)) * 1000);
+      console.log(
+        `removing rows from ${tableName} older than ${ts.toISOString()}`
+      );
+      await Exec(
+        config,
+        `DELETE FROM ${tableName} WHERE ts <= ?`,
+        ts.toISOString()
+      );
     })
   );
 };

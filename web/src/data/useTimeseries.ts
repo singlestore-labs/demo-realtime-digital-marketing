@@ -4,21 +4,22 @@ import useSWR from "swr";
 export type TimeseriesOpts<T> = {
   fetcher: () => Promise<T>;
   name: string;
+  deps?: unknown[];
   limit: number;
   intervalMS: number;
 };
 
 export const useTimeseries = <T>(
   opts: TimeseriesOpts<T>
-): (T & { ts: Date })[] => {
-  const cache = useRef<(T & { ts: Date })[]>([]);
+): { ts: Date; data: T }[] => {
+  const cache = useRef<{ ts: Date; data: T }[]>([]);
 
   const { data } = useSWR(
-    ["timeseries", opts.name],
+    ["timeseries", opts.name, ...(opts.deps || [])],
     async () => {
       const newData = await opts.fetcher();
       cache.current.push({
-        ...newData,
+        data: newData,
         ts: new Date(),
       });
 
