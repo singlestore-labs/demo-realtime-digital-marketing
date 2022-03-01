@@ -6,6 +6,7 @@ import (
 
 type State struct {
 	PartitionId int
+	SeqId       int64
 	Rand        util.RandWithSource
 	Subscribers []Subscriber
 

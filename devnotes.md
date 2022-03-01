@@ -59,6 +59,7 @@ Schema changes
     - UDF could be dynamically created at SIM start
 - notifications -> calculate sim epoch when matching algo runs
 - eliminate month from segments since it's not an absolute measurement
+- notifications map -> track sim epoch rather than ts
 
 queries.ts
 

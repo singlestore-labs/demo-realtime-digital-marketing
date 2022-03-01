@@ -23,6 +23,7 @@ type Purchase struct {
 
 type Batch interface {
 	PartitionId() int
+	SeqId() int64
 	Locations() []Location
 	Requests() []Request
 	Purchases() []Purchase

@@ -9,25 +9,23 @@ import (
 type BlobWriter struct {
 	bucket *blob.Bucket
 	enc    BatchEncoder
-	genExt ExtensionGenerator
 }
 
-func NewBlobWriter(bucket *blob.Bucket, enc BatchEncoder, genExt ExtensionGenerator) *BlobWriter {
+func NewBlobWriter(bucket *blob.Bucket, enc BatchEncoder) *BlobWriter {
 	return &BlobWriter{
 		bucket: bucket,
 		enc:    enc,
-		genExt: genExt,
 	}
 }
 
-func (w *BlobWriter) Write(ctx context.Context, batch Batch) error {
-	extension := w.genExt(batch, w.enc)
+func (w *BlobWriter) Write(ctx context.Context, batch Batch, genExt ExtensionGenerator) error {
+	extension := genExt(batch, w.enc)
 
 	writer, err := w.bucket.NewWriter(ctx, "locations"+extension, &blob.WriterOptions{})
 	if err != nil {
 		return err
 	}
-	err = w.enc.EncodeLocations(batch.Locations(), writer)
+	err = w.enc.EncodeLocations(batch.SeqId(), batch.Locations(), writer)
 	if err != nil {
 		return err
 	}
@@ -40,7 +38,7 @@ func (w *BlobWriter) Write(ctx context.Context, batch Batch) error {
 	if err != nil {
 		return err
 	}
-	err = w.enc.EncodeRequests(batch.Requests(), writer)
+	err = w.enc.EncodeRequests(batch.SeqId(), batch.Requests(), writer)
 	if err != nil {
 		return err
 	}
@@ -53,7 +51,7 @@ func (w *BlobWriter) Write(ctx context.Context, batch Batch) error {
 	if err != nil {
 		return err
 	}
-	err = w.enc.EncodePurchases(batch.Purchases(), writer)
+	err = w.enc.EncodePurchases(batch.SeqId(), batch.Purchases(), writer)
 	if err != nil {
 		return err
 	}

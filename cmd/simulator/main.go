@@ -24,7 +24,7 @@ var (
 	format  = flag.String("format", "json", "output format (json, parquet)")
 
 	numPartitions  = flag.Int("partitions", 1, "number of partitions")
-	numSubscribers = flag.Int("subscribers", 100000, "number of subscribers")
+	numSubscribers = flag.Int("subscribers", 100_000, "number of subscribers")
 
 	purchaseProb = flag.Float64("purchase-prob", 0.05, "purchase probability")
 	requestProb  = flag.Float64("request-prob", 0.3, "request probability")
@@ -57,7 +57,6 @@ func main() {
 	}
 
 	rnd := util.NewRandGen(*seed)
-	genExt := output.NewExtensionGenerator(rnd.Next())
 	ctx := context.Background()
 
 	b, err := blob.OpenBucket(ctx, *blobURL)
@@ -66,7 +65,7 @@ func main() {
 	}
 	defer b.Close()
 
-	bw := output.NewBlobWriter(b, batchEncoder, genExt)
+	bw := output.NewBlobWriter(b, batchEncoder)
 
 	subsPerPartition := *numSubscribers / *numPartitions
 
@@ -79,6 +78,8 @@ func main() {
 
 		go func(partitionid int) {
 			defer wg.Done()
+
+			genExt := output.NewExtensionGenerator()
 
 			state := &gen.State{
 				PartitionId: partitionid,
@@ -95,10 +96,14 @@ func main() {
 			batch := gen.NewBatch(state)
 
 			for i := 0; i < *iterations; i++ {
+				// SeqId is generated per batch per partition
+				// we use SeqId when we load data to calculate all of our timestamps
+				state.SeqId++
+
 				gen.UpdateSubscribers(state)
 				gen.FillBatch(state, batch)
 
-				err = bw.Write(ctx, batch)
+				err = bw.Write(ctx, batch, genExt)
 				if err != nil {
 					log.Fatal(err)
 				}

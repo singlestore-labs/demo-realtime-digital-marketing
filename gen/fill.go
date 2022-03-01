@@ -2,11 +2,11 @@ package gen
 
 import (
 	"s2cellular/output"
-
 )
 
 type Batch struct {
 	partitionId int
+	seqId       int64
 	locations   []output.Location
 	requests    []output.Request
 	purchases   []output.Purchase
@@ -15,6 +15,7 @@ type Batch struct {
 func NewBatch(state *State) *Batch {
 	return &Batch{
 		partitionId: state.PartitionId,
+		seqId:       state.SeqId,
 		locations:   make([]output.Location, len(state.Subscribers)),
 		requests:    make([]output.Request, len(state.Subscribers)),
 		purchases:   make([]output.Purchase, len(state.Subscribers)),
@@ -23,6 +24,10 @@ func NewBatch(state *State) *Batch {
 
 func (b *Batch) PartitionId() int {
 	return b.partitionId
+}
+
+func (b *Batch) SeqId() int64 {
+	return b.seqId
 }
 
 func (b *Batch) Locations() []output.Location {
@@ -42,6 +47,9 @@ func FillBatch(state *State, batch *Batch) {
 	// many requests/purchases there are in the batch
 	batch.requests = batch.requests[:len(state.Subscribers)]
 	batch.purchases = batch.purchases[:len(state.Subscribers)]
+
+	// update the sequence Id for this batch
+	batch.seqId = state.SeqId
 
 	numRequests := 0
 	numPurchases := 0

@@ -13,7 +13,7 @@ import (
 
 func TestBlobWriter(t *testing.T) {
 	rnd := util.NewRandGen(0)
-	genExt := NewExtensionGenerator(rnd.Next())
+	genExt := NewExtensionGenerator()
 
 	ctx := context.Background()
 	b, err := blob.OpenBucket(ctx, "mem://")
@@ -22,11 +22,11 @@ func TestBlobWriter(t *testing.T) {
 	}
 	defer b.Close()
 
-	jsonWriter := NewBlobWriter(b, &JSONEncoder{}, genExt)
+	jsonWriter := NewBlobWriter(b, &JSONEncoder{})
 
 	batch := NewMockBatch(rnd, 0, 1000)
 
-	err = jsonWriter.Write(ctx, batch)
+	err = jsonWriter.Write(ctx, batch, genExt)
 	if err != nil {
 		t.Fatal(err)
 	}

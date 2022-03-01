@@ -10,6 +10,7 @@ import (
 
 type MockBatch struct {
 	partitionId int
+	seqId       int64
 	locs        []Location
 	reqs        []Request
 	purs        []Purchase
@@ -40,6 +41,7 @@ func NewMockBatch(rnd *util.RandGen, partitionId int, size int) *MockBatch {
 
 	return &MockBatch{
 		partitionId: partitionId,
+		seqId:       0,
 		locs:        locs,
 		reqs:        reqs,
 		purs:        purs,
@@ -48,6 +50,10 @@ func NewMockBatch(rnd *util.RandGen, partitionId int, size int) *MockBatch {
 
 func (m MockBatch) PartitionId() int {
 	return m.partitionId
+}
+
+func (m MockBatch) SeqId() int64 {
+	return m.seqId
 }
 
 func (m MockBatch) Locations() []Location {
