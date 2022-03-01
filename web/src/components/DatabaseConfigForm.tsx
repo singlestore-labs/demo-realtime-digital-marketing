@@ -51,7 +51,7 @@ export const DatabaseConfigForm = ({
         />
         <ConfigInput
           label="Password"
-          placeholder="•••••••••••"
+          placeholder=""
           value={password}
           setValue={setPassword}
           type="password"

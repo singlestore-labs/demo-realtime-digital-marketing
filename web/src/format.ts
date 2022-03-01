@@ -1,10 +1,10 @@
-export const formatNumber = (num: number): string =>
-  num.toLocaleString(undefined, { maximumFractionDigits: 2 });
-
 const SECOND_IN_MS = 1000;
 const MINUTE_IN_MS = 60 * SECOND_IN_MS;
 const HOUR_IN_MS = 60 * MINUTE_IN_MS;
 const DAY_IN_MS = 24 * HOUR_IN_MS;
+
+export const formatNumber = (num: number): string =>
+  num.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 // formatMs converts a number of milliseconds to a string of the form "XhXXmXXsXXms"
 export const formatMs = (ms?: number): string => {

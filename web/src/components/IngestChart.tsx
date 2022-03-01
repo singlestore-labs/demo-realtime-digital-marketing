@@ -14,6 +14,8 @@ import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 import { format } from "d3-format";
 import { useCallback } from "react";
 
+const SI_FORMAT = format("~s");
+
 type Props<TableName extends string> = {
   data: { data: { [name in TableName]: number }; ts: Date }[];
   width?: number;
@@ -65,6 +67,11 @@ export const IngestChart = <T extends string>({ data, ...props }: Props<T>) => {
     []
   );
 
+  const yTickFormat = useCallback(
+    (v: number) => SI_FORMAT(v).replace("G", "B"),
+    []
+  );
+
   if (data.length < 2) {
     return (
       <Center height={props.height}>
@@ -96,14 +103,16 @@ export const IngestChart = <T extends string>({ data, ...props }: Props<T>) => {
       xScale={{ type: "time" }}
       yScale={{ type: "sqrt", nice: true, zero: false, clamp: true }}
       theme={colorMode === "light" ? lightTheme : darkTheme}
-      margin={{ left: 0, right: 40, top: 10, bottom: 20 }}
+      margin={{ left: 0, right: 50, top: 10, bottom: 40 }}
       {...props}
     >
-      <Axis orientation="bottom" numTicks={5} />
+      <Axis orientation="bottom" numTicks={5} label="time" labelOffset={10} />
       <Axis
         orientation="right"
         numTicks={props.height < 250 ? 3 : 5}
-        tickFormat={format("~s")}
+        tickFormat={yTickFormat}
+        label="rows"
+        labelOffset={20}
       />
       {lines}
       <Tooltip
