@@ -1,7 +1,7 @@
 import { ConnectionConfig } from "@/data/client";
 import { estimatedRowCountObj } from "@/data/queries";
 import { useTimeseries } from "@/data/useTimeseries";
-import { Text, useColorMode } from "@chakra-ui/react";
+import { Center, Spinner, Text, useColorMode } from "@chakra-ui/react";
 import {
   AnimatedLineSeries,
   Axis,
@@ -64,6 +64,14 @@ export const IngestChart = <T extends string>({ data, ...props }: Props<T>) => {
     },
     []
   );
+
+  if (data.length < 2) {
+    return (
+      <Center height={props.height}>
+        <Spinner size="md" />
+      </Center>
+    );
+  }
 
   const lines =
     data.length > 0

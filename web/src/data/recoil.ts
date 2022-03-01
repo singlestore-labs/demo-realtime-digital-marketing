@@ -18,6 +18,28 @@ const localStorageEffect =
     });
   };
 
+const searchParamEffect =
+  (): AtomEffect<string | null> =>
+  ({ setSelf, node: { key } }) => {
+    const { location } = window;
+    if (location) {
+      const search = new URLSearchParams(location.search);
+      setSelf(search.get(key));
+    }
+  };
+
+export const vaporSessionId = atom({
+  key: "sessionId",
+  default: null,
+  effects: [searchParamEffect()],
+});
+
+export const vaporBaseUrl = atom({
+  key: "vaporBaseUrl",
+  default: "https://vapor.labs.singlestore.com",
+  effects: [localStorageEffect()],
+});
+
 export const connectionHost = atom({
   key: "connectionHost",
   default: "http://127.0.0.1",
@@ -42,9 +64,50 @@ export const connectionDatabase = atom({
   effects: [localStorageEffect()],
 });
 
+export type VaporClusterConnectionConfig = {
+  endpoint: string;
+  user: string;
+  password: string;
+};
+
+export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
+  key: "vaporConnectionConfig",
+  get: async ({ get }) => {
+    const sessionId = get(vaporSessionId);
+    const baseUrl = get(vaporBaseUrl);
+
+    if (sessionId) {
+      try {
+        const response = await fetch(
+          baseUrl + "/api/v1/vapor/connect?sessionId=" + sessionId
+        );
+        if (response.status === 200) {
+          const data = (await response.json()) as VaporClusterConnectionConfig;
+
+          return {
+            host: data.endpoint,
+            user: data.user,
+            password: data.password,
+            database: get(connectionDatabase),
+          };
+        }
+      } catch (e) {
+        console.log(
+          `Failed to connect to vapor at ${baseUrl}, falling back to local config`
+        );
+      }
+    }
+  },
+});
+
 export const connectionConfig = selector<ConnectionConfig>({
   key: "connectionConfig",
-  get: ({ get }) => {
+  get: async ({ get }) => {
+    const vaporConfig = get(vaporConnectionConfig);
+    if (vaporConfig) {
+      return vaporConfig;
+    }
+
     const host = get(connectionHost);
     const user = get(connectionUser);
     const password = get(connectionPassword);

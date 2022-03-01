@@ -1,3 +1,4 @@
+import { ConfigInput } from "@/components/ConfigInput";
 import { MarkdownText } from "@/components/MarkdownText";
 import { ScaleFactorSelector } from "@/components/ScaleFactorSelector";
 import {
@@ -6,50 +7,8 @@ import {
   connectionPassword,
   connectionUser,
 } from "@/data/recoil";
-import {
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Input,
-  SimpleGrid,
-  Stack,
-} from "@chakra-ui/react";
-import { ReactNode } from "react";
+import { SimpleGrid, Stack } from "@chakra-ui/react";
 import { useRecoilState } from "recoil";
-
-type ConfigInputProps = {
-  label: string;
-  placeholder: string;
-  value: string;
-  setValue: (value: string) => void;
-  helpText?: ReactNode;
-  type?: "text" | "password" | "number";
-};
-
-const ConfigInput = ({
-  label,
-  placeholder,
-  value,
-  setValue,
-  helpText,
-  type = "text",
-}: ConfigInputProps) => (
-  <FormControl>
-    <FormLabel mb={1} fontSize="xs" fontWeight="bold" textTransform="uppercase">
-      {label}
-    </FormLabel>
-    <Input
-      size="sm"
-      placeholder={placeholder}
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      type={type}
-    />
-    {helpText ? (
-      <FormHelperText fontSize="xs">{helpText}</FormHelperText>
-    ) : null}
-  </FormControl>
-);
 
 type Props = {
   showDatabase?: boolean;

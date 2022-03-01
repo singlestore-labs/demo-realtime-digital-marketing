@@ -1,11 +1,19 @@
+import { ConfigInput } from "@/components/ConfigInput";
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
+import { DisconnectVaporButton } from "@/components/DisconnectVaporButton";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState } from "@/data/hooks";
-import { simulatorEnabled } from "@/data/recoil";
+import { simulatorEnabled, vaporBaseUrl } from "@/data/recoil";
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Alert,
   AlertIcon,
   AlertTitle,
+  Box,
   Drawer,
   DrawerBody,
   DrawerCloseButton,
@@ -29,7 +37,8 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
 
-  const { connected, initialized } = useConnectionState();
+  const { connected, initialized, isVapor } = useConnectionState();
+  const [vaporUrl, setVaporUrl] = useRecoilState(vaporBaseUrl);
 
   return (
     <Drawer
@@ -45,12 +54,22 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
 
         <DrawerBody>
           <Stack spacing={4}>
-            <DatabaseConfigForm showScaleFactor showDatabase />
+            {isVapor ? null : (
+              <DatabaseConfigForm showScaleFactor showDatabase />
+            )}
             <Alert status={connected ? "success" : "error"} borderRadius="md">
               <AlertIcon />
               <AlertTitle>
                 {connected ? "connected" : "disconnected"}
               </AlertTitle>
+              {isVapor ? (
+                <DisconnectVaporButton
+                  position="absolute"
+                  right={4}
+                  top={3}
+                  size="xs"
+                />
+              ) : null}
             </Alert>
             <Alert
               status={initialized ? "success" : "warning"}
@@ -84,6 +103,24 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
                 onChange={() => setSimulatorEnabled(!isSimulatorEnabled)}
               />
             </Alert>
+            <Accordion allowToggle>
+              <AccordionItem>
+                <AccordionButton>
+                  <Box flex="1" textAlign="left">
+                    Advanced
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+                <AccordionPanel>
+                  <ConfigInput
+                    label="Vapor Base URL"
+                    value={vaporUrl}
+                    placeholder="https://vapor.example.com"
+                    setValue={setVaporUrl}
+                  />
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
           </Stack>
         </DrawerBody>
 

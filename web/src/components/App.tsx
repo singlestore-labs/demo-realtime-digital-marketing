@@ -1,20 +1,35 @@
 import { Nav } from "@/components/Nav";
 import { NotificationsMap } from "@/components/NotificationsMap";
 import { Overview } from "@/components/Overview";
-import { Box, Flex } from "@chakra-ui/react";
+import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
+import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 
 function App() {
+  const loadingFallback = (
+    <Center height="100vh">
+      <Spinner
+        size="xl"
+        speed="0.85s"
+        thickness="3px"
+        emptyColor="gray.200"
+        color="blue.500"
+      />
+    </Center>
+  );
+
   return (
-    <Flex height="100vh" direction="column">
-      <Nav />
-      <Box m={4} flex="1">
-        <Routes>
-          <Route path="/" element={<Overview />} />
-          <Route path="/map" element={<NotificationsMap />} />
-        </Routes>
-      </Box>
-    </Flex>
+    <Suspense fallback={loadingFallback}>
+      <Flex height="100vh" direction="column">
+        <Nav />
+        <Box m={4} flex="1">
+          <Routes>
+            <Route path="/" element={<Overview />} />
+            <Route path="/map" element={<NotificationsMap />} />
+          </Routes>
+        </Box>
+      </Flex>
+    </Suspense>
   );
 }
 

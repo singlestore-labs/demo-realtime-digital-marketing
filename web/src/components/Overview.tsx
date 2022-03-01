@@ -1,4 +1,5 @@
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
+import { DisconnectVaporButton } from "@/components/DisconnectVaporButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { OfferMap } from "@/components/OfferMap";
@@ -85,7 +86,34 @@ const Section = (props: {
   );
 };
 
-const ConnectionSection = ({ connected }: { connected: boolean }) => {
+const ConnectionSection = ({
+  connected,
+  isVapor,
+}: {
+  connected: boolean;
+  isVapor: boolean;
+}) => {
+  if (isVapor) {
+    return (
+      <Section
+        completed={connected}
+        title="Connected"
+        left={
+          <>
+            <MarkdownText>
+              {`
+                Connected to a demo cluster running in the SingleStore Managed
+                Service. To disconnect and use your own cluster instead, click the button below.
+              `}
+            </MarkdownText>
+            <DisconnectVaporButton size="xs" colorScheme="gray" />
+          </>
+        }
+        right={null}
+      />
+    );
+  }
+
   return (
     <Section
       completed={connected}
@@ -592,7 +620,7 @@ const SummarySection = () => {
 export const Overview = () => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
-  const { connected, initialized } = useConnectionState();
+  const { connected, initialized, isVapor } = useConnectionState();
   const { completed: pipelinesCompleted } = usePipelineStatus(
     config,
     scaleFactor,
@@ -607,7 +635,13 @@ export const Overview = () => {
   const sectionDefinitions = [
     {
       completed: connected,
-      component: <ConnectionSection key="connection" connected={connected} />,
+      component: (
+        <ConnectionSection
+          key="connection"
+          connected={connected}
+          isVapor={isVapor}
+        />
+      ),
     },
     {
       completed: initialized,

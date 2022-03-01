@@ -34,13 +34,13 @@ const Stats = () => {
 
   const config = useRecoilValue(connectionConfig);
 
-  const tables = [
+  const ingestData = useIngestChartData(
+    config,
     "locations",
     "requests",
     "purchases",
-    "notifications",
-  ] as const;
-  const ingestData = useIngestChartData(config, ...tables);
+    "notifications"
+  );
 
   const tableCounts = useSWR(
     ["notificationsMapTableCounts", config],
