@@ -3,12 +3,13 @@ import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import {
   connectionConfig,
   simulatorEnabled,
+  tickDurationMs,
   vaporConnectionConfig,
 } from "@/data/recoil";
 import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 import { useToast } from "@chakra-ui/react";
 import { useCallback, useEffect, useReducer, useState } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import useSWR from "swr";
 
 const defaultSchemaObjects = Object.fromEntries(
@@ -85,6 +86,8 @@ export const useTick = (
   tick: (ctx: AbortController) => Promise<unknown>,
   { name, enabled, intervalMS }: TickOptions
 ) => {
+  const setTickDurationMs = useSetRecoilState(tickDurationMs(name));
+
   useEffect(() => {
     if (!enabled) {
       return;
@@ -103,11 +106,13 @@ export const useTick = (
           return;
         }
 
-        const start = +Date.now();
+        const start = performance.now();
 
         await tick(ctx);
 
-        const duration = +Date.now() - start;
+        const duration = performance.now() - start;
+
+        setTickDurationMs(duration);
         setTimeout(outerTick, Math.max(0, intervalMS - duration));
       } catch (e) {
         if (ctx.signal.aborted) {
@@ -131,7 +136,7 @@ export const useTick = (
       console.log(`Stopping ${tickID}`);
       ctx.abort();
     };
-  }, [enabled, tick, intervalMS, name]);
+  }, [enabled, tick, intervalMS, name, setTickDurationMs]);
 };
 
 export const useResetSchema = ({

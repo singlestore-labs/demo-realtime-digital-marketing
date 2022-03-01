@@ -12,7 +12,7 @@ export const formatMs = (ms?: number): string => {
     return "0s";
   }
   if (ms < SECOND_IN_MS) {
-    return `${ms}ms`;
+    return `${formatNumber(ms)}ms`;
   }
   if (ms < MINUTE_IN_MS) {
     return `${formatNumber(ms / SECOND_IN_MS)}s`;

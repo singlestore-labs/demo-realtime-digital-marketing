@@ -38,7 +38,5 @@ Matching -> sample notifications generated
   - when defining a segment should show num matching subscribers in real time
   - give one or two examples of offers + segments
 - map page
-  - duration stats: update segments, run matching process
   - offer creator
-  - visualize offers on the map?
 - optimize seed data gen for offers/segments

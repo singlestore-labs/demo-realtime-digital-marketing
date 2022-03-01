@@ -2,8 +2,13 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { PixiMap } from "@/components/PixiMap";
 import { estimatedRowCountObj } from "@/data/queries";
-import { connectionConfig, simulatorEnabled } from "@/data/recoil";
+import {
+  connectionConfig,
+  simulatorEnabled,
+  tickDurationMs,
+} from "@/data/recoil";
 import { useSimulator } from "@/data/useSimulator";
+import { formatMs } from "@/format";
 import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
 import {
   Alert,
@@ -12,9 +17,9 @@ import {
   Box,
   Button,
   Flex,
+  Grid,
   Stack,
   Stat,
-  StatGroup,
   StatLabel,
   StatNumber,
   Text,
@@ -55,9 +60,18 @@ const Stats = () => {
     { refreshInterval: 1000 }
   );
 
+  const matchingDuration = useRecoilValue(tickDurationMs("SimulatorMatcher"));
+  const updateSegmentsDuration = useRecoilValue(
+    tickDurationMs("SimulatorUpdateSegments")
+  );
+
   const formatStat = format(".4~s");
   const stats = tableCounts.data ? (
-    <StatGroup gap={4}>
+    <Grid
+      templateColumns="repeat(auto-fit, minmax(100px, 1fr))"
+      columnGap={2}
+      rowGap={2}
+    >
       <Stat>
         <StatLabel>Offers</StatLabel>
         <StatNumber>{formatStat(tableCounts.data.offers)}</StatNumber>
@@ -74,7 +88,15 @@ const Stats = () => {
         <StatLabel>Segments</StatLabel>
         <StatNumber>{formatStat(tableCounts.data.segments)}</StatNumber>
       </Stat>
-    </StatGroup>
+      <Stat>
+        <StatLabel>Segmentation</StatLabel>
+        <StatNumber>{formatMs(updateSegmentsDuration)}</StatNumber>
+      </Stat>
+      <Stat>
+        <StatLabel>Matching</StatLabel>
+        <StatNumber>{formatMs(matchingDuration)}</StatNumber>
+      </Stat>
+    </Grid>
   ) : null;
 
   return (

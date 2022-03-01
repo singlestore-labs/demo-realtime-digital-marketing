@@ -1,5 +1,5 @@
 import { ConnectionConfig } from "@/data/client";
-import { atom, AtomEffect, selector } from "recoil";
+import { atom, AtomEffect, atomFamily, selector } from "recoil";
 import { ScaleFactor } from "../scalefactors";
 
 const localStorageEffect =
@@ -134,4 +134,9 @@ export const simulatorEnabled = atom<boolean>({
 export const databaseDrawerIsOpen = atom({
   key: "databaseDrawerIsOpen",
   default: false,
+});
+
+export const tickDurationMs = atomFamily<number | undefined, string>({
+  key: "tickDurationMs",
+  default: undefined,
 });
