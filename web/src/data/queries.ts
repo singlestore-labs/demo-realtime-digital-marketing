@@ -96,13 +96,16 @@ export const schemaObjects = async (
 export const resetSchema = async (
   config: ConnectionConfig,
   progress: (msg: string, status: "info" | "success") => void,
-  includeSeedData = true
+  includeSeedData = true,
+  skipCreate = false
 ) => {
-  progress("Dropping existing schema", "info");
-  await ExecNoDb(config, "DROP DATABASE IF EXISTS `" + config.database + "`");
+  if (!skipCreate) {
+    progress("Dropping existing schema", "info");
+    await ExecNoDb(config, "DROP DATABASE IF EXISTS `" + config.database + "`");
 
-  progress("Creating database", "info");
-  await ExecNoDb(config, "CREATE DATABASE `" + config.database + "`");
+    progress("Creating database", "info");
+    await ExecNoDb(config, "CREATE DATABASE `" + config.database + "`");
+  }
 
   for (const obj of FUNCTIONS) {
     progress(`Creating function: ${obj.name}`, "info");

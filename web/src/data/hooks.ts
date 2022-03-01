@@ -3,6 +3,7 @@ import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import {
   connectionConfig,
   simulatorEnabled,
+  skipCreateDatabase,
   tickDurationMs,
   vaporConnectionConfig,
 } from "@/data/recoil";
@@ -153,6 +154,7 @@ export const useResetSchema = ({
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
   const toast = useToast();
+  const skipCreate = useRecoilValue(skipCreateDatabase);
 
   return useCallback(async () => {
     // pre schema reset
@@ -176,7 +178,8 @@ export const useResetSchema = ({
           toast({ id, title, status, duration: null });
         }
       },
-      includeSeedData
+      includeSeedData,
+      !!skipCreate
     );
 
     // post schema reset
@@ -189,6 +192,7 @@ export const useResetSchema = ({
     before,
     config,
     includeSeedData,
+    skipCreate,
     after,
     resetConnectionState,
     toast,

@@ -28,6 +28,12 @@ const searchParamEffect =
     }
   };
 
+export const skipCreateDatabase = atom({
+  key: "skipCreateDatabase",
+  default: null,
+  effects: [searchParamEffect()],
+});
+
 export const vaporSessionId = atom({
   key: "sessionId",
   default: null,
