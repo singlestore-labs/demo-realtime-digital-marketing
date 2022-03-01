@@ -39,7 +39,7 @@ jobs:
         working-directory: web
 
       - name: Build
-        run: yarn run vite build --base="/demo-s2cellular/"
+        run: yarn run vite build
         working-directory: web
 
       - name: Deploy
