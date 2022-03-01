@@ -37,7 +37,7 @@ export const vaporSessionId = atom({
 export const vaporBaseUrl = atom({
   key: "vaporBaseUrl",
   default: "https://vapor.labs.singlestore.com",
-  effects: [localStorageEffect()],
+  effects: [searchParamEffect()],
 });
 
 export const connectionHost = atom({
@@ -102,7 +102,7 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
 
 export const connectionConfig = selector<ConnectionConfig>({
   key: "connectionConfig",
-  get: async ({ get }) => {
+  get: ({ get }) => {
     const vaporConfig = get(vaporConnectionConfig);
     if (vaporConfig) {
       return vaporConfig;
