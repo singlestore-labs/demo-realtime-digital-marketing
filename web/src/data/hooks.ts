@@ -171,8 +171,8 @@ export const useResetSchema = ({
           toast.update(id, {
             title,
             status,
-            duration: status === "success" ? 3000 : null,
-            isClosable: status === "success",
+            duration: status === "success" ? 2000 : null,
+            isClosable: true,
           });
         } else {
           toast({ id, title, status, duration: null });

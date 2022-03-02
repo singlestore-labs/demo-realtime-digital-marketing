@@ -1,5 +1,5 @@
 import { configScaleFactor } from "@/data/recoil";
-import { isScaleFactor, ScaleFactors } from "@/scalefactors";
+import { getScaleFactor, ScaleFactors } from "@/scalefactors";
 import { FormControl, FormLabel, Select } from "@chakra-ui/react";
 import { useRecoilState } from "recoil";
 
@@ -19,21 +19,17 @@ export const ScaleFactorSelector = () => {
       <Select
         size="sm"
         required
-        value={scaleFactor}
+        value={scaleFactor.name}
         onChange={(ev) => {
           const v = ev.target.value;
-          if (isScaleFactor(v)) {
-            setScaleFactor(v);
-          }
+          setScaleFactor(getScaleFactor(v));
         }}
       >
-        {Object.keys(ScaleFactors)
-          .sort()
-          .map((f) => (
-            <option value={f} key={f}>
-              {f}
-            </option>
-          ))}
+        {ScaleFactors.map((f) => (
+          <option value={f.name} key={f.name}>
+            {f.name}
+          </option>
+        ))}
       </Select>
     </FormControl>
   );

@@ -1,20 +1,30 @@
 import { ConnectionConfig } from "@/data/client";
 import { atom, AtomEffect, atomFamily, selector } from "recoil";
-import { ScaleFactor } from "../scalefactors";
+import { ScaleFactor, ScaleFactors } from "../scalefactors";
+
+type LocalStorageEffectConfig<T> = {
+  encode: (v: T) => string;
+  decode: (v: string) => T;
+};
 
 const localStorageEffect =
-  <T>(): AtomEffect<T> =>
+  <T>(
+    { encode, decode }: LocalStorageEffectConfig<T> = {
+      encode: JSON.stringify,
+      decode: JSON.parse,
+    }
+  ): AtomEffect<T> =>
   ({ setSelf, onSet, node }) => {
     const key = `recoil.localstorage.${node.key}`;
     const savedValue = localStorage.getItem(key);
     if (savedValue != null) {
-      setSelf(JSON.parse(savedValue));
+      setSelf(decode(savedValue));
     }
 
     onSet((newValue, _, isReset) => {
       isReset
         ? localStorage.removeItem(key)
-        : localStorage.setItem(key, JSON.stringify(newValue));
+        : localStorage.setItem(key, encode(newValue));
     });
   };
 
@@ -127,8 +137,14 @@ export const connectionConfig = selector<ConnectionConfig>({
 
 export const configScaleFactor = atom<ScaleFactor>({
   key: "configScaleFactor",
-  default: "small",
-  effects: [localStorageEffect()],
+  default: ScaleFactors[0],
+  effects: [
+    localStorageEffect({
+      encode: (v: ScaleFactor) => v.name,
+      decode: (v: string) =>
+        ScaleFactors.find((sf) => sf.name === v) || ScaleFactors[0],
+    }),
+  ],
 });
 
 export const simulatorEnabled = atom<boolean>({

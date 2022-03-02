@@ -16,7 +16,7 @@ import {
   TABLES,
 } from "@/data/sql";
 import { boundsToWKTPolygon } from "@/geo";
-import { ScaleFactor, ScaleFactors } from "@/scalefactors";
+import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
 import stringHash from "string-hash";
 
@@ -179,7 +179,8 @@ export const pipelineStatus = async (
   config: ConnectionConfig,
   scaleFactor: ScaleFactor
 ) => {
-  const scaleFactorPrefix = ScaleFactors[scaleFactor].prefix;
+  const scaleFactorPrefix = scaleFactor.prefix;
+
   type Row = {
     cityId: number;
     cityName: string;
@@ -221,7 +222,7 @@ export const ensurePipelinesExist = async (
   config: ConnectionConfig,
   scaleFactor: ScaleFactor
 ) => {
-  const scaleFactorPrefix = ScaleFactors[scaleFactor].prefix;
+  const scaleFactorPrefix = scaleFactor.prefix;
   const pipelines = await pipelineStatus(config, scaleFactor);
 
   await Promise.all(
@@ -437,7 +438,7 @@ export const truncateTimeseriesTables = async (
   config: ConnectionConfig,
   scaleFactor: ScaleFactor
 ) => {
-  const { maxRows } = ScaleFactors[scaleFactor];
+  const { maxRows } = scaleFactor;
   const tables = [
     "locations",
     "requests",
