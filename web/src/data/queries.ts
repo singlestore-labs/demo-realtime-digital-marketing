@@ -536,12 +536,7 @@ export const runUpdateSegments = (config: ConnectionConfig) =>
     (x) => x.RESULT
   );
 
-export type NotificationTuple = [
-  ts: string,
-  offer_id: number,
-  lon: number,
-  lat: number
-];
+export type NotificationTuple = [ts: string, lon: number, lat: number];
 
 export const queryNotificationsInBounds = (
   config: ConnectionConfig,
@@ -554,14 +549,13 @@ export const queryNotificationsInBounds = (
     `
       SELECT
         ts,
-        offer_id,
         GEOGRAPHY_LONGITUDE(lonlat) AS lon,
         GEOGRAPHY_LATITUDE(lonlat) AS lat
       FROM notifications
       WHERE
         ts > ?
         AND GEOGRAPHY_CONTAINS(?, lonlat)
-      ORDER BY ts ASC
+      ORDER BY ts DESC
       LIMIT ${limit}
     `,
     since,

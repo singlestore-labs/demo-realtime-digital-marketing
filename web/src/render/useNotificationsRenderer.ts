@@ -106,10 +106,9 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
       isPaused: () => !initialized,
       onSuccess: (newNotifications) => {
         if (newNotifications.length > 0) {
-          timestampCursor.current =
-            newNotifications[newNotifications.length - 1][0];
+          timestampCursor.current = newNotifications[0][0];
 
-          for (const [, , lng, lat] of newNotifications) {
+          for (const [, lng, lat] of newNotifications) {
             scene.addChild(new Pulse([lat, lng]));
           }
         }

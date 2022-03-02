@@ -515,9 +515,16 @@ const MatchingSection = () => {
   const done = !!tableCounts.data?.notifications;
 
   const onClick = useCallback(async () => {
-    startTimer();
-    setSentNotifications(await runMatchingProcess(config, "second"));
+    let numSent = 0;
+    let attempts = 0;
+
+    while (numSent === 0 && attempts++ < 10) {
+      startTimer();
+      numSent = await runMatchingProcess(config, "second");
+    }
     stopTimer();
+
+    setSentNotifications(numSent);
 
     tableCounts.mutate();
     swrMutate(notificationsDataKey);
@@ -560,10 +567,6 @@ const MatchingSection = () => {
             we are finally able to send notifications to subscriber's devices.
             In this demo, rather than actually sending notifications we will
             insert them into a table called "notifications".
-
-            Note that quickly generating notifications multiple times will
-            sometimes send zero notifications. This is expected behavior in
-            order to not to spam subscribers.
 
             Click the button to generate notifications interactively, or run the
             following query in your favorite SQL client:
