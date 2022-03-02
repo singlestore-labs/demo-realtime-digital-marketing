@@ -45,7 +45,7 @@ export const useSimulator = () => {
   });
 
   const matchingTick = useCallback(
-    (ctx: AbortController) => runMatchingProcess({ ...config, ctx }, "minute"),
+    (ctx: AbortController) => runMatchingProcess({ ...config, ctx }, "second"),
     [config]
   );
 
