@@ -6,7 +6,8 @@ import { simulatorEnabled } from "@/data/recoil";
 import {
   Alert,
   AlertIcon,
-  AlertTitle, Drawer,
+  AlertTitle,
+  Drawer,
   DrawerBody,
   DrawerCloseButton,
   DrawerContent,
@@ -14,7 +15,7 @@ import {
   DrawerHeader,
   DrawerOverlay,
   Stack,
-  Switch
+  Switch,
 } from "@chakra-ui/react";
 import React from "react";
 import { useRecoilState } from "recoil";

@@ -22,7 +22,7 @@ export interface Props
   extends HTMLChakraProps<"button">,
     ButtonOptions,
     ThemingProps<"Button"> {
-  includeSeedData?: boolean;
+  skipSeedData?: boolean;
 }
 
 export const ResetSchemaButton = (props: Props) => {
@@ -31,7 +31,7 @@ export const ResetSchemaButton = (props: Props) => {
   const [resettingSchema, resettingSchemaCtrl] = useBoolean();
   const database = useRecoilValue(connectionDatabase);
   const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
-  const { includeSeedData, disabled, ...restProps } = props;
+  const { skipSeedData, disabled, ...restProps } = props;
 
   const onResetSchema = useResetSchema({
     before: useCallback(() => resettingSchemaCtrl.on(), [resettingSchemaCtrl]),
@@ -39,7 +39,7 @@ export const ResetSchemaButton = (props: Props) => {
       resettingSchemaCtrl.off();
       resetSchemaDialog.onClose();
     }, [resetSchemaDialog, resettingSchemaCtrl]),
-    includeSeedData,
+    includeSeedData: !skipSeedData,
   });
 
   return (

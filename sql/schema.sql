@@ -121,6 +121,7 @@ create table subscriber_segments (
   subscriber_id BIGINT NOT NULL,
   segment_id BIGINT NOT NULL,
 
+  UNIQUE KEY (city_id, subscriber_id, segment_id) USING HASH,
   SORT KEY (city_id, subscriber_id, segment_id),
   SHARD KEY (city_id, subscriber_id)
 );
@@ -130,7 +131,7 @@ CREATE OR REPLACE FUNCTION match_offers_to_subscribers(
 ) RETURNS TABLE AS RETURN (
   WITH
     phase_1 as (
-      SELECT STRAIGHT_JOIN offers.*, subscribers.*
+      SELECT offers.*, subscribers.*
       FROM
         offers,
         subscribers
@@ -200,11 +201,6 @@ create view dynamic_subscriber_segments as (
     segments.filter_kind = "olc_8"
     AND segments.filter_value = locations.olc_8
     AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-    AND ts >= (
-      SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
-      FROM segments
-      WHERE segments.filter_kind = "olc_8"
-    )
   UNION
   SELECT city_id, subscriber_id, segment_id
   FROM segments, locations
@@ -212,11 +208,6 @@ create view dynamic_subscriber_segments as (
     segments.filter_kind = "olc_6"
     AND segments.filter_value = locations.olc_6
     AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-    AND ts >= (
-      SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
-      FROM segments
-      WHERE segments.filter_kind = "olc_6"
-    )
   UNION
   SELECT city_id, subscriber_id, segment_id
   FROM segments, requests
@@ -224,11 +215,6 @@ create view dynamic_subscriber_segments as (
     segments.filter_kind = "request"
     AND segments.filter_value = requests.domain
     AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-    AND ts >= (
-      SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
-      FROM segments
-      WHERE segments.filter_kind = "request"
-    )
   UNION
   SELECT city_id, subscriber_id, segment_id
   FROM segments, purchases
@@ -236,9 +222,4 @@ create view dynamic_subscriber_segments as (
     segments.filter_kind = "purchase"
     AND segments.filter_value = purchases.vendor
     AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-    AND ts >= (
-      SELECT MIN(date_sub_dynamic(NOW(6), valid_interval))
-      FROM segments
-      WHERE segments.filter_kind = "purchase"
-    )
 );

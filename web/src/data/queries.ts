@@ -94,9 +94,17 @@ export const schemaObjects = async (
 
 export const resetSchema = async (
   config: ConnectionConfig,
-  progress: (msg: string, status: "info" | "success") => void,
-  includeSeedData = true,
-  skipCreate = false
+  {
+    progress,
+    scaleFactor,
+    includeSeedData,
+    skipCreate = false,
+  }: {
+    progress: (msg: string, status: "info" | "success") => void;
+    scaleFactor: ScaleFactor;
+    includeSeedData: boolean;
+    skipCreate: boolean;
+  }
 ) => {
   if (!skipCreate) {
     progress("Dropping existing schema", "info");
@@ -124,7 +132,7 @@ export const resetSchema = async (
 
   if (includeSeedData) {
     progress("Creating sample data", "info");
-    await insertSeedData(config);
+    await insertSeedData(config, scaleFactor);
   }
 
   progress("Schema initialized", "success");
@@ -133,8 +141,12 @@ export const resetSchema = async (
 export const insertBaseData = (config: ConnectionConfig) =>
   Promise.all(BASE_DATA.map((q) => Exec(config, q)));
 
-export const insertSeedData = (config: ConnectionConfig) => {
-  const offers = randomOffers(DEFAULT_CITY, 10000);
+export const insertSeedData = (
+  config: ConnectionConfig,
+  scaleFactor: ScaleFactor
+) => {
+  const numOffers = 100 * scaleFactor.partitions;
+  const offers = randomOffers({ ...DEFAULT_CITY, diameter: 0.1 }, numOffers);
   return createOffers(config, offers);
 };
 

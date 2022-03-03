@@ -109,6 +109,17 @@ export const createOffers = async (
   let numOffers = 0;
   let segments: Segment[] = [];
 
+  const commitBatch = async () => {
+    await Promise.all([
+      Exec(config, stmt.sql(), ...stmt.params()),
+      createSegments(config, segments),
+    ]);
+
+    stmt.clear();
+    segments = [];
+    numOffers = 0;
+  };
+
   for (const offer of offers) {
     stmt.append(
       customerId,
@@ -123,15 +134,12 @@ export const createOffers = async (
     segments = segments.concat(offer.segments);
 
     if (numOffers >= MAX_OFFERS_PER_BATCH) {
-      await Promise.all([
-        Exec(config, stmt.sql(), ...stmt.params()),
-        createSegments(config, segments),
-      ]);
-
-      stmt.clear();
-      segments = [];
-      numOffers = 0;
+      await commitBatch();
     }
+  }
+
+  if (numOffers > 0) {
+    await commitBatch();
   }
 };
 
@@ -169,7 +177,11 @@ export const randomSegment = (city: CityConfig): Segment => {
     case "olc_8":
     case "olc_6": {
       const [lon, lat] = randomPointInCity(city);
-      const olc = OpenLocationCode.encode(lat, lon, kind === "olc_8" ? 8 : 6);
+      const olcLen = kind === "olc_8" ? 8 : 6;
+      const olc = OpenLocationCode.encode(lat, lon, olcLen).substring(
+        0,
+        olcLen
+      );
       return {
         kind,
         interval,
@@ -221,7 +233,5 @@ export const randomOffer = (city: CityConfig): Offer => {
   };
 };
 
-export const randomOffers = (city: CityConfig, maxOffers: number) =>
-  Array.from({ length: randomIntegerInRange(1, maxOffers) }, () =>
-    randomOffer(city)
-  );
+export const randomOffers = (city: CityConfig, numOffers: number) =>
+  Array.from({ length: numOffers }, () => randomOffer(city));

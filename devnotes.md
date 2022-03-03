@@ -31,7 +31,8 @@ Matching -> sample notifications generated
 
 # next steps:
 
-- try out using OLC in offers rather than polygon
+- enable workspaces support
+- group offers by polygon in map
 - pick default scale based on number of partitions after create database
 - offer creation modal/page
   - consider creating the form separate so it can be used on a page or modal
@@ -42,7 +43,6 @@ Matching -> sample notifications generated
 - map page
   - offer creator
 - rows / second rather than cumulative
-- optimize seed data gen for offers/segments
 
 # crazy idea: replace absolute time with relative
 

@@ -1,3 +1,4 @@
+import { DEFAULT_CITY } from "@/data/offers";
 import { Box, Link } from "@chakra-ui/react";
 import "@pixi/graphics-extras";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
@@ -20,10 +21,10 @@ const stamenAttribution = (
   </>
 );
 
-export const DEFAULT_CENTER = [40.756480069543976, -73.95583135057566] as [
-  number,
-  number
-];
+export const DEFAULT_CENTER = [
+  DEFAULT_CITY.lonlat[1],
+  DEFAULT_CITY.lonlat[0],
+] as [number, number];
 export const DEFAULT_ZOOM = 12;
 
 type RendererConfig = {

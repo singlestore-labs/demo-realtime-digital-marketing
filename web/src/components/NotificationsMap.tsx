@@ -7,6 +7,7 @@ import {
   simulatorEnabled,
   tickDurationMs,
 } from "@/data/recoil";
+import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { useSimulator } from "@/data/useSimulator";
 import { formatMs } from "@/format";
 import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
@@ -121,6 +122,7 @@ const Stats = () => {
 
 export const NotificationsMap = () => {
   const [enabled, setEnabled] = useRecoilState(simulatorEnabled);
+  useSimulationMonitor();
   useSimulator();
 
   return (

@@ -1,6 +1,7 @@
 import { SQLError } from "@/data/client";
 import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import {
+  configScaleFactor,
   connectionConfig,
   simulatorEnabled,
   skipCreateDatabase,
@@ -143,13 +144,14 @@ export const useTick = (
 export const useResetSchema = ({
   before,
   after,
-  includeSeedData = true,
+  includeSeedData,
 }: {
   before: () => void;
   after: () => void;
-  includeSeedData?: boolean;
+  includeSeedData: boolean;
 }) => {
   const config = useRecoilValue(connectionConfig);
+  const scaleFactor = useRecoilValue(configScaleFactor);
   const { reset: resetConnectionState } = useConnectionState();
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
@@ -163,9 +165,8 @@ export const useResetSchema = ({
     before();
 
     // reset schema
-    await resetSchema(
-      config,
-      (title, status) => {
+    await resetSchema(config, {
+      progress(title, status) {
         const id = "reset-schema";
         if (toast.isActive(id)) {
           toast.update(id, {
@@ -178,9 +179,10 @@ export const useResetSchema = ({
           toast({ id, title, status, duration: null });
         }
       },
+      scaleFactor,
       includeSeedData,
-      !!skipCreate
-    );
+      skipCreate: !!skipCreate,
+    });
 
     // post schema reset
     after();
@@ -191,6 +193,7 @@ export const useResetSchema = ({
     setSimulatorEnabled,
     before,
     config,
+    scaleFactor,
     includeSeedData,
     skipCreate,
     after,

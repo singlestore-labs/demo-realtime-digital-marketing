@@ -21,6 +21,7 @@ import {
   connectionConfig,
   connectionDatabase,
 } from "@/data/recoil";
+import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { formatMs, formatNumber } from "@/format";
 import {
   useNotificationsDataKey,
@@ -177,7 +178,7 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
                 colorScheme="blue"
                 size="sm"
                 disabled={initialized}
-                includeSeedData={false}
+                skipSeedData
               >
                 {initialized ? "Schema is setup" : "Setup schema"}
               </ResetSchemaButton>
@@ -232,6 +233,7 @@ const PipelinesSection = () => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { pipelines, completed } = usePipelineStatus(config, scaleFactor);
+  useSimulationMonitor(!completed);
 
   const [working, workingCtrl] = useBoolean();
 
@@ -313,15 +315,16 @@ const useTableCounts = (config: ConnectionConfig, enabled = true) =>
 
 const OffersSection = () => {
   const config = useRecoilValue(connectionConfig);
+  const scaleFactor = useRecoilValue(configScaleFactor);
   const [working, workingCtrl] = useBoolean();
   const tableCounts = useTableCounts(config);
 
   const onSeedData = useCallback(async () => {
     workingCtrl.on();
-    await insertSeedData(config);
+    await insertSeedData(config, scaleFactor);
     tableCounts.mutate();
     workingCtrl.off();
-  }, [config, tableCounts, workingCtrl]);
+  }, [config, scaleFactor, tableCounts, workingCtrl]);
 
   const done = !!tableCounts.data?.offers;
 
@@ -363,7 +366,7 @@ const OffersSection = () => {
             </Button>
           </Center>
         ) : (
-          <OfferMap height={300} defaultZoom={11} />
+          <OfferMap height={300} />
         )
       }
     />
@@ -389,19 +392,13 @@ const WarmupSection = ({
 
     (async () => {
       try {
-        const startTime = performance.now();
-        await runUpdateSegments(cfgWithCtx);
-        await runMatchingProcess(cfgWithCtx, "second");
-        const duration = performance.now() - startTime;
-        if (duration < 1000 || !(await checkPlans(cfgWithCtx))) {
-          return;
-        }
-
         for (let i = 0; i < 10; i++) {
+          const startTime = performance.now();
           await runUpdateSegments(cfgWithCtx);
           await runMatchingProcess(cfgWithCtx, "second");
+          const duration = performance.now() - startTime;
 
-          if (i > 1 && !(await checkPlans(cfgWithCtx))) {
+          if (duration < 1000 || (i > 1 && !(await checkPlans(cfgWithCtx)))) {
             return;
           }
         }
@@ -585,7 +582,7 @@ const MatchingSection = () => {
             <Box width="100%">
               <PixiMap
                 height={250}
-                defaultZoom={11}
+                defaultZoom={12}
                 useRenderer={useNotificationsRenderer}
               />
             </Box>
