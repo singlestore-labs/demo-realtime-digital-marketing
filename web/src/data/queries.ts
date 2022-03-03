@@ -9,16 +9,15 @@ import {
   SQLError,
 } from "@/data/client";
 import {
-  BASE_DATA,
-  FUNCTIONS,
-  PROCEDURES,
-  SEED_DATA,
-  TABLES,
-} from "@/data/sql";
+  createCity,
+  createOffers,
+  DEFAULT_CITY,
+  randomOffers,
+} from "@/data/offers";
+import { BASE_DATA, FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
-import stringHash from "string-hash";
 
 export const isConnected = async (config: ConnectionConfig) => {
   try {
@@ -121,6 +120,7 @@ export const resetSchema = async (
   }
 
   await insertBaseData(config);
+  await createCity(config, DEFAULT_CITY);
 
   if (includeSeedData) {
     progress("Creating sample data", "info");
@@ -133,46 +133,15 @@ export const resetSchema = async (
 export const insertBaseData = (config: ConnectionConfig) =>
   Promise.all(BASE_DATA.map((q) => Exec(config, q)));
 
-export const insertSeedData = (config: ConnectionConfig) =>
-  Promise.all(SEED_DATA.map((q) => Exec(config, q)));
+export const insertSeedData = (config: ConnectionConfig) => {
+  const offers = randomOffers(DEFAULT_CITY, 10000);
+  return createOffers(config, offers);
+};
 
 export type SegmentConfig = {
   kind: "olc_8" | "olc_6" | "purchase" | "request";
   interval: "minute" | "hour" | "day" | "week" | "month";
   value: string;
-};
-
-export type OfferConfig = {
-  bidCents: number;
-  message: string;
-  zone: string;
-  segments: SegmentConfig[];
-};
-
-export const createOffers = async (
-  config: ConnectionConfig,
-  offers: OfferConfig[]
-) => {
-  const seenSegments = new Set();
-  const segments = offers.flatMap(({ segments }) =>
-    segments
-      .map((s) => ({
-        id: stringHash(`${s.interval}-${s.kind}-${s.value}`),
-        segment: s,
-      }))
-      .filter((s) => (seenSegments.has(s.id) ? false : seenSegments.add(s.id)))
-  );
-
-  // TODO: create all the segments and offers in two multi-inserts
-  // then switch insertSeedData to use this instead of the SEED_OFFERS global
-  await Exec(
-    config,
-    `
-    REPLACE INTO segments
-  `
-  );
-
-  return 1;
 };
 
 export const pipelineStatus = async (
@@ -197,8 +166,8 @@ export const pipelineStatus = async (
       SELECT
         expected.city_id AS cityId,
         expected.city_name AS cityName,
-        GEOGRAPHY_LONGITUDE(expected.centroid) AS lon,
-        GEOGRAPHY_LATITUDE(expected.centroid) AS lat,
+        GEOGRAPHY_LONGITUDE(expected.center) AS lon,
+        GEOGRAPHY_LATITUDE(expected.center) AS lat,
         expected.diameter,
         pipelineName,
         (

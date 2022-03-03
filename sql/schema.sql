@@ -1,10 +1,10 @@
 create rowstore reference table if not exists cities (
-  city_id BIGINT NOT NULL,
+  city_id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   city_name TEXT NOT NULL,
-  centroid GEOGRAPHYPOINT NOT NULL,
+  center GEOGRAPHYPOINT NOT NULL,
   diameter DOUBLE,
 
-  PRIMARY KEY (city_id)
+  UNIQUE KEY (city_name)
 );
 
 create rowstore table if not exists subscribers (
@@ -74,9 +74,9 @@ create table if not exists customers (
 );
 
 create rowstore reference table if not exists offers (
-  offer_id BIGINT NOT NULL,
+  offer_id BIGINT NOT NULL AUTO_INCREMENT,
   customer_id BIGINT NOT NULL,
-  enabled BOOLEAN NOT NULL,
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
 
   notification_zone GEOGRAPHY NOT NULL,
   segment_ids JSON NOT NULL,

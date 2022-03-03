@@ -31,6 +31,8 @@ Matching -> sample notifications generated
 
 # next steps:
 
+- try out using OLC in offers rather than polygon
+- pick default scale based on number of partitions after create database
 - offer creation modal/page
   - consider creating the form separate so it can be used on a page or modal
     - should support loading & editing an existing offer
@@ -39,6 +41,7 @@ Matching -> sample notifications generated
   - give one or two examples of offers + segments
 - map page
   - offer creator
+- rows / second rather than cumulative
 - optimize seed data gen for offers/segments
 
 # crazy idea: replace absolute time with relative

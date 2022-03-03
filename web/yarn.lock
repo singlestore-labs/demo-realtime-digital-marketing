@@ -4042,6 +4042,11 @@ onetime@^5.1.0:
   dependencies:
     mimic-fn "^2.1.0"
 
+open-location-code-typescript@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/open-location-code-typescript/-/open-location-code-typescript-1.5.0.tgz#9107c620f87bfea4c5052fa0b581dc1f45094096"
+  integrity sha512-nGlOwLrmexCqCxEx7Vy6hsHGA9NmrUf/1bZNj0XzP5WrXYj+Oz1MJwUWFv3N012P/Y15bwC+ViVuCV6inoI1KQ==
+
 optionator@^0.9.1:
   version "0.9.1"
   resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.9.1.tgz#4f236a6373dae0566a6d43e1326674f50c291499"

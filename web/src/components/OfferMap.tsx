@@ -48,7 +48,7 @@ class PIXIOffer extends PIXI.Container {
 const useRenderer: UsePixiRenderer = ({ scene, latLngToPixel, bounds }) => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
-  const debouncedBounds = useDebounce(bounds, 50);
+  const debouncedBounds = useDebounce(bounds, 100);
 
   useSWR(
     ["offers", config, initialized, debouncedBounds],
