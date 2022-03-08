@@ -2,8 +2,15 @@ export type ConnectionConfig = {
   host: string;
   user: string;
   password: string;
-  database?: string;
+  database: string;
   ctx?: AbortController;
+};
+
+export type ConnectionConfigOptionalDatabase = Omit<
+  ConnectionConfig,
+  "database"
+> & {
+  database?: string;
 };
 
 export type SQLValue =
@@ -48,7 +55,7 @@ export class SQLError extends Error {
 }
 
 export const QueryOne = async <T = Row>(
-  config: ConnectionConfig,
+  config: ConnectionConfigOptionalDatabase,
   sql: string,
   ...args: SQLValue[]
 ): Promise<T> => {
@@ -62,7 +69,7 @@ export const QueryOne = async <T = Row>(
 };
 
 export const Query = async <T = Row>(
-  config: ConnectionConfig,
+  config: ConnectionConfigOptionalDatabase,
   sql: string,
   ...args: SQLValue[]
 ): Promise<T[]> => {
@@ -76,13 +83,13 @@ export const Query = async <T = Row>(
 };
 
 export const QueryNoDb = <T = Row>(
-  config: ConnectionConfig,
+  config: ConnectionConfigOptionalDatabase,
   sql: string,
   ...args: SQLValue[]
 ): Promise<T[]> => Query({ ...config, database: undefined }, sql, ...args);
 
 export const QueryTuples = async <T extends [...SQLValue[]] = SQLValue[]>(
-  config: ConnectionConfig,
+  config: ConnectionConfigOptionalDatabase,
   sql: string,
   ...args: SQLValue[]
 ): Promise<T[]> => {
@@ -96,14 +103,14 @@ export const QueryTuples = async <T extends [...SQLValue[]] = SQLValue[]>(
 };
 
 export const ExecNoDb = (
-  config: ConnectionConfig,
+  config: ConnectionConfigOptionalDatabase,
   sql: string,
   ...args: SQLValue[]
 ): Promise<{ lastInsertId: number; rowsAffected: number }> =>
   fetchEndpoint("exec", { ...config, database: undefined }, sql, ...args);
 
 export const Exec = (
-  config: ConnectionConfig,
+  config: ConnectionConfigOptionalDatabase,
   sql: string,
   ...args: SQLValue[]
 ): Promise<{ lastInsertId: number; rowsAffected: number }> =>
@@ -111,7 +118,7 @@ export const Exec = (
 
 const fetchEndpoint = async (
   endpoint: string,
-  config: ConnectionConfig,
+  config: ConnectionConfigOptionalDatabase,
   sql: string,
   ...args: SQLValue[]
 ) => {

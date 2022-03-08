@@ -19,15 +19,9 @@ export const ScaleFactors: ScaleFactor[] = [
     partitions: 4,
   },
   {
-    name: "s1-small",
+    name: "s1",
     maxRows: 40_000_000,
     prefix: "v2/100k-8p",
-    partitions: 8,
-  },
-  {
-    name: "s1",
-    maxRows: 80_000_000,
-    prefix: "v2/1m-8p",
     partitions: 8,
   },
   {
@@ -59,3 +53,13 @@ export const ScaleFactors: ScaleFactor[] = [
 // getScaleFactor looks up the ScaleFactor for the given name
 export const getScaleFactor = (name: string): ScaleFactor =>
   ScaleFactors.find((sf) => sf.name === name) || ScaleFactors[0];
+
+export const pickScaleFactor = (numPartitions: number): ScaleFactor => {
+  // pick the scale factor with the largest number of partitions <= numPartitions
+  return (
+    [...ScaleFactors]
+      .sort((a, b) => b.partitions - a.partitions)
+      .find((sf) => sf.partitions <= numPartitions) ||
+    ScaleFactors[ScaleFactors.length - 1]
+  );
+};

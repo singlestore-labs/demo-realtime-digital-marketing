@@ -31,9 +31,7 @@ Matching -> sample notifications generated
 
 # next steps:
 
-- enable workspaces support
 - group offers by polygon in map
-- pick default scale based on number of partitions after create database
 - incrementally compute subscriber_segments table
 - offer creation modal/page
   - consider creating the form separate so it can be used on a page or modal

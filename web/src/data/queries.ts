@@ -1,5 +1,6 @@
 import {
   ConnectionConfig,
+  ConnectionConfigOptionalDatabase,
   Exec,
   ExecNoDb,
   Query,
@@ -19,7 +20,7 @@ import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
 
-export const isConnected = async (config: ConnectionConfig) => {
+export const isConnected = async (config: ConnectionConfigOptionalDatabase) => {
   try {
     await ExecNoDb(config, "SELECT 1");
     return true;
@@ -63,8 +64,8 @@ export const schemaObjects = async (
           FROM information_schema.routines
           WHERE routine_schema = ?
         `,
-        database || "s2cellular",
-        database || "s2cellular"
+        database,
+        database
       )
     ).reduce((acc, [type, name]) => {
       acc[type].push(name);
@@ -91,6 +92,21 @@ export const schemaObjects = async (
     ].flat()
   );
 };
+
+export const countPartitions = async (
+  config: ConnectionConfig
+): Promise<number> =>
+  QueryOne<{ count: number }>(
+    config,
+    `
+      SELECT COUNT(*) AS count
+      FROM information_schema.distributed_partitions
+      WHERE
+        database_name = ?
+        AND role = "Master"
+    `,
+    config.database
+  ).then((x) => x.count);
 
 export const resetSchema = async (
   config: ConnectionConfig,
@@ -188,14 +204,14 @@ export const pipelineStatus = async (
         ) AS needsUpdate
       FROM (
         SELECT cities.*, CONCAT(prefix.table_col, cities.city_id) AS pipelineName
-        FROM s2cellular.cities
+        FROM ${config.database}.cities
         JOIN TABLE(["locations_", "requests_", "purchases_"]) AS prefix
       ) AS expected
       LEFT JOIN information_schema.pipelines
         ON pipelines.database_name = ?
         AND pipelines.pipeline_name = expected.pipelineName
     `,
-    config.database || "s2cellular"
+    config.database
   );
 };
 
@@ -305,7 +321,7 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
       GROUP BY pipelines.pipeline_name
       HAVING num_loaded = num_total OR state != "Running"
     `,
-    config.database || "s2cellular"
+    config.database
   );
 
   await Promise.all(
@@ -400,7 +416,7 @@ export const estimatedRowCount = <TableName extends string>(
       )
       GROUP BY tableName
     `,
-    config.database || "s2cellular"
+    config.database
   );
 };
 
@@ -465,7 +481,7 @@ export const truncateTimeseriesTables = async (
         AND stats.table_name = minmax.table_name
         AND stats.count > ?
     `,
-    config.database || "s2cellular",
+    config.database,
     maxRows
   );
 
