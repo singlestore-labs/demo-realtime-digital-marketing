@@ -30,14 +30,6 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR from "swr";
 
 const Stats = () => {
-  /*
-  - stats: num subscribers, num offers, num cities, num segments
-  - line graphs: locations, requests, purchases, notifications
-  - duration stats: update segments, run matching process
-  - offer creator
-  - visualize offers on the map?
-  */
-
   const config = useRecoilValue(connectionConfig);
 
   const ingestData = useIngestChartData(
