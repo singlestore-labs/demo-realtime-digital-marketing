@@ -17,7 +17,7 @@ import { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
-type Props = Omit<PixiMapProps<unknown>, "useRenderer">;
+type Props = Omit<PixiMapProps<unknown>, "useRenderer" | "options">;
 
 class PIXICity extends PIXI.Container {
   gfx: PIXI.Graphics;

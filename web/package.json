@@ -35,6 +35,9 @@
     "swr": "^1.1.2",
     "ts-dedent": "^2.2.0"
   },
+  "resolutions": {
+    "csstype": "3.0.10"
+  },
   "devDependencies": {
     "@babel/core": "^7.16.12",
     "@chakra-ui/cli": "^1.8.1",
