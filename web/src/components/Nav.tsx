@@ -113,8 +113,8 @@ export const Nav = () => {
             />
 
             <HStack spacing={8} alignItems={"center"}>
-              <Heading as="h1" size="lg">
-                {isSmallScreen ? "S2C" : "S2 Cellular"}
+              <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
+                {isSmallScreen ? "Martech" : "Realtime Digital Marketing"}
               </Heading>
               <HStack
                 as={"nav"}
@@ -153,7 +153,7 @@ export const Nav = () => {
                 }
                 onClick={() =>
                   window.open(
-                    "https://github.com/singlestore-labs/demo-s2cellular",
+                    "https://github.com/singlestore-labs/demo-realtime-digital-marketing",
                     "_blank"
                   )
                 }

@@ -76,7 +76,7 @@ export const connectionPassword = atom({
 
 export const connectionDatabase = atom({
   key: "connectionDatabase",
-  default: "s2cellular",
+  default: "martech",
   effects: [localStorageEffect()],
 });
 

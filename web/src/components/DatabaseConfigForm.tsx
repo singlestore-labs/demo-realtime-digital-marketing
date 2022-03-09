@@ -59,7 +59,7 @@ export const DatabaseConfigForm = ({
         {showDatabase && (
           <ConfigInput
             label="Database"
-            placeholder="s2cellular"
+            placeholder="martech"
             value={database}
             setValue={setDatabase}
           />

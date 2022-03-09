@@ -130,12 +130,12 @@ export const NotificationsMap = () => {
       <Stack spacing={4} flex="1 1 0" minWidth="0">
         <MarkdownText>
           {`
-            S2 Cellular is a hypothetical telecom company which provides free
-            cell-phone plans in exchange for delivering targeted ads to
-            subscribers. To learn about how this works please visit the [overview
-            page][1].
 
-            [1]: /
+            This application is a demo of how to use SingleStore to serve ads to
+            users based on their behavior and realtime location. The demo is
+            based on location, purchase, and request history from millions of
+            simulated subscribers for a hypothetical service company. To learn
+            about how this works please visit the [overview page](/).
           `}
         </MarkdownText>
         {enabled ? (

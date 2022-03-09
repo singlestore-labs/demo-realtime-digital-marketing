@@ -20,6 +20,8 @@ import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
 
+const S3_BUCKET_NAME = "singlestore-realtime-digital-marketing";
+
 export const isConnected = async (config: ConnectionConfigOptionalDatabase) => {
   try {
     await ExecNoDb(config, "SELECT 1");
@@ -235,7 +237,7 @@ export const ensurePipelinesExist = async (
             config,
             `
             CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
-            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactorPrefix}/locations.*'
+            AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/locations.*'
             INTO PROCEDURE process_locations FORMAT PARQUET (
               subscriber_id <- subscriberid,
               @offset_x <- offsetX,
@@ -259,7 +261,7 @@ export const ensurePipelinesExist = async (
             config,
             `
             CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
-            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactorPrefix}/requests.*'
+            AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/requests.*'
             INTO TABLE requests FORMAT PARQUET (
               subscriber_id <- subscriberid,
               domain <- domain
@@ -274,7 +276,7 @@ export const ensurePipelinesExist = async (
             config,
             `
             CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
-            AS LOAD DATA LINK aws_s3 's2cellular/${scaleFactorPrefix}/purchases.*'
+            AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/purchases.*'
             INTO TABLE purchases FORMAT PARQUET (
               subscriber_id <- subscriberid,
               vendor <- vendor

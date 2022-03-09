@@ -1,7 +1,7 @@
 package gen
 
 import (
-	"s2cellular/output"
+	"subscriber-sim/output"
 )
 
 type Batch struct {

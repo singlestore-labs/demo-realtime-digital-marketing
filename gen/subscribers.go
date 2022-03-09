@@ -1,7 +1,7 @@
 package gen
 
 import (
-	"s2cellular/util"
+	"subscriber-sim/util"
 
 	"github.com/ungerik/go3d/float64/vec2"
 )

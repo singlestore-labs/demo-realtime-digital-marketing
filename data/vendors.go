@@ -3,7 +3,7 @@ package data
 import (
 	_ "embed"
 	"encoding/json"
-	"s2cellular/util"
+	"subscriber-sim/util"
 	"sort"
 	"strings"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"s2cellular/util"
+	"subscriber-sim/util"
 	"testing"
 
 	"gocloud.dev/blob"

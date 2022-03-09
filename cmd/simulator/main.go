@@ -4,9 +4,9 @@ import (
 	"context"
 	"flag"
 	"log"
-	"s2cellular/gen"
-	"s2cellular/output"
-	"s2cellular/util"
+	"subscriber-sim/gen"
+	"subscriber-sim/output"
+	"subscriber-sim/util"
 	"sync"
 	"time"
 
@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	blobURL = flag.String("blob", "file:///tmp/s2cellular?metadata=skip", "blob URL (see https://gocloud.dev/howto/blob/#services for url syntax)")
+	blobURL = flag.String("blob", "file:///tmp/subscriber-sim?metadata=skip", "blob URL (see https://gocloud.dev/howto/blob/#services for url syntax)")
 	seed    = flag.Int64("seed", time.Now().UnixNano(), "set the seed")
 	format  = flag.String("format", "json", "output format (json, parquet)")
 

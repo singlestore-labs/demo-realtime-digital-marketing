@@ -1,3 +1,4 @@
+import { CodeBlock } from "@/components/CodeBlock";
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { DisconnectVaporButton } from "@/components/DisconnectVaporButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
@@ -21,6 +22,7 @@ import {
   connectionConfig,
   connectionDatabase,
 } from "@/data/recoil";
+import { findSchemaObjectByName } from "@/data/sql";
 import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { formatMs, formatNumber } from "@/format";
 import {
@@ -43,10 +45,17 @@ import {
   HStack,
   IconProps,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
   SimpleGrid,
   Spinner,
   useBoolean,
   useColorMode,
+  useMediaQuery,
   VStack,
 } from "@chakra-ui/react";
 import { ReactNode, useCallback, useEffect, useState } from "react";
@@ -104,7 +113,8 @@ const ConnectionSection = ({
             <MarkdownText>
               {`
                 Connected to a demo cluster running in the SingleStore Managed
-                Service. To disconnect and use your own cluster instead, click the button below.
+                Service. To disconnect and use your own cluster instead, click
+                the button below.
               `}
             </MarkdownText>
             <DisconnectVaporButton size="xs" colorScheme="gray" />
@@ -138,80 +148,130 @@ const ConnectionSection = ({
   );
 };
 
+const SchemaObjectModal = ({
+  onClose,
+  schemaObjectName,
+}: {
+  onClose: () => void;
+  schemaObjectName: string;
+}) => {
+  const obj = findSchemaObjectByName(schemaObjectName);
+  const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
+
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      size={isSmallScreen ? "full" : "4xl"}
+      scrollBehavior="inside"
+    >
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Create statement for {obj.name}</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <CodeBlock mb={4}>{obj.createStmt}</CodeBlock>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+  );
+};
+
 const SchemaSection = ({ initialized }: { initialized: boolean }) => {
   const [database, setDatabase] = useRecoilState(connectionDatabase);
   const schemaObjs = useSchemaObjects();
   const { colorMode } = useColorMode();
+  const [selectedSchemaObj, setSelectedSchemaObj] = useState<null | string>();
+
+  const onShowSchemaObj = useCallback(
+    (name: string) => setSelectedSchemaObj(name),
+    []
+  );
+
+  const onHideSchemaObj = useCallback(() => setSelectedSchemaObj(null), []);
 
   return (
-    <Section
-      completed={initialized}
-      title="Setup the schema"
-      left={
-        <>
-          <MarkdownText>
-            {`
-              Our schema includes the database and a set of tables and views we
-              need to store all of our data. Use the controls below to set the
-              database name and create the schema.
-            `}
-          </MarkdownText>
-          <Divider mt={4} mb={6} />
-          <HStack alignItems="flex-end">
-            <FormControl flex={1}>
-              <FormLabel
-                fontSize="xs"
-                fontWeight="bold"
-                textTransform="uppercase"
-              >
-                Database name
-              </FormLabel>
-              <Input
-                placeholder="s2cellular"
-                value={database}
-                size="sm"
-                onChange={(e) => setDatabase(e.target.value)}
-              />
-            </FormControl>
-            <Box flex={1} textAlign="center">
-              <ResetSchemaButton
-                colorScheme="blue"
-                size="sm"
-                disabled={initialized}
-                skipSeedData
-              >
-                {initialized ? "Schema is setup" : "Setup schema"}
-              </ResetSchemaButton>
-            </Box>
-          </HStack>
-        </>
-      }
-      right={
-        <SimpleGrid columns={[1, 2, 2]} gap={1}>
-          {Object.keys(schemaObjs.data || {})
-            .sort()
-            .map((name) => (
-              <GridItem
-                key={name}
-                bg={
-                  (schemaObjs.data?.[name] ? "green" : "gray") +
-                  (colorMode === "light" ? ".200" : ".600")
-                }
-                color={colorMode === "light" ? "gray.800" : "gray.100"}
-                textOverflow="ellipsis"
-                whiteSpace="nowrap"
-                overflow="hidden"
-                borderRadius="md"
-                px={2}
-                py={1}
-                textAlign="center"
-              >
-                {name}
-              </GridItem>
-            ))}
-        </SimpleGrid>
-      }
-    />
+    <>
+      {!!selectedSchemaObj && (
+        <SchemaObjectModal
+          onClose={onHideSchemaObj}
+          schemaObjectName={selectedSchemaObj}
+        />
+      )}
+      <Section
+        completed={initialized}
+        title="Setup the schema"
+        left={
+          <>
+            <MarkdownText>
+              {`
+                Our schema includes the database and a set of tables and views we
+                need to store all of our data. Use the controls below to set the
+                database name and create the schema.
+              `}
+            </MarkdownText>
+            <Divider mt={4} mb={6} />
+            <HStack alignItems="flex-end">
+              <FormControl flex={1}>
+                <FormLabel
+                  fontSize="xs"
+                  fontWeight="bold"
+                  textTransform="uppercase"
+                >
+                  Database name
+                </FormLabel>
+                <Input
+                  placeholder="martech"
+                  value={database}
+                  size="sm"
+                  onChange={(e) => setDatabase(e.target.value)}
+                />
+              </FormControl>
+              <Box flex={1} textAlign="center">
+                <ResetSchemaButton
+                  colorScheme="blue"
+                  size="sm"
+                  disabled={initialized}
+                  skipSeedData
+                >
+                  {initialized ? "Schema is setup" : "Setup schema"}
+                </ResetSchemaButton>
+              </Box>
+            </HStack>
+          </>
+        }
+        right={
+          <SimpleGrid columns={[1, 2, 2]} gap={1}>
+            {Object.keys(schemaObjs.data || {})
+              .sort()
+              .map((name) => (
+                <GridItem
+                  key={name}
+                  bg={
+                    (schemaObjs.data?.[name] ? "green" : "gray") +
+                    (colorMode === "light" ? ".200" : ".600")
+                  }
+                  color={colorMode === "light" ? "gray.800" : "gray.100"}
+                  textOverflow="ellipsis"
+                  whiteSpace="nowrap"
+                  overflow="hidden"
+                  borderRadius="md"
+                  px={2}
+                  py={1}
+                  textAlign="center"
+                  _hover={{
+                    fontWeight: "bold",
+                  }}
+                  cursor="pointer"
+                  onClick={() => onShowSchemaObj(name)}
+                >
+                  {name}
+                </GridItem>
+              ))}
+          </SimpleGrid>
+        }
+      />
+    </>
   );
 };
 
@@ -275,8 +335,8 @@ const PipelinesSection = () => {
       left={
         <MarkdownText>
           {`
-            S2 Cellular needs location, request, and purchase history from each
-            of it's subscribers in real time. We will simulate these streams by
+            The demo needs to load location, request, and purchase history from
+            simulated subscribers in real time. We will simulate these streams
             using [SingleStore Pipelines][1] to ingest data from [AWS S3][2].
 
             [1]: https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html
@@ -336,7 +396,7 @@ const OffersSection = () => {
         <>
           <MarkdownText>
             {`
-              S2 Cellular allows any company to place offers. Each offer has a
+              This demo allows any company to place offers. Each offer has a
               maximum bid price, activation zone, list of segments, and
               notification content. As subscribers move around, they are
               continuously matched to offers based on their location and
@@ -352,7 +412,8 @@ const OffersSection = () => {
               `
                 The map to your right displays a polygon representing each
                 offer's activation zone. Hover over a polygon to see it's exact
-                boundary. There are ${tableCounts.data?.offers} offers in the database.
+                boundary. There are ${tableCounts.data?.offers} offers in the
+                database.
             `}
           </MarkdownText>
         </>
@@ -398,7 +459,7 @@ const WarmupSection = ({
           await runMatchingProcess(cfgWithCtx, "second");
           const duration = performance.now() - startTime;
 
-          if (duration < 1000 || (i > 1 && !(await checkPlans(cfgWithCtx)))) {
+          if (duration < 2000 || (i > 1 && !(await checkPlans(cfgWithCtx)))) {
             return;
           }
         }
@@ -561,9 +622,10 @@ const MatchingSection = () => {
         <MarkdownText>
           {`
             Now that we have offers and have assigned subscribers to segments,
-            we are finally able to send notifications to subscriber's devices.
-            In this demo, rather than actually sending notifications we will
-            insert them into a table called "notifications".
+            we are finally able to deliver ads to subscribers as push
+            notifications. In this demo, rather than actually sending
+            notifications we will insert them into a table called
+            "notifications".
 
             Click the button to generate notifications interactively, or run the
             following query in your favorite SQL client:
@@ -595,6 +657,7 @@ const MatchingSection = () => {
 };
 
 const SummarySection = () => {
+  const database = useRecoilValue(connectionDatabase);
   return (
     <Section
       completed={true}
@@ -602,11 +665,11 @@ const SummarySection = () => {
       left={
         <MarkdownText>
           {`
-            Nice job! At this point you are ready to step into the shoes of a S2
-            Cellular data engineer. Here are some recommendations on what to do next:
+            Nice job! At this point you are ready to step into the shoes of a
+            data engineer. Here are some recommendations on what to do next:
 
             * Visit the [live demo dashboard][1]
-            * Explore the s2cellular database in SingleStore Studio
+            * Explore the ${database} database in SingleStore Studio
 
             [1]: map
           `}
@@ -691,23 +754,20 @@ export const Overview = () => {
       <Box maxW="container.md" mb={10} px={0}>
         <MarkdownText>
           {`
-            ## Welcome to S2 Cellular!
+            ## Realtime Digital Marketing
 
-            S2 Cellular is a hypothetical telecom company which provides free
-            cell-phone plans in exchange for delivering targeted ads to
-            subscribers. To do this, S2 Cellular collects location, browser, and
-            purchase history from devices and stores it in SingleStore. Before we
-            can deliver ads, we need to place subscribers in segments via
-            comparing their history against segments our advertisers care about.
-            Finally, we use geospatial indexes along with segments to deliver ads
-            to devices as they move around the world.
+            This application is a demo of how to use [SingleStore][3] to serve ads to
+            users based on their behavior and realtime location. The demo is
+            based on location, purchase, and request history from millions of
+            simulated subscribers for a hypothetical service company.
 
             This page will take you through the process of setting up the demo,
-            explaining everything as we go. If you have any questions or issues, please
-            file an issue on the [GitHub repo][1] or our [forums][2].
+            explaining everything as we go. If you have any questions or issues,
+            please file an issue on the [GitHub repo][1] or our [forums][2].
 
-            [1]: https://github.com/singlestore-labs/demo-s2cellular
+            [1]: https://github.com/singlestore-labs/demo-realtime-digital-marketing
             [2]: https://www.singlestore.com/forum/
+            [3]: https://www.singlestore.com
           `}
         </MarkdownText>
       </Box>

@@ -1,4 +1,4 @@
-module s2cellular
+module subscriber-sim
 
 go 1.17
 

@@ -1,7 +1,7 @@
 package gen
 
 import (
-	"s2cellular/util"
+	"subscriber-sim/util"
 )
 
 type State struct {

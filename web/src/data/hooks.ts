@@ -20,7 +20,7 @@ import { useCallback, useEffect, useReducer, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import useSWR from "swr";
 
-const defaultSchemaObjects = Object.fromEntries(
+const defaultSchemaObjects: { [key: string]: boolean } = Object.fromEntries(
   [
     TABLES.map(({ name }) => [name, false]),
     PROCEDURES.map(({ name }) => [name, false]),
@@ -37,7 +37,7 @@ export const useSchemaObjects = (paused = false) => {
       isPaused: () => paused,
       refreshInterval: (data) => {
         const missingObjs = Object.values(data || []).some((x) => !x);
-        return missingObjs ? 500 : 0;
+        return missingObjs ? 1000 : 0;
       },
       fallbackData: defaultSchemaObjects,
     }

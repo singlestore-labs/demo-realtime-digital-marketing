@@ -1,6 +1,6 @@
-# SingleStore Demo: S2Cellular
+# SingleStore Demo: Realtime Digital Marketing
 
-In this demo, we simulate an important workload of a hypothetical cellular data company. The workload ingests device data in order to serve hyper-local sponsored offers to subscribers.
+This application is a demo of how to use SingleStore to serve realtime ads to users based on their behavior. The demo is based on location, purchase, and request history from millions of simulated subscribers for a hypothetical service company.
 
 # Simulator
 
@@ -18,12 +18,12 @@ The `gen` package is responsible for generating the data. It has a driver which 
 
 The `output` package is responsible for encoding and uploading the data to a target. The primary interface it exposes is `output.Writer`. The output package supports the following encodings/output targets:
 
-* Encodings
-    * Parquet
-    * JSON
-* Targets
-    * S3
-    * Local filesystem
+- Encodings
+  - Parquet
+  - JSON
+- Targets
+  - S3
+  - Local filesystem
 
 More targets can be added in the future.
 

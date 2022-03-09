@@ -214,7 +214,7 @@ export const randomOffer = (city: CityConfig): Offer => {
   const pctOff = randomIntegerInRange(10, 50);
   const vendorOfferId = randomIntegerInRange(1, 1000);
   const notificationContent = `${pctOff}% off at ${vendor.vendor}`;
-  const notificationTarget = `https://${domain}/s2cellular?offerId=${vendorOfferId}`;
+  const notificationTarget = `https://${domain}/offers/${vendorOfferId}`;
 
   const [lon, lat] = randomPointInCity(city);
   const olc = OpenLocationCode.encode(lat, lon, randomChoice([8, 10]));
