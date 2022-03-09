@@ -1,3 +1,4 @@
+import { Admin } from "@/components/Admin";
 import { Nav } from "@/components/Nav";
 import { NotificationsMap } from "@/components/NotificationsMap";
 import { Overview } from "@/components/Overview";
@@ -26,6 +27,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Overview />} />
             <Route path="/map" element={<NotificationsMap />} />
+            <Route path="/admin" element={<Admin />} />
           </Routes>
         </Box>
       </Flex>

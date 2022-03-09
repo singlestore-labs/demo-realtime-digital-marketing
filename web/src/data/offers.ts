@@ -1,6 +1,12 @@
 import { ConnectionConfig, Exec } from "@/data/client";
 import { MultiReplace } from "@/data/sqlbuilder";
 import { boundsToWKTPolygon } from "@/geo";
+import {
+  randomChoice,
+  randomFloatInRange,
+  randomIntegerInRange,
+  randomVendor,
+} from "@/rand";
 import VENDORS from "@/static-data/vendors.json";
 import OpenLocationCode from "open-location-code-typescript";
 import { Bounds, Point } from "pigeon-maps";
@@ -9,14 +15,16 @@ import stringHash from "string-hash";
 export const DEFAULT_CUSTOMER_ID = 0;
 
 export const DEFAULT_CITY = {
+  id: 120658,
   name: "New York",
   lonlat: [-73.993562, 40.727063] as Point,
-  diameter: 0.15,
+  diameter: 0.1,
 };
 
 const MAX_OFFERS_PER_BATCH = 500;
 
 export type CityConfig = {
+  id: number;
   name: string;
   lonlat: Point;
   diameter: number;
@@ -26,16 +34,21 @@ export const createCity = (config: ConnectionConfig, city: CityConfig) =>
   Exec(
     config,
     `
-      INSERT INTO cities (city_name, center, diameter)
-      VALUES (?, ?, ?)
+      INSERT INTO cities (city_id, city_name, center, diameter)
+      VALUES (?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
+        city_name = VALUES(city_name),
         center = VALUES(center),
         diameter = VALUES(diameter)
     `,
+    city.id,
     city.name,
     `POINT(${city.lonlat[0]} ${city.lonlat[1]})`,
     city.diameter
   );
+
+export const removeCity = (config: ConnectionConfig, cityId: number) =>
+  Exec(config, "DELETE FROM cities WHERE city_id = ?", cityId);
 
 export const SegmentKinds = ["olc_8", "olc_6", "purchase", "request"] as const;
 export type SegmentKind = typeof SegmentKinds[number];
@@ -143,16 +156,6 @@ export const createOffers = async (
   }
 };
 
-const randomChoice = <T>(arr: readonly T[]): T =>
-  arr[Math.floor(Math.random() * arr.length)];
-
-const randomFloatInRange = (min: number, max: number) =>
-  Math.random() * (max - min) + min;
-
-const randomIntegerInRange = (min: number, max: number) =>
-  Math.floor(randomFloatInRange(min, max));
-
-const randomVendor = () => randomChoice(VENDORS);
 const randomSegmentKind = () => randomChoice(SegmentKinds);
 const randomSegmentInterval = () => randomChoice(SegmentIntervals);
 

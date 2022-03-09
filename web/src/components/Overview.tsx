@@ -8,6 +8,7 @@ import { PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { ConnectionConfig } from "@/data/client";
 import { useConnectionState, useSchemaObjects, useTimer } from "@/data/hooks";
+import { DEFAULT_CITY } from "@/data/offers";
 import {
   checkPlans,
   ensurePipelinesExist,
@@ -15,19 +16,19 @@ import {
   insertSeedData,
   pipelineStatus,
   runMatchingProcess,
-  runUpdateSegments,
+  runUpdateSegments
 } from "@/data/queries";
 import {
   configScaleFactor,
   connectionConfig,
-  connectionDatabase,
+  connectionDatabase
 } from "@/data/recoil";
 import { findSchemaObjectByName } from "@/data/sql";
 import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { formatMs, formatNumber } from "@/format";
 import {
   useNotificationsDataKey,
-  useNotificationsRenderer,
+  useNotificationsRenderer
 } from "@/render/useNotificationsRenderer";
 import { ScaleFactor } from "@/scalefactors";
 import { CheckCircleIcon } from "@chakra-ui/icons";
@@ -56,7 +57,7 @@ import {
   useBoolean,
   useColorMode,
   useMediaQuery,
-  VStack,
+  VStack
 } from "@chakra-ui/react";
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -381,7 +382,7 @@ const OffersSection = () => {
 
   const onSeedData = useCallback(async () => {
     workingCtrl.on();
-    await insertSeedData(config, scaleFactor);
+    await insertSeedData(config, DEFAULT_CITY, scaleFactor);
     tableCounts.mutate();
     workingCtrl.off();
   }, [config, scaleFactor, tableCounts, workingCtrl]);
@@ -646,6 +647,7 @@ const MatchingSection = () => {
                 height={250}
                 defaultZoom={12}
                 useRenderer={useNotificationsRenderer}
+                options={{}}
               />
             </Box>
             {workEstimate}

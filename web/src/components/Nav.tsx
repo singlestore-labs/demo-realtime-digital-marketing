@@ -85,6 +85,9 @@ export const Nav = () => {
       <NavLink to="/map" onClick={navMenu.onClose}>
         Map
       </NavLink>
+      <NavLink to="/admin" onClick={navMenu.onClose}>
+        Admin
+      </NavLink>
     </>
   );
 

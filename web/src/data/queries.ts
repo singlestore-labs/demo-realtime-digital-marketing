@@ -10,17 +10,22 @@ import {
   SQLError,
 } from "@/data/client";
 import {
+  CityConfig,
   createCity,
   createOffers,
   DEFAULT_CITY,
   randomOffers,
 } from "@/data/offers";
-import { BASE_DATA, FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
+import {
+  BASE_DATA,
+  FUNCTIONS,
+  PROCEDURES,
+  S3_BUCKET_NAME,
+  TABLES,
+} from "@/data/sql";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
-
-const S3_BUCKET_NAME = "singlestore-realtime-digital-marketing";
 
 export const isConnected = async (config: ConnectionConfigOptionalDatabase) => {
   try {
@@ -150,21 +155,25 @@ export const resetSchema = async (
 
   if (includeSeedData) {
     progress("Creating sample data", "info");
-    await insertSeedData(config, scaleFactor);
+    await insertSeedData(config, DEFAULT_CITY, scaleFactor);
   }
 
   progress("Schema initialized", "success");
 };
 
-export const insertBaseData = (config: ConnectionConfig) =>
-  Promise.all(BASE_DATA.map((q) => Exec(config, q)));
+export const insertBaseData = async (config: ConnectionConfig) => {
+  for (const query of BASE_DATA) {
+    await Exec(config, query);
+  }
+};
 
 export const insertSeedData = (
   config: ConnectionConfig,
+  city: CityConfig,
   scaleFactor: ScaleFactor
 ) => {
   const numOffers = 100 * scaleFactor.partitions;
-  const offers = randomOffers({ ...DEFAULT_CITY, diameter: 0.1 }, numOffers);
+  const offers = randomOffers(city, numOffers);
   return createOffers(config, offers);
 };
 
@@ -334,6 +343,31 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
         `ALTER PIPELINE ${name} SET OFFSETS EARLIEST DROP ORPHAN FILES`
       );
       await Exec(config, `START PIPELINE IF NOT RUNNING ${name}`);
+    })
+  );
+};
+
+export const dropExtraPipelines = async (config: ConnectionConfig) => {
+  const extraPipelines = await Query<{ pipelineName: string }>(
+    config,
+    `
+      SELECT pipeline_name AS pipelineName
+      FROM information_schema.pipelines
+      WHERE
+        database_name = ?
+        AND pipelineName NOT IN (
+          SELECT CONCAT(prefix.table_col, cities.city_id)
+          FROM ${config.database}.cities
+          JOIN TABLE(["locations_", "requests_", "purchases_"]) AS prefix
+        )
+    `,
+    config.database
+  );
+
+  await Promise.all(
+    extraPipelines.map((pipeline) => {
+      console.log("dropping pipeline", pipeline.pipelineName);
+      return Exec(config, `DROP PIPELINE ${pipeline.pipelineName}`);
     })
   );
 };
@@ -582,4 +616,48 @@ export const queryOffersInBounds = (
       LIMIT ${limit}
     `,
     boundsToWKTPolygon(bounds)
+  );
+
+export type City = {
+  id: number;
+  name: string;
+  centerLat: number;
+  centerLon: number;
+  diameter: number;
+};
+
+export const getCities = (config: ConnectionConfig) =>
+  Query<City>(
+    config,
+    `
+      SELECT
+        city_id AS id,
+        city_name AS name,
+        GEOGRAPHY_LATITUDE(center) AS centerLat,
+        GEOGRAPHY_LONGITUDE(center) AS centerLon,
+        diameter
+      FROM cities
+    `
+  );
+
+export const lookupClosestCity = (
+  config: ConnectionConfig,
+  lon: number,
+  lat: number
+) =>
+  QueryOne<City>(
+    config,
+    `
+      SELECT
+        city_id AS id,
+        city_name AS name,
+        GEOGRAPHY_LATITUDE(center) AS centerLat,
+        GEOGRAPHY_LONGITUDE(center) AS centerLon,
+        0.1 AS diameter
+      FROM worldcities
+      ORDER BY GEOGRAPHY_DISTANCE(center, GEOGRAPHY_POINT(?, ?)) ASC
+      LIMIT 1
+    `,
+    lon,
+    lat
   );

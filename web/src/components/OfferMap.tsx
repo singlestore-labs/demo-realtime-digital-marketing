@@ -9,7 +9,7 @@ import { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
-type Props = Omit<PixiMapProps, "useRenderer">;
+type Props = Omit<PixiMapProps<unknown>, "useRenderer" | "options">;
 
 const MAX_OFFERS = 1000;
 
@@ -75,5 +75,5 @@ const useRenderer: UsePixiRenderer = ({ scene, latLngToPixel, bounds }) => {
 };
 
 export const OfferMap = (props: Props) => {
-  return <PixiMap {...props} useRenderer={useRenderer} />;
+  return <PixiMap {...props} useRenderer={useRenderer} options={{}} />;
 };

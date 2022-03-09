@@ -1,9 +1,9 @@
 import { DEFAULT_CITY } from "@/data/offers";
-import { Box, Link } from "@chakra-ui/react";
+import { Box, BoxProps, Link, useConst } from "@chakra-ui/react";
 import "@pixi/graphics-extras";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useState } from "react";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -27,39 +27,45 @@ export const DEFAULT_CENTER = [
 ] as [number, number];
 export const DEFAULT_ZOOM = 12;
 
-type RendererConfig = {
+type RendererConfig<T> = {
   scene: PIXI.Container;
   width: number;
   height: number;
   bounds: Bounds;
   latLngToPixel: (latLng: Point) => Point;
+  pixelToLatLng: (pixel: Point) => Point;
+  options: T;
 };
 
-export type UsePixiRenderer = (ctx: RendererConfig) => {
+export type UsePixiRenderer<T = unknown> = (ctx: RendererConfig<T>) => {
   setup?: () => void;
   update?: (delta: number) => void;
 };
 
-type PixiMapLayerProps = {
-  useRenderer: UsePixiRenderer;
-} & Omit<RendererConfig, "scene">;
+type PixiMapLayerProps<T> = {
+  useRenderer: UsePixiRenderer<T>;
+} & Omit<RendererConfig<T>, "scene">;
 
-const PixiMapLayer = ({
+const PixiMapLayer = <T,>({
   width,
   height,
   bounds,
   latLngToPixel,
+  pixelToLatLng,
   useRenderer,
-}: PixiMapLayerProps) => {
+  options,
+}: PixiMapLayerProps<T>) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
-  const sceneRef = useRef(new PIXI.Container());
+  const scene = useConst(() => new PIXI.Container());
   const { setup, update } = useRenderer({
-    scene: sceneRef.current,
+    scene,
     width,
     height,
     bounds,
     latLngToPixel,
+    pixelToLatLng,
+    options,
   });
 
   useLayoutEffect(() => {
@@ -79,7 +85,6 @@ const PixiMapLayer = ({
       antialias: true,
     });
 
-    const scene = sceneRef.current;
     app.stage.addChild(scene);
 
     setup?.();
@@ -98,54 +103,68 @@ const PixiMapLayer = ({
         baseTexture: true,
       });
     };
-  }, [height, setup, update, width]);
+  }, [height, scene, setup, update, width]);
 
   return <canvas ref={canvasRef} />;
 };
 
-type RequiresInitLayerProps = {
-  useRenderer: UsePixiRenderer;
+type RequiresInitLayerProps<T> = {
+  useRenderer: UsePixiRenderer<T>;
+  options: T;
 } & PigeonProps;
 
-const RequiresInitLayer = ({
+const RequiresInitLayer = <T,>({
   mapState,
   latLngToPixel,
+  pixelToLatLng,
   useRenderer,
-}: RequiresInitLayerProps) => {
+  options,
+}: RequiresInitLayerProps<T>) => {
   const { width, height, bounds } = mapState || { width: 0, height: 0 };
-  if (width <= 0 || height <= 0 || !latLngToPixel || !bounds) {
+  if (
+    width <= 0 ||
+    height <= 0 ||
+    !latLngToPixel ||
+    !pixelToLatLng ||
+    !bounds
+  ) {
     return null;
   }
 
   return (
-    <PixiMapLayer
+    <PixiMapLayer<T>
       useRenderer={useRenderer}
       width={width}
       height={height}
       bounds={bounds}
       latLngToPixel={latLngToPixel}
+      pixelToLatLng={pixelToLatLng}
+      options={options}
     />
   );
 };
 
-export type PixiMapProps = {
-  useRenderer: UsePixiRenderer;
+export type PixiMapProps<T> = {
+  useRenderer: UsePixiRenderer<T>;
   height?: number | string;
   defaultCenter?: [number, number];
   defaultZoom?: number;
-};
+  options: T;
+} & BoxProps;
 
-export const PixiMap = ({
-  useRenderer,
+export const PixiMap = <T,>({
   height = "100%",
   defaultCenter = DEFAULT_CENTER,
   defaultZoom = DEFAULT_ZOOM,
-}: PixiMapProps) => {
+  useRenderer,
+  options,
+  ...rest
+}: PixiMapProps<T>) => {
   const [center, setCenter] = useState(defaultCenter);
   const [zoom, setZoom] = useState(defaultZoom);
 
   return (
-    <Box borderRadius="lg" overflow="hidden" height={height}>
+    <Box borderRadius="lg" overflow="hidden" height={height} {...rest}>
       <Map
         dprs={[1, 2]}
         provider={stamenProvider("toner-lite")}
@@ -158,7 +177,7 @@ export const PixiMap = ({
           setZoom(zoom);
         }}
       >
-        <RequiresInitLayer useRenderer={useRenderer} />
+        <RequiresInitLayer useRenderer={useRenderer} options={options} />
       </Map>
     </Box>
   );

@@ -1,10 +1,16 @@
-create rowstore reference table if not exists cities (
-  city_id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+create rowstore table if not exists worldcities (
+  city_id BIGINT NOT NULL PRIMARY KEY,
   city_name TEXT NOT NULL,
   center GEOGRAPHYPOINT NOT NULL,
-  diameter DOUBLE,
 
-  UNIQUE KEY (city_name)
+  INDEX (center)
+);
+
+create rowstore reference table if not exists cities (
+  city_id BIGINT NOT NULL PRIMARY KEY,
+  city_name TEXT NOT NULL,
+  center GEOGRAPHYPOINT NOT NULL,
+  diameter DOUBLE
 );
 
 create rowstore table if not exists subscribers (

@@ -1,6 +1,7 @@
 import { useConnectionState, useTick } from "@/data/hooks";
 import {
   checkPlans,
+  dropExtraPipelines,
   ensurePipelinesAreRunning,
   ensurePipelinesExist,
   truncateTimeseriesTables,
@@ -27,6 +28,7 @@ export const useSimulationMonitor = (paused = false) => {
       return Promise.all([
         ensurePipelinesExist(cfgWithCtx, scaleFactor),
         ensurePipelinesAreRunning(cfgWithCtx),
+        dropExtraPipelines(cfgWithCtx),
         truncateTimeseriesTables(cfgWithCtx, scaleFactor),
         checkPlans(cfgWithCtx),
       ]);

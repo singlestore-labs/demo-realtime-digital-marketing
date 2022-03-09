@@ -125,7 +125,7 @@ export const NotificationsMap = () => {
       height="100%"
     >
       <Stack spacing={4} flex="2 2 0" minHeight="200px" maxHeight="100%">
-        <PixiMap useRenderer={useNotificationsRenderer} />
+        <PixiMap useRenderer={useNotificationsRenderer} options={{}} />
       </Stack>
       <Stack spacing={4} flex="1 1 0" minWidth="0">
         <MarkdownText>
