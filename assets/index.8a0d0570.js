@@ -448,16 +448,15 @@ END`}],Re=[{name:"worldcities",createStmt:`create rowstore table if not exists w
           `,a.cityId),await f(e,`ALTER PIPELINE ${a.pipelineName} SET OFFSETS EARLIEST DROP ORPHAN FILES`),await f(e,`START PIPELINE IF NOT RUNNING ${a.pipelineName}`),console.log(`finished creating pipeline ${a.pipelineName} for city ${a.cityName}`)}))},wr=async e=>{const o=await Xe(e,`
       SELECT
         pipelines.pipeline_name,
-        state,
+        pipelines.state,
         SUM(file_state = "Loaded"):>int AS num_loaded,
-        COUNT(*) AS num_total
-      FROM
-        information_schema.pipelines_files,
-        information_schema.pipelines
-      WHERE
+        COUNT(file_state) AS num_total
+      FROM information_schema.pipelines
+      LEFT JOIN information_schema.pipelines_files ON (
         pipelines_files.pipeline_name = pipelines.pipeline_name
         AND pipelines_files.database_name = pipelines.database_name
-        AND pipelines.database_name = ?
+      )
+      WHERE pipelines.database_name = ?
       GROUP BY pipelines.pipeline_name
       HAVING num_loaded = num_total OR state != "Running"
     `,e.database);await Promise.all(o.map(async([t])=>{console.log("restarting pipeline",t),await f(e,`ALTER PIPELINE ${t} SET OFFSETS EARLIEST DROP ORPHAN FILES`),await f(e,`START PIPELINE IF NOT RUNNING ${t}`)}))},Ir=async e=>{const o=await H(e,`
