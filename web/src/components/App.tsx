@@ -4,7 +4,7 @@ import { NotificationsMap } from "@/components/NotificationsMap";
 import { Overview } from "@/components/Overview";
 import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
 import { Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 function App() {
   const loadingFallback = (
@@ -28,6 +28,7 @@ function App() {
             <Route path="/" element={<Overview />} />
             <Route path="/map" element={<NotificationsMap />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>
       </Flex>

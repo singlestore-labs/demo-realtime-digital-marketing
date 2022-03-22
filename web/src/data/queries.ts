@@ -327,7 +327,7 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
         pipelines_files.pipeline_name = pipelines.pipeline_name
         AND pipelines_files.database_name = pipelines.database_name
       )
-      WHERE pipelines.database_name = ?
+      WHERE pipelines.database_name = ? AND pipelines.pipeline_name != "worldcities"
       GROUP BY pipelines.pipeline_name
       HAVING num_loaded = num_total OR state != "Running"
     `,
