@@ -359,6 +359,7 @@ export const dropExtraPipelines = async (config: ConnectionConfig) => {
           FROM ${config.database}.cities
           JOIN TABLE(["locations_", "requests_", "purchases_"]) AS prefix
         )
+        AND pipelineName != "worldcities"
     `,
     config.database
   );

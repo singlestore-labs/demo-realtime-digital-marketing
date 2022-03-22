@@ -1,10 +1,5 @@
 import { SQLError } from "@/data/client";
-import {
-  countPartitions,
-  isConnected,
-  resetSchema,
-  schemaObjects,
-} from "@/data/queries";
+import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import {
   configScaleFactor,
   connectionConfig,
@@ -14,7 +9,6 @@ import {
   vaporConnectionConfig,
 } from "@/data/recoil";
 import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
-import { pickScaleFactor } from "@/scalefactors";
 import { useToast } from "@chakra-ui/react";
 import { useCallback, useEffect, useReducer, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
@@ -157,7 +151,7 @@ export const useResetSchema = ({
   includeSeedData: boolean;
 }) => {
   const config = useRecoilValue(connectionConfig);
-  const [scaleFactor, setScaleFactor] = useRecoilState(configScaleFactor);
+  const scaleFactor = useRecoilValue(configScaleFactor);
   const { reset: resetConnectionState } = useConnectionState();
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
@@ -190,9 +184,10 @@ export const useResetSchema = ({
       skipCreate: !!skipCreate,
     });
 
+    // TODO: re-enable this once scale factors don't TKO clusters
     // count number of partitions to set default scale factor
-    const numPartitions = await countPartitions(config);
-    setScaleFactor(pickScaleFactor(numPartitions));
+    // const numPartitions = await countPartitions(config);
+    // setScaleFactor(pickScaleFactor(numPartitions));
 
     // post schema reset
     after();
@@ -206,7 +201,6 @@ export const useResetSchema = ({
     scaleFactor,
     includeSeedData,
     skipCreate,
-    setScaleFactor,
     after,
     resetConnectionState,
     toast,

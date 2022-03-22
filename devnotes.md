@@ -7,6 +7,9 @@
 
 # next steps:
 
+- rethink scale factors, it seems like S1 plus is too much
+- bug in segments generation that can cause duplicate records
+  - this is also fixed by switching to iterative segmentation
 - group offers by polygon in map
 - incrementally compute subscriber_segments table
 - offer creation modal/page
