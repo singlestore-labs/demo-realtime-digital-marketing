@@ -11,7 +11,6 @@ type SchemaObject = typeof FUNCTIONS[number];
 
 export const BASE_DATA = [
   `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`,
-  "REPLACE INTO customers VALUES (0, 'default customer')",
   `
     CREATE OR REPLACE PIPELINE worldcities
     AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/cities.ndjson'

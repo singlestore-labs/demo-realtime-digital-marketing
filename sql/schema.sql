@@ -69,16 +69,9 @@ create table if not exists purchases (
   KEY (vendor) USING HASH
 );
 
-create table if not exists customers (
-  customer_id BIGINT NOT NULL,
-  company_name TEXT NOT NULL,
-
-  PRIMARY KEY (customer_id)
-);
-
 create rowstore reference table if not exists offers (
   offer_id BIGINT NOT NULL AUTO_INCREMENT,
-  customer_id BIGINT NOT NULL,
+  customer TEXT NOT NULL,
   enabled BOOLEAN NOT NULL DEFAULT TRUE,
 
   notification_zone GEOGRAPHY NOT NULL,

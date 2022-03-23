@@ -42,6 +42,7 @@
     "@babel/core": "^7.16.12",
     "@chakra-ui/cli": "^1.8.1",
     "@emotion/babel-plugin": "^11.7.2",
+    "@types/d3-array": "^3.0.2",
     "@types/d3-ease": "^3.0.0",
     "@types/d3-format": "^3.0.1",
     "@types/offscreencanvas": "^2019.6.4",

@@ -7,11 +7,8 @@
 
 # next steps:
 
-- rethink scale factors, it seems like S1 plus is too much
-- bug in segments generation that can cause duplicate records
-  - this is also fixed by switching to iterative segmentation
+- add an option to follow a specific subscriber
 - group offers by polygon in map
-- incrementally compute subscriber_segments table
 - offer creation modal/page
   - consider creating the form separate so it can be used on a page or modal
     - should support loading & editing an existing offer
@@ -21,20 +18,6 @@
 - map page
   - offer creator
 - rows / second rather than cumulative (search code: SQL_CLUSTER_THROUGHPUT)
-
-# idea: incrementally compute subscriber_segments table
-
-Currently the subscriber_segments table is recomputed in it's entirety which will not scale well as the data size increases.
-
-As an alternative, it should be possible to compute the table incrementally.
-
-Consider when each subscriber_segment "enters" and "leaves" the table.
-
-Insert process: select from timeseries table where ts > last_update_ts
-Record "exit_time" in subscribers_segments based on filter_interval (on the segment)
-Update exit_time each time we insert into the table (with the max exit_time)
-
-Delete process: delete subscriber_segments with exit time <= now
 
 # crazy idea: replace absolute time with relative
 

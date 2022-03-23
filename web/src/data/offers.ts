@@ -6,13 +6,12 @@ import {
   randomFloatInRange,
   randomIntegerInRange,
   randomVendor,
+  Vendor,
 } from "@/rand";
 import VENDORS from "@/static-data/vendors.json";
 import OpenLocationCode from "open-location-code-typescript";
 import { Bounds, Point } from "pigeon-maps";
 import stringHash from "string-hash";
-
-export const DEFAULT_CUSTOMER_ID = 0;
 
 export const DEFAULT_CITY = {
   id: 120658,
@@ -95,6 +94,7 @@ export const createSegments = async (
 };
 
 export type Offer = {
+  customer: string;
   segments: Segment[];
 
   // should be a WKT polygon
@@ -107,11 +107,10 @@ export type Offer = {
 
 export const createOffers = async (
   config: ConnectionConfig,
-  offers: Offer[],
-  customerId: number = DEFAULT_CUSTOMER_ID
+  offers: Offer[]
 ) => {
   const stmt = new MultiReplace("offers", [
-    "customer_id",
+    "customer",
     "notification_zone",
     "segment_ids",
     "notification_content",
@@ -135,7 +134,7 @@ export const createOffers = async (
 
   for (const offer of offers) {
     stmt.append(
-      customerId,
+      offer.customer,
       offer.notificationZone,
       JSON.stringify(offer.segments.map(segmentId)),
       offer.notificationContent,
@@ -173,7 +172,7 @@ const randomPointInCity = (city: CityConfig): Point => {
   ];
 };
 
-export const randomSegment = (city: CityConfig): Segment => {
+export const randomSegment = (city: CityConfig, vendor: Vendor): Segment => {
   const kind = randomSegmentKind();
   const interval = randomSegmentInterval();
   switch (kind) {
@@ -190,24 +189,25 @@ export const randomSegment = (city: CityConfig): Segment => {
       return {
         kind,
         interval,
-        value: randomVendor().vendor,
+        value: vendor.vendor,
       };
     case "request":
       return {
         kind,
         interval,
-        value: vendorDomain(randomVendor()),
+        value: vendorDomain(vendor),
       };
   }
 };
 
 export const randomOffer = (city: CityConfig): Offer => {
   const numSegments = randomIntegerInRange(1, 3);
+  const vendor = randomVendor();
+
   const segments = Array.from({ length: numSegments }, () =>
-    randomSegment(city)
+    randomSegment(city, vendor)
   );
 
-  const vendor = randomVendor();
   const domain = vendorDomain(vendor);
   const pctOff = randomIntegerInRange(10, 50);
   const vendorOfferId = randomIntegerInRange(1, 1000);
@@ -223,6 +223,7 @@ export const randomOffer = (city: CityConfig): Offer => {
   } as Bounds;
 
   return {
+    customer: vendor.vendor,
     segments,
     notificationZone: boundsToWKTPolygon(bounds),
     notificationContent,

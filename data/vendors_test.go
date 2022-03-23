@@ -17,16 +17,18 @@ func TestChooseVendor(t *testing.T) {
 		want *Vendor
 	}{
 		{"verify that ChooseVendor returns a random vendor", args{rand.New(rand.NewSource(1234))}, &Vendor{
-			Id:       52,
-			Name:     "Yodel",
-			Domain:   "yodel.com",
-			Category: "automotive",
+			Id:       403,
+			Name:     "Twitterwire",
+			Domain:   "twitterwire.gov",
+			Category: "books",
+			CDF:      216760,
 		}},
 		{"different seed different vendor", args{rand.New(rand.NewSource(5))}, &Vendor{
-			Id:       704,
-			Name:     "Kayveo",
-			Domain:   "kayveo.org",
-			Category: "computers",
+			Id:       675,
+			Name:     "InnoZ",
+			Domain:   "innoz.com",
+			Category: "tools",
+			CDF:      218500,
 		}},
 	}
 	for _, tt := range tests {

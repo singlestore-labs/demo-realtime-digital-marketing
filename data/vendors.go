@@ -3,9 +3,10 @@ package data
 import (
 	_ "embed"
 	"encoding/json"
-	"subscriber-sim/util"
+	"math"
 	"sort"
 	"strings"
+	"subscriber-sim/util"
 )
 
 type Vendor struct {
@@ -13,22 +14,22 @@ type Vendor struct {
 	Name     string
 	Domain   string
 	Category string
+	CDF      float64
 }
 
 var (
 	//go:embed vendors.json
 	vendors_raw    []byte
-	vendorTotals   []int
 	vendorMaxTotal int
 	Vendors        []Vendor
 )
 
 func ChooseVendor(rnd util.RandInterface) *Vendor {
 	r := rnd.Intn(vendorMaxTotal) + 1
-	i := sort.Search(len(vendorTotals), func(i int) bool {
-		return vendorTotals[i] >= r
+	i := sort.Search(len(Vendors), func(i int) bool {
+		return int(Vendors[i].CDF) >= r
 	})
-	if i < len(vendorTotals) {
+	if i < len(Vendors) {
 		return &Vendors[i]
 	}
 	return nil
@@ -36,11 +37,11 @@ func ChooseVendor(rnd util.RandInterface) *Vendor {
 
 func init() {
 	var vendors []struct {
-		Id         int
-		Vendor     string
-		Tld        string
-		Category   string
-		Popularity float64
+		Id       int
+		Vendor   string
+		Tld      string
+		Category string
+		CDF      float64
 	}
 
 	err := json.Unmarshal(vendors_raw, &vendors)
@@ -48,26 +49,17 @@ func init() {
 		panic(err)
 	}
 
-	// sort vendors by popularity
-	sort.Slice(vendors, func(i, j int) bool {
-		return vendors[i].Popularity < vendors[j].Popularity
-	})
-
-	vendorTotals = make([]int, 0, len(vendors))
 	Vendors = make([]Vendor, 0, len(vendors))
 
-	runningTotal := 0
 	for _, v := range vendors {
 		Vendors = append(Vendors, Vendor{
 			Id:       v.Id,
 			Name:     v.Vendor,
 			Domain:   strings.ToLower(v.Vendor) + "." + v.Tld,
 			Category: v.Category,
+			CDF:      v.CDF,
 		})
-
-		runningTotal += int((v.Popularity * 1000))
-		vendorTotals = append(vendorTotals, runningTotal)
 	}
 
-	vendorMaxTotal = runningTotal
+	vendorMaxTotal = int(math.Ceil(Vendors[len(Vendors)-1].CDF))
 }
