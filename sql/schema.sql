@@ -39,15 +39,12 @@ create table if not exists locations (
 
   -- open location code length 8 (275m resolution)
   olc_8 TEXT NOT NULL,
-  -- open location code length 6 (5.5km resolution)
-  olc_6 AS SUBSTR(olc_8, 1, 6) PERSISTED TEXT,
 
   SHARD KEY (city_id, subscriber_id),
   SORT KEY (ts),
 
   KEY (city_id, subscriber_id) USING HASH,
-  KEY (olc_8) USING HASH,
-  KEY (olc_6) USING HASH
+  KEY (olc_8) USING HASH
 );
 
 create table if not exists requests (
@@ -114,7 +111,7 @@ create rowstore reference table segments (
   segment_id BIGINT NOT NULL,
 
   valid_interval ENUM ("minute", "hour", "day", "week", "month") NOT NULL,
-  filter_kind ENUM ("olc_8", "olc_6", "request", "purchase") NOT NULL,
+  filter_kind ENUM ("olc_8", "request", "purchase") NOT NULL,
   filter_value TEXT NOT NULL,
 
   PRIMARY KEY (segment_id),
@@ -122,13 +119,14 @@ create rowstore reference table segments (
   KEY (filter_kind, filter_value)
 );
 
-create table subscriber_segments (
+create rowstore table subscriber_segments (
   city_id BIGINT NOT NULL,
   subscriber_id BIGINT NOT NULL,
   segment_id BIGINT NOT NULL,
 
-  UNIQUE KEY (city_id, subscriber_id, segment_id) USING HASH,
-  SORT KEY (city_id, subscriber_id, segment_id),
+  expires_at DATETIME(6) NOT NULL,
+
+  PRIMARY KEY (city_id, subscriber_id, segment_id),
   SHARD KEY (city_id, subscriber_id)
 );
 
@@ -181,7 +179,7 @@ CREATE OR REPLACE FUNCTION match_offers_to_subscribers(
       LEFT JOIN subscriber_segments segment ON (
         phase_1.city_id = segment.city_id
         AND phase_1.subscriber_id = segment.subscriber_id
-        AND segment_ids.table_col :> BIGINT = segment.segment_id
+        AND (segment_ids.table_col :> BIGINT) = segment.segment_id
       )
     )
   select
@@ -200,32 +198,64 @@ CREATE OR REPLACE FUNCTION match_offers_to_subscribers(
   )
 );
 
-create view dynamic_subscriber_segments as (
-  SELECT city_id, subscriber_id, segment_id
+CREATE OR REPLACE FUNCTION dynamic_subscriber_segments_locations(
+  _since DATETIME(6),
+  _until DATETIME(6)
+) RETURNS TABLE AS RETURN (
+  SELECT
+    city_id, subscriber_id, segment_id,
+    MAX(date_add_dynamic(ts, segments.valid_interval)) AS expires_at
   FROM segments, locations
   WHERE
     segments.filter_kind = "olc_8"
     AND segments.filter_value = locations.olc_8
     AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-  UNION
-  SELECT city_id, subscriber_id, segment_id
-  FROM segments, locations
-  WHERE
-    segments.filter_kind = "olc_6"
-    AND segments.filter_value = locations.olc_6
-    AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-  UNION
-  SELECT city_id, subscriber_id, segment_id
+    AND ts >= _since
+    AND ts < _until
+  GROUP BY city_id, subscriber_id, segment_id
+);
+
+CREATE OR REPLACE FUNCTION dynamic_subscriber_segments_requests(
+  _since DATETIME(6),
+  _until DATETIME(6)
+) RETURNS TABLE AS RETURN (
+  SELECT
+    city_id, subscriber_id, segment_id,
+    MAX(date_add_dynamic(ts, segments.valid_interval)) AS expires_at
   FROM segments, requests
   WHERE
     segments.filter_kind = "request"
     AND segments.filter_value = requests.domain
     AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
-  UNION
-  SELECT city_id, subscriber_id, segment_id
+    AND ts >= _since
+    AND ts < _until
+  GROUP BY city_id, subscriber_id, segment_id
+);
+
+CREATE OR REPLACE FUNCTION dynamic_subscriber_segments_purchases(
+  _since DATETIME(6),
+  _until DATETIME(6)
+) RETURNS TABLE AS RETURN (
+  SELECT
+    city_id, subscriber_id, segment_id,
+    MAX(date_add_dynamic(ts, segments.valid_interval)) AS expires_at
   FROM segments, purchases
   WHERE
     segments.filter_kind = "purchase"
     AND segments.filter_value = purchases.vendor
     AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
+    AND ts >= _since
+    AND ts < _until
+  GROUP BY city_id, subscriber_id, segment_id
+);
+
+CREATE OR REPLACE FUNCTION dynamic_subscriber_segments(
+  _since DATETIME(6),
+  _until DATETIME(6)
+) RETURNS TABLE AS RETURN (
+  SELECT * FROM dynamic_subscriber_segments_locations(_since, _until)
+  UNION
+  SELECT * FROM dynamic_subscriber_segments_requests(_since, _until)
+  UNION
+  SELECT * FROM dynamic_subscriber_segments_purchases(_since, _until)
 );

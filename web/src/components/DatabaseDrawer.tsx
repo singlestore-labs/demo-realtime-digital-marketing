@@ -2,11 +2,14 @@ import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { DisconnectVaporButton } from "@/components/DisconnectVaporButton";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState } from "@/data/hooks";
-import { simulatorEnabled } from "@/data/recoil";
+import { dropDatabase } from "@/data/queries";
+import { connectionConfig, simulatorEnabled } from "@/data/recoil";
+import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertIcon,
   AlertTitle,
+  Button,
   Drawer,
   DrawerBody,
   DrawerCloseButton,
@@ -16,9 +19,12 @@ import {
   DrawerOverlay,
   Stack,
   Switch,
+  Text,
+  useBoolean,
+  useDisclosure,
 } from "@chakra-ui/react";
-import React from "react";
-import { useRecoilState } from "recoil";
+import React, { useCallback } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 
 type Props = {
   finalFocusRef: React.RefObject<HTMLButtonElement>;
@@ -30,7 +36,16 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
 
+  const config = useRecoilValue(connectionConfig);
   const { connected, initialized, isVapor } = useConnectionState();
+  const advancedMenu = useDisclosure();
+  const [droppingDatabase, droppingDatabaseCtrl] = useBoolean(false);
+
+  const onDropDatabase = useCallback(async () => {
+    droppingDatabaseCtrl.on();
+    await dropDatabase(config);
+    droppingDatabaseCtrl.off();
+  }, [config, droppingDatabaseCtrl]);
 
   return (
     <Drawer
@@ -95,6 +110,29 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
                 onChange={() => setSimulatorEnabled(!isSimulatorEnabled)}
               />
             </Alert>
+            <Text
+              onClick={advancedMenu.onToggle}
+              fontSize="xs"
+              textAlign="center"
+              cursor="pointer"
+            >
+              Advanced
+              {advancedMenu.isOpen ? (
+                <ChevronUpIcon ml={2} />
+              ) : (
+                <ChevronDownIcon ml={2} />
+              )}
+            </Text>
+            {advancedMenu.isOpen ? (
+              <Button
+                size="xs"
+                _hover={{ colorScheme: "red" }}
+                onClick={onDropDatabase}
+                disabled={droppingDatabase}
+              >
+                Drop Database
+              </Button>
+            ) : undefined}
           </Stack>
         </DrawerBody>
 

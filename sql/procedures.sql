@@ -45,23 +45,34 @@ BEGIN
     RETURN _count;
 END //
 
-CREATE OR REPLACE PROCEDURE update_segments() RETURNS BIGINT
+CREATE OR REPLACE PROCEDURE update_location_segments(_since DATETIME(6), _until DATETIME(6))
 AS
-DECLARE
-    _count BIGINT;
 BEGIN
-    START TRANSACTION;
-
-    DELETE FROM subscriber_segments;
-
     INSERT INTO subscriber_segments
-    SELECT * FROM dynamic_subscriber_segments;
+    SELECT * FROM dynamic_subscriber_segments_locations(_since, _until)
+    ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at);
+END //
 
-    _count = row_count();
+CREATE OR REPLACE PROCEDURE update_request_segments(_since DATETIME(6), _until DATETIME(6))
+AS
+BEGIN
+    INSERT INTO subscriber_segments
+    SELECT * FROM dynamic_subscriber_segments_requests(_since, _until)
+    ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at);
+END //
 
-    COMMIT;
+CREATE OR REPLACE PROCEDURE update_purchase_segments(_since DATETIME(6), _until DATETIME(6))
+AS
+BEGIN
+    INSERT INTO subscriber_segments
+    SELECT * FROM dynamic_subscriber_segments_purchases(_since, _until)
+    ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at);
+END //
 
-    RETURN _count;
+CREATE OR REPLACE PROCEDURE prune_segments(_until DATETIME(6))
+AS
+BEGIN
+    DELETE FROM subscriber_segments WHERE expires_at <= _until;
 END //
 
 DELIMITER ;

@@ -50,7 +50,7 @@ export const createCity = (config: ConnectionConfig, city: CityConfig) =>
 export const removeCity = (config: ConnectionConfig, cityId: number) =>
   Exec(config, "DELETE FROM cities WHERE city_id = ?", cityId);
 
-export const SegmentKinds = ["olc_8", "olc_6", "purchase", "request"] as const;
+export const SegmentKinds = ["olc_8", "purchase", "request"] as const;
 export type SegmentKind = typeof SegmentKinds[number];
 
 export const SegmentIntervals = [
@@ -177,14 +177,9 @@ export const randomSegment = (city: CityConfig): Segment => {
   const kind = randomSegmentKind();
   const interval = randomSegmentInterval();
   switch (kind) {
-    case "olc_8":
-    case "olc_6": {
+    case "olc_8": {
       const [lon, lat] = randomPointInCity(city);
-      const olcLen = kind === "olc_8" ? 8 : 6;
-      const olc = OpenLocationCode.encode(lat, lon, olcLen).substring(
-        0,
-        olcLen
-      );
+      const olc = OpenLocationCode.encode(lat, lon, 8).substring(0, 8);
       return {
         kind,
         interval,

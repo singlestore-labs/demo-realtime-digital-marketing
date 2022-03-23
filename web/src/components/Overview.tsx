@@ -16,19 +16,19 @@ import {
   insertSeedData,
   pipelineStatus,
   runMatchingProcess,
-  runUpdateSegments
+  runUpdateSegments,
 } from "@/data/queries";
 import {
   configScaleFactor,
   connectionConfig,
-  connectionDatabase
+  connectionDatabase,
 } from "@/data/recoil";
 import { findSchemaObjectByName } from "@/data/sql";
 import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { formatMs, formatNumber } from "@/format";
 import {
   useNotificationsDataKey,
-  useNotificationsRenderer
+  useNotificationsRenderer,
 } from "@/render/useNotificationsRenderer";
 import { ScaleFactor } from "@/scalefactors";
 import { CheckCircleIcon } from "@chakra-ui/icons";
@@ -57,9 +57,9 @@ import {
   useBoolean,
   useColorMode,
   useMediaQuery,
-  VStack
+  VStack,
 } from "@chakra-ui/react";
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
 
@@ -286,7 +286,9 @@ const usePipelineStatus = (
     () => pipelineStatus(config, scaleFactor),
     { isPaused: () => !enabled }
   );
-  const completed = !!pipelines.data?.every((p) => !p.needsUpdate);
+  const completed = pipelines.data?.length
+    ? pipelines.data.every((p) => !p.needsUpdate)
+    : false;
   return { pipelines, completed };
 };
 
@@ -443,6 +445,7 @@ const WarmupSection = ({
   setDone: (done: boolean) => void;
 }) => {
   const config = useRecoilValue(connectionConfig);
+  const timestampCursor = useRef(new Date(0).toISOString());
 
   useEffect(() => {
     if (done) {
@@ -455,12 +458,13 @@ const WarmupSection = ({
     (async () => {
       try {
         for (let i = 0; i < 10; i++) {
-          const startTime = performance.now();
-          await runUpdateSegments(cfgWithCtx);
+          timestampCursor.current = await runUpdateSegments(
+            cfgWithCtx,
+            timestampCursor.current
+          );
           await runMatchingProcess(cfgWithCtx, "second");
-          const duration = performance.now() - startTime;
 
-          if (duration < 2000 || (i > 1 && !(await checkPlans(cfgWithCtx)))) {
+          if (i > 1 && !(await checkPlans(cfgWithCtx))) {
             return;
           }
         }
@@ -494,12 +498,16 @@ const SegmentationSection = () => {
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
+  const timestampCursor = useRef(new Date(0).toISOString());
 
   const done = !!tableCounts.data?.subscriber_segments;
 
   const onClick = useCallback(async () => {
     startTimer();
-    await runUpdateSegments(config);
+    timestampCursor.current = await runUpdateSegments(
+      config,
+      timestampCursor.current
+    );
     stopTimer();
 
     tableCounts.mutate();
@@ -543,7 +551,11 @@ const SegmentationSection = () => {
 
             Click the button to run the update interactively, or run the following query in your favorite SQL client:
 
-                select * from dynamic_subscriber_segments;
+                select count(*)
+                from dynamic_subscriber_segments(
+                  date_sub_dynamic(now(), "minute"),
+                  now()
+                );
           `}
         </MarkdownText>
       }

@@ -7,21 +7,21 @@ import {
   QueryNoDb,
   QueryOne,
   QueryTuples,
-  SQLError,
+  SQLError
 } from "@/data/client";
 import {
   CityConfig,
   createCity,
   createOffers,
   DEFAULT_CITY,
-  randomOffers,
+  randomOffers
 } from "@/data/offers";
 import {
   BASE_DATA,
   FUNCTIONS,
   PROCEDURES,
   S3_BUCKET_NAME,
-  TABLES,
+  TABLES
 } from "@/data/sql";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
@@ -115,6 +115,9 @@ export const countPartitions = async (
     config.database
   ).then((x) => x.count);
 
+export const dropDatabase = (config: ConnectionConfig) =>
+  ExecNoDb(config, "DROP DATABASE IF EXISTS `" + config.database + "`");
+
 export const resetSchema = async (
   config: ConnectionConfig,
   {
@@ -131,7 +134,7 @@ export const resetSchema = async (
 ) => {
   if (!skipCreate) {
     progress("Dropping existing schema", "info");
-    await ExecNoDb(config, "DROP DATABASE IF EXISTS `" + config.database + "`");
+    await dropDatabase(config);
 
     progress("Creating database", "info");
     await ExecNoDb(config, "CREATE DATABASE `" + config.database + "`");
@@ -178,7 +181,7 @@ export const insertSeedData = (
 };
 
 export type SegmentConfig = {
-  kind: "olc_8" | "olc_6" | "purchase" | "request";
+  kind: "olc_8" | "purchase" | "request";
   interval: "minute" | "hour" | "day" | "week" | "month";
   value: string;
 };
@@ -247,6 +250,7 @@ export const ensurePipelinesExist = async (
             `
             CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
             AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/locations.*'
+            MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
             INTO PROCEDURE process_locations FORMAT PARQUET (
               subscriber_id <- subscriberid,
               @offset_x <- offsetX,
@@ -271,6 +275,7 @@ export const ensurePipelinesExist = async (
             `
             CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
             AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/requests.*'
+            MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
             INTO TABLE requests FORMAT PARQUET (
               subscriber_id <- subscriberid,
               domain <- domain
@@ -286,6 +291,7 @@ export const ensurePipelinesExist = async (
             `
             CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
             AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/purchases.*'
+            MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
             INTO TABLE purchases FORMAT PARQUET (
               subscriber_id <- subscriberid,
               vendor <- vendor
@@ -563,11 +569,25 @@ export const runMatchingProcess = (
     interval
   ).then((x) => x.RESULT);
 
-// returns total number of segments after update
-export const runUpdateSegments = (config: ConnectionConfig) =>
-  QueryOne<{ RESULT: number }>(config, "ECHO update_segments()").then(
-    (x) => x.RESULT
+// returns the timestamp to use in the next call to runUpdateSegments
+export const runUpdateSegments = async (
+  config: ConnectionConfig,
+  since: string
+) => {
+  const nowISO = new Date().toISOString();
+
+  await Promise.all(
+    [
+      "update_location_segments",
+      "update_request_segments",
+      "update_purchase_segments",
+    ].map((procedure) => Exec(config, `CALL ${procedure}(?, ?)`, since, nowISO))
   );
+
+  await Exec(config, "CALL prune_segments(?)", nowISO);
+
+  return nowISO;
+};
 
 export type NotificationTuple = [ts: string, lon: number, lat: number];
 
