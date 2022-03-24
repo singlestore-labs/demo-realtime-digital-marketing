@@ -247,7 +247,8 @@ END`}],Ae=[{name:"worldcities",createStmt:`create rowstore table if not exists w
   maximum_bid_cents BIGINT NOT NULL,
 
   PRIMARY KEY (offer_id),
-  INDEX (notification_zone)
+  INDEX (notification_zone),
+  INDEX (customer)
 );`},{name:"notifications",createStmt:`create table if not exists notifications (
   ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
 
