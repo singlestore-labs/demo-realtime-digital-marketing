@@ -83,7 +83,8 @@ create rowstore reference table if not exists offers (
   maximum_bid_cents BIGINT NOT NULL,
 
   PRIMARY KEY (offer_id),
-  INDEX (notification_zone)
+  INDEX (notification_zone),
+  INDEX (customer)
 );
 
 create table if not exists notifications (
