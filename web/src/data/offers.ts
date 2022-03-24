@@ -17,7 +17,7 @@ export const DEFAULT_CITY = {
   id: 120658,
   name: "New York",
   lonlat: [-73.993562, 40.727063] as Point,
-  diameter: 0.1,
+  diameter: 0.04,
 };
 
 const MAX_OFFERS_PER_BATCH = 500;

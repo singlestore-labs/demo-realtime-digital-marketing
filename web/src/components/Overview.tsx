@@ -430,7 +430,7 @@ const OffersSection = () => {
             </Button>
           </Center>
         ) : (
-          <OfferMap height={300} />
+          <OfferMap height={300} defaultZoom={13} />
         )
       }
     />
