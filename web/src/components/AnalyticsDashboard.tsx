@@ -35,7 +35,7 @@ import {
 } from "@chakra-ui/react";
 import * as d3color from "d3-color";
 import { format } from "d3-format";
-import { interpolateYlGn } from "d3-scale-chromatic";
+import { interpolateGreens } from "d3-scale-chromatic";
 import { Bounds } from "pigeon-maps";
 import { useState } from "react";
 import { useRecoilValue } from "recoil";
@@ -239,7 +239,9 @@ const colorToNumber = ({ r, g, b }: d3color.RGBColor) => {
   return (r << 16) | (g << 8) | b;
 };
 const interpolateConversionRate = (t: number) =>
-  colorToNumber(d3color.rgb(interpolateYlGn(t)) || d3color.rgb(0, 0, 0));
+  colorToNumber(
+    d3color.rgb(interpolateGreens(0.3 + t)) || d3color.rgb(0, 0, 0)
+  );
 
 const ConversionMap = () => {
   return (
@@ -250,7 +252,7 @@ const ConversionMap = () => {
             ### Conversion Map
 
             This map shows the total conversion rate for all offers in each
-            notification zone. Each polygon is colored yellow if it's rate is 0% and green if it's rate is 100%.
+            notification zone. Each polygon is colored based on the rate.
           `}
         </MarkdownText>
       </Box>
