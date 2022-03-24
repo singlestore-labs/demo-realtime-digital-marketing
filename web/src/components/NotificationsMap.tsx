@@ -1,3 +1,4 @@
+import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { PixiMap } from "@/components/PixiMap";
@@ -12,11 +13,7 @@ import { useSimulator } from "@/data/useSimulator";
 import { formatMs } from "@/format";
 import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
 import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
   Box,
-  Button,
   Flex,
   Grid,
   Stack,
@@ -26,7 +23,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
 const Stats = () => {
@@ -114,7 +111,7 @@ const Stats = () => {
 };
 
 export const NotificationsMap = () => {
-  const [enabled, setEnabled] = useRecoilState(simulatorEnabled);
+  const enabled = useRecoilValue(simulatorEnabled);
   useSimulationMonitor(enabled);
   useSimulator(enabled);
 
@@ -139,26 +136,7 @@ export const NotificationsMap = () => {
             about how this works please visit the [overview page](/).
           `}
         </MarkdownText>
-        {enabled ? (
-          <Stats />
-        ) : (
-          <>
-            <Alert status="warning" borderRadius="md">
-              <AlertIcon />
-              <AlertTitle>The simulator is disabled</AlertTitle>
-              <Button
-                position="absolute"
-                right={4}
-                top={3}
-                size="xs"
-                colorScheme="blue"
-                onClick={() => setEnabled(true)}
-              >
-                Enable simulator
-              </Button>
-            </Alert>
-          </>
-        )}
+        {enabled ? <Stats /> : <EnableSimulatorButton />}
       </Stack>
     </Flex>
   );

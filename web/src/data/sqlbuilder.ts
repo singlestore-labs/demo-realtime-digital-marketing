@@ -6,19 +6,21 @@ export interface SQLChunk {
   params(): SQLValue[];
 }
 
-export class SQLChunkNoParams implements SQLChunk {
-  constructor(private _sql: string) {}
+export class SimpleQuery implements SQLChunk {
+  constructor(public _sql: string, public _params: SQLValue[] = []) {}
+
   sql(): string {
     return this._sql;
   }
+
   params(): SQLValue[] {
-    return [];
+    return this._params;
   }
 }
 
 const toSQLChunk = (sql: string | SQLChunk): SQLChunk => {
   if (typeof sql === "string") {
-    return new SQLChunkNoParams(sql);
+    return new SimpleQuery(sql);
   }
   return sql;
 };

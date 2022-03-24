@@ -7,23 +7,23 @@ import {
   QueryNoDb,
   QueryOne,
   QueryTuples,
-  SQLError,
+  SQLError
 } from "@/data/client";
 import {
   CityConfig,
   createCity,
   createOffers,
   DEFAULT_CITY,
-  randomOffers,
+  randomOffers
 } from "@/data/offers";
 import {
   BASE_DATA,
   FUNCTIONS,
   PROCEDURES,
   S3_BUCKET_NAME,
-  TABLES,
+  TABLES
 } from "@/data/sql";
-import { QueryWithFragments } from "@/data/sqlbuilder";
+import { QueryWithFragments, SimpleQuery } from "@/data/sqlbuilder";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
@@ -683,34 +683,56 @@ export const lookupClosestCity = (
     lat
   );
 
-const conversionMetricsBaseFragment = `
+export type ConversionEventTable = "requests" | "purchases";
+
+const conversionMetricsBaseFragment = (eventsTable: ConversionEventTable) => `
   SELECT
     offer_notification.customer,
+    offer_notification.notification_zone,
     offer_notification.offer_id,
-    purchases.ts as converted_at
+    events.ts as converted_at
   FROM (
-    SELECT offers.offer_id, offers.customer, notifications.ts, notifications.city_id, notifications.subscriber_id
+    SELECT
+      offers.offer_id,
+      offers.customer,
+      offers.notification_zone,
+      offers.notification_target,
+      notifications.city_id,
+      notifications.subscriber_id,
+      FIRST(notifications.ts) AS ts
     FROM offers, notifications
     WHERE offers.offer_id = notifications.offer_id
+    GROUP BY offers.offer_id, notifications.city_id, notifications.subscriber_id
   ) offer_notification
-  LEFT JOIN purchases ON
-    offer_notification.city_id = purchases.city_id
-    AND offer_notification.subscriber_id = purchases.subscriber_id
-    AND purchases.ts > offer_notification.ts
-    AND purchases.vendor = offer_notification.customer
+  LEFT JOIN ${eventsTable} AS events ON
+    offer_notification.city_id = events.city_id
+    AND offer_notification.subscriber_id = events.subscriber_id
+    AND events.ts > offer_notification.ts
+    ${
+      eventsTable === "purchases"
+        ? "AND events.vendor = offer_notification.customer"
+        : "AND events.domain = offer_notification.notification_target"
+    }
 `;
 
-export const conversionRateByVendor = (config: ConnectionConfig) =>
-  Query<{
-    customer: string;
-    totalNotifications: number;
-    totalConversions: number;
-    conversionRate: number;
-  }>(
+export type CustomerMetrics = {
+  customer: string;
+  totalNotifications: number;
+  totalConversions: number;
+  conversionRate: number;
+};
+
+export const customerMetrics = (
+  config: ConnectionConfig,
+  eventTable: ConversionEventTable,
+  sortColumn: keyof CustomerMetrics,
+  limit: number
+) =>
+  Query<CustomerMetrics>(
     config,
     new QueryWithFragments(`
       SELECT
-        *, (totalConversions / totalNotifications) AS conversionRate
+        *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
       FROM (
         SELECT
           metrics.customer,
@@ -719,12 +741,17 @@ export const conversionRateByVendor = (config: ConnectionConfig) =>
         FROM metrics
         GROUP BY metrics.customer
       )
+      ORDER BY ${sortColumn} DESC
+      LIMIT ${limit}
     `)
-      .with("metrics", conversionMetricsBaseFragment)
+      .with("metrics", conversionMetricsBaseFragment(eventTable))
       .sql()
   );
 
-export const overallConversionRate = (config: ConnectionConfig) =>
+export const overallConversionRate = (
+  config: ConnectionConfig,
+  eventTable: ConversionEventTable
+) =>
   QueryOne<{
     totalNotifications: number;
     totalConversions: number;
@@ -733,7 +760,7 @@ export const overallConversionRate = (config: ConnectionConfig) =>
     config,
     new QueryWithFragments(`
       SELECT
-        *, (totalConversions / totalNotifications) AS conversionRate
+        *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
       FROM (
         SELECT
           COUNT(metrics.offer_id) AS totalNotifications,
@@ -741,6 +768,40 @@ export const overallConversionRate = (config: ConnectionConfig) =>
         FROM metrics
       )
     `)
-      .with("metrics", conversionMetricsBaseFragment)
+      .with("metrics", conversionMetricsBaseFragment(eventTable))
       .sql()
   );
+
+export type ZoneMetrics = {
+  wktPolygon: string;
+  totalNotifications: number;
+  totalConversions: number;
+  conversionRate: number;
+};
+
+export const zoneMetrics = (
+  config: ConnectionConfig,
+  bounds: Bounds,
+  eventTable: ConversionEventTable
+) => {
+  const query = new QueryWithFragments(
+    new SimpleQuery(
+      `
+          SELECT
+            *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
+          FROM (
+            SELECT
+              metrics.notification_zone AS wktPolygon,
+              COUNT(metrics.offer_id) AS totalNotifications,
+              COUNT(metrics.converted_at) AS totalConversions
+            FROM metrics
+            WHERE GEOGRAPHY_INTERSECTS(?, metrics.notification_zone)
+            GROUP BY metrics.notification_zone
+          )
+        `,
+      [boundsToWKTPolygon(bounds)]
+    )
+  ).with("metrics", conversionMetricsBaseFragment(eventTable));
+
+  return Query<ZoneMetrics>(config, query.sql(), ...query.params());
+};
