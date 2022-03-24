@@ -1,4 +1,5 @@
 import { Admin } from "@/components/Admin";
+import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { Nav } from "@/components/Nav";
 import { NotificationsMap } from "@/components/NotificationsMap";
 import { Overview } from "@/components/Overview";
@@ -28,6 +29,7 @@ function App() {
             <Route path="/" element={<Overview />} />
             <Route path="/map" element={<NotificationsMap />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/analytics" element={<AnalyticsDashboard />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>

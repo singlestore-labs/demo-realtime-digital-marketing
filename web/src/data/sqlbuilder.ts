@@ -6,6 +6,59 @@ export interface SQLChunk {
   params(): SQLValue[];
 }
 
+export class SQLChunkNoParams implements SQLChunk {
+  constructor(private _sql: string) {}
+  sql(): string {
+    return this._sql;
+  }
+  params(): SQLValue[] {
+    return [];
+  }
+}
+
+const toSQLChunk = (sql: string | SQLChunk): SQLChunk => {
+  if (typeof sql === "string") {
+    return new SQLChunkNoParams(sql);
+  }
+  return sql;
+};
+
+export class QueryWithFragments implements SQLChunk {
+  fragments: [string, SQLChunk][] = [];
+  baseQuery: SQLChunk;
+
+  constructor(baseQuery: SQLChunk | string) {
+    this.baseQuery = toSQLChunk(baseQuery);
+  }
+
+  with(name: string, fragment: SQLChunk | string) {
+    this.fragments.push([name, toSQLChunk(fragment)]);
+    return this;
+  }
+
+  sql(): string {
+    let out = "";
+    if (this.fragments.length > 0) {
+      out += "WITH ";
+      for (let i = 0; i < this.fragments.length; i++) {
+        const [name, fragment] = this.fragments[i];
+        out += `${name} AS (${dedent(fragment.sql())})`;
+        if (i < this.fragments.length - 1) {
+          out += ",\n";
+        }
+      }
+    }
+
+    out += "\n" + dedent(this.baseQuery.sql());
+    return out;
+  }
+
+  params(): SQLValue[] {
+    const fragParams = this.fragments.flatMap(([, f]) => f.params());
+    return [...fragParams, ...this.baseQuery.params()];
+  }
+}
+
 export class MultiInsert implements SQLChunk {
   tuples: SQLValue[][] = [];
 

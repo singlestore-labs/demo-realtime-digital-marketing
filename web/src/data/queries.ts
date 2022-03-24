@@ -7,22 +7,23 @@ import {
   QueryNoDb,
   QueryOne,
   QueryTuples,
-  SQLError
+  SQLError,
 } from "@/data/client";
 import {
   CityConfig,
   createCity,
   createOffers,
   DEFAULT_CITY,
-  randomOffers
+  randomOffers,
 } from "@/data/offers";
 import {
   BASE_DATA,
   FUNCTIONS,
   PROCEDURES,
   S3_BUCKET_NAME,
-  TABLES
+  TABLES,
 } from "@/data/sql";
+import { QueryWithFragments } from "@/data/sqlbuilder";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
@@ -680,4 +681,66 @@ export const lookupClosestCity = (
     `,
     lon,
     lat
+  );
+
+const conversionMetricsBaseFragment = `
+  SELECT
+    offer_notification.customer,
+    offer_notification.offer_id,
+    purchases.ts as converted_at
+  FROM (
+    SELECT offers.offer_id, offers.customer, notifications.ts, notifications.city_id, notifications.subscriber_id
+    FROM offers, notifications
+    WHERE offers.offer_id = notifications.offer_id
+  ) offer_notification
+  LEFT JOIN purchases ON
+    offer_notification.city_id = purchases.city_id
+    AND offer_notification.subscriber_id = purchases.subscriber_id
+    AND purchases.ts > offer_notification.ts
+    AND purchases.vendor = offer_notification.customer
+`;
+
+export const conversionRateByVendor = (config: ConnectionConfig) =>
+  Query<{
+    customer: string;
+    totalNotifications: number;
+    totalConversions: number;
+    conversionRate: number;
+  }>(
+    config,
+    new QueryWithFragments(`
+      SELECT
+        *, (totalConversions / totalNotifications) AS conversionRate
+      FROM (
+        SELECT
+          metrics.customer,
+          COUNT(metrics.offer_id) AS totalNotifications,
+          COUNT(metrics.converted_at) AS totalConversions
+        FROM metrics
+        GROUP BY metrics.customer
+      )
+    `)
+      .with("metrics", conversionMetricsBaseFragment)
+      .sql()
+  );
+
+export const overallConversionRate = (config: ConnectionConfig) =>
+  QueryOne<{
+    totalNotifications: number;
+    totalConversions: number;
+    conversionRate: number;
+  }>(
+    config,
+    new QueryWithFragments(`
+      SELECT
+        *, (totalConversions / totalNotifications) AS conversionRate
+      FROM (
+        SELECT
+          COUNT(metrics.offer_id) AS totalNotifications,
+          COUNT(metrics.converted_at) AS totalConversions
+        FROM metrics
+      )
+    `)
+      .with("metrics", conversionMetricsBaseFragment)
+      .sql()
   );
