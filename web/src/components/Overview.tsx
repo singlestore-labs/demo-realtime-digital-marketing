@@ -296,7 +296,7 @@ const PipelinesSection = () => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { pipelines, completed } = usePipelineStatus(config, scaleFactor);
-  useSimulationMonitor(!completed);
+  useSimulationMonitor(completed);
 
   const [working, workingCtrl] = useBoolean();
 
@@ -445,7 +445,7 @@ const WarmupSection = ({
   setDone: (done: boolean) => void;
 }) => {
   const config = useRecoilValue(connectionConfig);
-  const timestampCursor = useRef(new Date(0).toISOString());
+  const timestampCursor = useRef(new Date().toISOString());
 
   useEffect(() => {
     if (done) {
@@ -498,7 +498,7 @@ const SegmentationSection = () => {
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
-  const timestampCursor = useRef(new Date(0).toISOString());
+  const timestampCursor = useRef(new Date().toISOString());
 
   const done = !!tableCounts.data?.subscriber_segments;
 

@@ -5,7 +5,7 @@ import { estimatedRowCountObj } from "@/data/queries";
 import {
   connectionConfig,
   simulatorEnabled,
-  tickDurationMs
+  tickDurationMs,
 } from "@/data/recoil";
 import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { useSimulator } from "@/data/useSimulator";
@@ -23,7 +23,7 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  Text
+  Text,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -115,8 +115,8 @@ const Stats = () => {
 
 export const NotificationsMap = () => {
   const [enabled, setEnabled] = useRecoilState(simulatorEnabled);
-  useSimulationMonitor();
-  useSimulator();
+  useSimulationMonitor(enabled);
+  useSimulator(enabled);
 
   return (
     <Flex

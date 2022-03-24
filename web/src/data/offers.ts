@@ -6,7 +6,7 @@ import {
   randomFloatInRange,
   randomIntegerInRange,
   randomVendor,
-  Vendor,
+  Vendor
 } from "@/rand";
 import VENDORS from "@/static-data/vendors.json";
 import OpenLocationCode from "open-location-code-typescript";
@@ -210,9 +210,8 @@ export const randomOffer = (city: CityConfig): Offer => {
 
   const domain = vendorDomain(vendor);
   const pctOff = randomIntegerInRange(10, 50);
-  const vendorOfferId = randomIntegerInRange(1, 1000);
   const notificationContent = `${pctOff}% off at ${vendor.vendor}`;
-  const notificationTarget = `https://${domain}/offers/${vendorOfferId}`;
+  const notificationTarget = domain;
 
   const [lon, lat] = randomPointInCity(city);
   const olc = OpenLocationCode.encode(lat, lon, randomChoice([8, 10]));

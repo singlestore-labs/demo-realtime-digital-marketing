@@ -7,6 +7,7 @@
 
 # next steps:
 
+- verify we are using segment level parallelism
 - add an option to follow a specific subscriber
 - group offers by polygon in map
 - offer creation modal/page

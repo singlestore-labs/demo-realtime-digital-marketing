@@ -84,7 +84,8 @@ create rowstore reference table if not exists offers (
 
   PRIMARY KEY (offer_id),
   INDEX (notification_zone),
-  INDEX (customer)
+  INDEX (customer),
+  INDEX (notification_target)
 );
 
 create table if not exists notifications (
