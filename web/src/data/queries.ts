@@ -7,23 +7,23 @@ import {
   QueryNoDb,
   QueryOne,
   QueryTuples,
-  SQLError
+  SQLError,
 } from "@/data/client";
 import {
   CityConfig,
   createCity,
   createOffers,
   DEFAULT_CITY,
-  randomOffers
+  randomOffers,
 } from "@/data/offers";
 import {
   BASE_DATA,
   FUNCTIONS,
   PROCEDURES,
   S3_BUCKET_NAME,
-  TABLES
+  TABLES,
 } from "@/data/sql";
-import { QueryWithFragments, SimpleQuery } from "@/data/sqlbuilder";
+import { compileWithStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
@@ -730,22 +730,23 @@ export const customerMetrics = (
 ) =>
   Query<CustomerMetrics>(
     config,
-    new QueryWithFragments(`
-      SELECT
-        *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
-      FROM (
+    compileWithStatement({
+      with: [["metrics", conversionMetricsBaseFragment(eventTable)]],
+      base: `
         SELECT
-          metrics.customer,
-          COUNT(metrics.offer_id) AS totalNotifications,
-          COUNT(metrics.converted_at) AS totalConversions
-        FROM metrics
-        GROUP BY metrics.customer
-      )
-      ORDER BY ${sortColumn} DESC
-      LIMIT ${limit}
-    `)
-      .with("metrics", conversionMetricsBaseFragment(eventTable))
-      .sql()
+          *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
+        FROM (
+          SELECT
+            metrics.customer,
+            COUNT(metrics.offer_id) AS totalNotifications,
+            COUNT(metrics.converted_at) AS totalConversions
+          FROM metrics
+          GROUP BY metrics.customer
+        )
+        ORDER BY ${sortColumn} DESC
+        LIMIT ${limit}
+      `,
+    }).sql
   );
 
 export const overallConversionRate = (
@@ -758,18 +759,19 @@ export const overallConversionRate = (
     conversionRate: number;
   }>(
     config,
-    new QueryWithFragments(`
-      SELECT
-        *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
-      FROM (
+    compileWithStatement({
+      with: [["metrics", conversionMetricsBaseFragment(eventTable)]],
+      base: `
         SELECT
-          COUNT(metrics.offer_id) AS totalNotifications,
-          COUNT(metrics.converted_at) AS totalConversions
-        FROM metrics
-      )
-    `)
-      .with("metrics", conversionMetricsBaseFragment(eventTable))
-      .sql()
+          *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
+        FROM (
+          SELECT
+            COUNT(metrics.offer_id) AS totalNotifications,
+            COUNT(metrics.converted_at) AS totalConversions
+          FROM metrics
+        )
+      `,
+    }).sql
   );
 
 export type ZoneMetrics = {
@@ -784,24 +786,25 @@ export const zoneMetrics = (
   bounds: Bounds,
   eventTable: ConversionEventTable
 ) => {
-  const query = new QueryWithFragments(
-    new SimpleQuery(
-      `
+  const query = compileWithStatement({
+    with: [["metrics", conversionMetricsBaseFragment(eventTable)]],
+    base: {
+      sql: `
+        SELECT
+          *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
+        FROM (
           SELECT
-            *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
-          FROM (
-            SELECT
-              metrics.notification_zone AS wktPolygon,
-              COUNT(metrics.offer_id) AS totalNotifications,
-              COUNT(metrics.converted_at) AS totalConversions
-            FROM metrics
-            WHERE GEOGRAPHY_INTERSECTS(?, metrics.notification_zone)
-            GROUP BY metrics.notification_zone
-          )
-        `,
-      [boundsToWKTPolygon(bounds)]
-    )
-  ).with("metrics", conversionMetricsBaseFragment(eventTable));
+            metrics.notification_zone AS wktPolygon,
+            COUNT(metrics.offer_id) AS totalNotifications,
+            COUNT(metrics.converted_at) AS totalConversions
+          FROM metrics
+          WHERE GEOGRAPHY_INTERSECTS(?, metrics.notification_zone)
+          GROUP BY metrics.notification_zone
+        )
+      `,
+      params: [boundsToWKTPolygon(bounds)],
+    },
+  });
 
-  return Query<ZoneMetrics>(config, query.sql(), ...query.params());
+  return Query<ZoneMetrics>(config, query.sql, ...query.params);
 };

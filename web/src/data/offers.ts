@@ -1,12 +1,12 @@
 import { ConnectionConfig, Exec } from "@/data/client";
-import { MultiReplace } from "@/data/sqlbuilder";
+import { compileInsert, InsertStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
 import {
   randomChoice,
   randomFloatInRange,
   randomIntegerInRange,
   randomVendor,
-  Vendor
+  Vendor,
 } from "@/rand";
 import VENDORS from "@/static-data/vendors.json";
 import OpenLocationCode from "open-location-code-typescript";
@@ -74,23 +74,19 @@ export const createSegments = async (
   config: ConnectionConfig,
   segments: Segment[]
 ) => {
-  const stmt = new MultiReplace("segments", [
-    "segment_id",
-    "valid_interval",
-    "filter_kind",
-    "filter_value",
-  ]);
-
-  for (const segment of segments) {
-    stmt.append(
+  const { sql, params } = compileInsert({
+    table: "segments",
+    options: { replace: true },
+    columns: ["segment_id", "valid_interval", "filter_kind", "filter_value"],
+    tuples: segments.map((segment) => [
       segmentId(segment),
       segment.interval,
       segment.kind,
-      segment.value
-    );
-  }
+      segment.value,
+    ]),
+  });
 
-  await Exec(config, stmt.sql(), ...stmt.params());
+  await Exec(config, sql, ...params);
 };
 
 export type Offer = {
@@ -109,38 +105,44 @@ export const createOffers = async (
   config: ConnectionConfig,
   offers: Offer[]
 ) => {
-  const stmt = new MultiReplace("offers", [
-    "customer",
-    "notification_zone",
-    "segment_ids",
-    "notification_content",
-    "notification_target",
-    "maximum_bid_cents",
-  ]);
+  const stmt: InsertStatement = {
+    table: "offers",
+    options: { replace: true },
+    columns: [
+      "customer",
+      "notification_zone",
+      "segment_ids",
+      "notification_content",
+      "notification_target",
+      "maximum_bid_cents",
+    ],
+    tuples: [],
+  };
 
   let numOffers = 0;
   let segments: Segment[] = [];
 
   const commitBatch = async () => {
+    const { sql, params } = compileInsert(stmt);
     await Promise.all([
-      Exec(config, stmt.sql(), ...stmt.params()),
+      Exec(config, sql, ...params),
       createSegments(config, segments),
     ]);
 
-    stmt.clear();
+    stmt.tuples = [];
     segments = [];
     numOffers = 0;
   };
 
   for (const offer of offers) {
-    stmt.append(
+    stmt.tuples.push([
       offer.customer,
       offer.notificationZone,
       JSON.stringify(offer.segments.map(segmentId)),
       offer.notificationContent,
       offer.notificationTarget,
-      offer.maximumBidCents
-    );
+      offer.maximumBidCents,
+    ]);
 
     numOffers++;
     segments = segments.concat(offer.segments);
