@@ -72,6 +72,10 @@ export type HeatmapProps<T> = RendererProps<T> &
   Omit<PixiMapProps<unknown>, "useRenderer" | "options">;
 
 export const Heatmap = <T,>(props: HeatmapProps<T>) => {
-  const useRenderer = useMemo(() => makeUseRenderer(props), [props]);
-  return <PixiMap {...props} useRenderer={useRenderer} options={{}} />;
+  const { useCells, getCellColor, getCellWKTPolygon, ...rest } = props;
+  const useRenderer = useMemo(
+    () => makeUseRenderer({ useCells, getCellColor, getCellWKTPolygon }),
+    [getCellColor, getCellWKTPolygon, useCells]
+  );
+  return <PixiMap {...rest} useRenderer={useRenderer} options={{}} />;
 };
