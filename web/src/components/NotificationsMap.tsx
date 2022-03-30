@@ -15,7 +15,7 @@ import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
 import {
   Box,
   Flex,
-  Grid,
+  SimpleGrid,
   Stack,
   Stat,
   StatLabel,
@@ -58,11 +58,7 @@ const Stats = () => {
 
   const formatStat = format(".4~s");
   const stats = tableCounts.data ? (
-    <Grid
-      templateColumns="repeat(auto-fit, minmax(100px, 1fr))"
-      columnGap={2}
-      rowGap={2}
-    >
+    <SimpleGrid spacing={2} minChildWidth="120px">
       <Stat>
         <StatLabel>Offers</StatLabel>
         <StatNumber>{formatStat(tableCounts.data.offers)}</StatNumber>
@@ -87,7 +83,7 @@ const Stats = () => {
         <StatLabel>Matching</StatLabel>
         <StatNumber>{formatMs(matchingDuration)}</StatNumber>
       </Stat>
-    </Grid>
+    </SimpleGrid>
   ) : null;
 
   return (

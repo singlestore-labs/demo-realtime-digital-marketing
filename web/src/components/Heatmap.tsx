@@ -1,33 +1,47 @@
 import { PixiMap, PixiMapProps, UsePixiRenderer } from "@/components/PixiMap";
 import { useDebounce } from "@/data/hooks";
 import { Polygon, WKTPolygonToPolygon } from "@/geo";
+import * as d3color from "d3-color";
 import { Bounds, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import { useCallback, useMemo } from "react";
 
+const colorToRGBNumber = (c: d3color.ColorCommonInstance): number => {
+  const { r, g, b } = c.rgb();
+  return (r << 16) | (g << 8) | b;
+};
+
+type CellConfig = {
+  wktPolygon: string;
+  color: d3color.ColorCommonInstance;
+  hoverColor: d3color.ColorCommonInstance;
+};
+
 class HeatmapCell extends PIXI.Container {
   points: Polygon;
   polygon: PIXI.Graphics;
+  hovering = false;
 
-  constructor(wktPolygon: string, public color: number) {
+  constructor(public config: CellConfig) {
     super();
-    this.points = WKTPolygonToPolygon(wktPolygon);
+    this.points = WKTPolygonToPolygon(config.wktPolygon);
     this.polygon = new PIXI.Graphics();
     this.addChild(this.polygon);
 
     this.polygon.interactive = true;
     this.polygon.on("mouseover", () => {
-      this.polygon.tint = 0x00ff00;
+      this.hovering = true;
     });
     this.polygon.on("mouseout", () => {
-      this.polygon.tint = 0xffffff;
+      this.hovering = false;
     });
   }
 
   update(latLngToPixel: (latlng: Point) => Point) {
+    const color = this.hovering ? this.config.hoverColor : this.config.color;
     this.polygon.clear();
-    this.polygon.lineStyle(1, this.color, 1);
-    this.polygon.beginFill(this.color, 0.2);
+    this.polygon.lineStyle(1, colorToRGBNumber(color), 0.5);
+    this.polygon.beginFill(colorToRGBNumber(color), 0.2);
     this.polygon.drawPolygon(
       this.points.flatMap(([lng, lat]) => latLngToPixel([lat, lng]))
     );
@@ -37,8 +51,7 @@ class HeatmapCell extends PIXI.Container {
 
 type RendererProps<T> = {
   useCells: (bounds: Bounds, callback: (cells: T[]) => void) => void;
-  getCellColor: (cell: T) => number;
-  getCellWKTPolygon: (cell: T) => string;
+  getCellConfig: (cell: T) => CellConfig;
 };
 
 const makeUseRenderer =
@@ -49,12 +62,7 @@ const makeUseRenderer =
     props.useCells(debouncedBounds, (cells) => {
       scene.removeChildren();
       for (const cell of cells) {
-        scene.addChild(
-          new HeatmapCell(
-            props.getCellWKTPolygon(cell),
-            props.getCellColor(cell)
-          )
-        );
+        scene.addChild(new HeatmapCell(props.getCellConfig(cell)));
       }
     });
 
@@ -72,10 +80,10 @@ export type HeatmapProps<T> = RendererProps<T> &
   Omit<PixiMapProps<unknown>, "useRenderer" | "options">;
 
 export const Heatmap = <T,>(props: HeatmapProps<T>) => {
-  const { useCells, getCellColor, getCellWKTPolygon, ...rest } = props;
+  const { useCells, getCellConfig, ...rest } = props;
   const useRenderer = useMemo(
-    () => makeUseRenderer({ useCells, getCellColor, getCellWKTPolygon }),
-    [getCellColor, getCellWKTPolygon, useCells]
+    () => makeUseRenderer({ useCells, getCellConfig }),
+    [getCellConfig, useCells]
   );
   return <PixiMap {...rest} useRenderer={useRenderer} options={{}} />;
 };

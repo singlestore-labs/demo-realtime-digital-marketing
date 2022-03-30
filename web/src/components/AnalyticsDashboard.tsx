@@ -35,7 +35,7 @@ import {
 } from "@chakra-ui/react";
 import * as d3color from "d3-color";
 import { format } from "d3-format";
-import { interpolateGreens } from "d3-scale-chromatic";
+import { interpolateCool } from "d3-scale-chromatic";
 import { Bounds } from "pigeon-maps";
 import { useState } from "react";
 import { useRecoilValue } from "recoil";
@@ -223,7 +223,6 @@ const useConversionCells = (
   callback: (cells: ZoneMetrics[]) => void
 ) => {
   const config = useRecoilValue(connectionConfig);
-
   useSWR(
     ["zoneMetrics", config, bounds],
     () => zoneMetrics(config, bounds, "purchases"),
@@ -232,16 +231,10 @@ const useConversionCells = (
       onSuccess: callback,
     }
   );
-  return;
 };
 
-const colorToNumber = ({ r, g, b }: d3color.RGBColor) => {
-  return (r << 16) | (g << 8) | b;
-};
-const interpolateConversionRate = (t: number) =>
-  colorToNumber(
-    d3color.rgb(interpolateGreens(0.3 + t)) || d3color.rgb(0, 0, 0)
-  );
+const interpolateConversionRate = (t: number): d3color.ColorCommonInstance =>
+  d3color.rgb(interpolateCool(t)) || d3color.rgb(0, 0, 0);
 
 const ConversionMap = () => {
   return (
@@ -261,10 +254,14 @@ const ConversionMap = () => {
           height={400}
           defaultZoom={14}
           useCells={useConversionCells}
-          getCellColor={(cell: ZoneMetrics) =>
-            interpolateConversionRate(cell.conversionRate)
-          }
-          getCellWKTPolygon={(cell: ZoneMetrics) => cell.wktPolygon}
+          getCellConfig={({ conversionRate, wktPolygon }: ZoneMetrics) => {
+            const color = interpolateConversionRate(conversionRate);
+            return {
+              color,
+              hoverColor: color.brighter(1),
+              wktPolygon,
+            };
+          }}
         />
       </Box>
     </Stack>

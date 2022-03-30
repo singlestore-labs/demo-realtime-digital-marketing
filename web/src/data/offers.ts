@@ -216,7 +216,7 @@ export const randomOffer = (city: CityConfig): Offer => {
   const notificationTarget = domain;
 
   const [lon, lat] = randomPointInCity(city);
-  const olc = OpenLocationCode.encode(lat, lon, randomChoice([8, 10]));
+  const olc = OpenLocationCode.encode(lat, lon, 8);
   const area = OpenLocationCode.decode(olc);
   const bounds = {
     ne: [area.latitudeHi, area.longitudeHi],
