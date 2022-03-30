@@ -5,7 +5,7 @@ import { useCallback, useRef } from "react";
 import { useRecoilValue } from "recoil";
 
 const TICK_INTERVAL_MATCH = 1 * 1000;
-const TICK_INTERVAL_SEGMENTS = 10 * 1000;
+const TICK_INTERVAL_SEGMENTS = 1 * 1000;
 
 export const useSimulator = (enabled: boolean) => {
   const config = useRecoilValue(connectionConfig);

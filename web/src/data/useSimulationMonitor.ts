@@ -1,16 +1,11 @@
 import { useConnectionState, useTick } from "@/data/hooks";
 import {
   checkPlans,
-  dropExtraPipelines,
   ensurePipelinesAreRunning,
   ensurePipelinesExist,
   truncateTimeseriesTables,
 } from "@/data/queries";
-import {
-  configScaleFactor,
-  connectionConfig,
-  simulatorEnabled,
-} from "@/data/recoil";
+import { configScaleFactor, connectionConfig } from "@/data/recoil";
 import { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 
@@ -27,7 +22,6 @@ export const useSimulationMonitor = (enabled: boolean) => {
       return Promise.all([
         ensurePipelinesExist(cfgWithCtx, scaleFactor),
         ensurePipelinesAreRunning(cfgWithCtx),
-        dropExtraPipelines(cfgWithCtx),
         truncateTimeseriesTables(cfgWithCtx, scaleFactor),
         checkPlans(cfgWithCtx),
       ]);

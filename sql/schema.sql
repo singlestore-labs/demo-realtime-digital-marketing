@@ -249,8 +249,8 @@ CREATE OR REPLACE FUNCTION dynamic_subscriber_segments(
   _until DATETIME(6)
 ) RETURNS TABLE AS RETURN (
   SELECT * FROM dynamic_subscriber_segments_locations(_since, _until)
-  UNION
+  UNION ALL
   SELECT * FROM dynamic_subscriber_segments_requests(_since, _until)
-  UNION
+  UNION ALL
   SELECT * FROM dynamic_subscriber_segments_purchases(_since, _until)
 );

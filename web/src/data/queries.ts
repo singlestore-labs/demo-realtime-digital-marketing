@@ -192,42 +192,35 @@ export const pipelineStatus = async (
   scaleFactor: ScaleFactor
 ) => {
   const scaleFactorPrefix = scaleFactor.prefix;
+  const pipelines = ["locations", "requests", "purchases"];
 
   type Row = {
-    cityId: number;
-    cityName: string;
-    lon: number;
-    lat: number;
-    diameter: number;
     pipelineName: string;
     needsUpdate: boolean;
   };
 
-  return await Query<Row>(
+  const status = await Query<Row>(
     config,
     `
       SELECT
-        expected.city_id AS cityId,
-        expected.city_name AS cityName,
-        GEOGRAPHY_LONGITUDE(expected.center) AS lon,
-        GEOGRAPHY_LATITUDE(expected.center) AS lat,
-        expected.diameter,
-        pipelineName,
-        (
-          pipelines.pipeline_name IS NULL
-          OR config_json::$connection_string NOT LIKE "%${scaleFactorPrefix}%"
-        ) AS needsUpdate
-      FROM (
-        SELECT cities.*, CONCAT(prefix.table_col, cities.city_id) AS pipelineName
-        FROM ${config.database}.cities
-        JOIN TABLE(["locations_", "requests_", "purchases_"]) AS prefix
-      ) AS expected
-      LEFT JOIN information_schema.pipelines
-        ON pipelines.database_name = ?
-        AND pipelines.pipeline_name = expected.pipelineName
+        pipeline_name AS pipelineName,
+        (config_json::$connection_string NOT LIKE "%${scaleFactorPrefix}%") AS needsUpdate
+      FROM information_schema.pipelines
+      WHERE
+        pipelines.database_name = ?
+        AND pipelines.pipeline_name IN (?, ?, ?)
     `,
-    config.database
+    config.database,
+    ...pipelines
   );
+
+  return pipelines.map((pipelineName) => {
+    const row = status.find((x) => x.pipelineName === pipelineName);
+    return {
+      pipelineName,
+      needsUpdate: row?.needsUpdate ?? true,
+    };
+  });
 };
 
 export const ensurePipelinesExist = async (
@@ -241,67 +234,52 @@ export const ensurePipelinesExist = async (
     pipelines
       .filter((p) => p.needsUpdate)
       .map(async (pipeline) => {
-        console.log(
-          `recreating pipeline ${pipeline.pipelineName} for city ${pipeline.cityName}`
-        );
+        console.log(`recreating pipeline ${pipeline.pipelineName}`);
 
-        if (pipeline.pipelineName.startsWith("locations_")) {
-          await Exec(
-            config,
-            `
-            CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
-            AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/locations.*'
-            MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
-            INTO PROCEDURE process_locations FORMAT PARQUET (
-              subscriber_id <- subscriberid,
-              @offset_x <- offsetX,
-              @offset_y <- offsetY
-            )
-            SET
-              city_id = ?,
-              lonlat = GEOGRAPHY_POINT(
-                ? + (@offset_x * ?),
-                ? + (@offset_y * ?)
-              )
-          `,
-            pipeline.cityId,
-            pipeline.lon,
-            pipeline.diameter,
-            pipeline.lat,
-            pipeline.diameter
-          );
-        } else if (pipeline.pipelineName.startsWith("requests_")) {
-          await Exec(
-            config,
-            `
-            CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
-            AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/requests.*'
-            MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
-            INTO TABLE requests FORMAT PARQUET (
-              subscriber_id <- subscriberid,
-              domain <- domain
-            )
-            SET ts = NOW(),
-              city_id = ?;
-          `,
-            pipeline.cityId
-          );
-        } else if (pipeline.pipelineName.startsWith("purchases_")) {
-          await Exec(
-            config,
-            `
-            CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
-            AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/purchases.*'
-            MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
-            INTO TABLE purchases FORMAT PARQUET (
-              subscriber_id <- subscriberid,
-              vendor <- vendor
-            )
-            SET ts = NOW(),
-              city_id = ?;
-          `,
-            pipeline.cityId
-          );
+        switch (pipeline.pipelineName) {
+          case "locations":
+            await Exec(
+              config,
+              `
+                CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
+                AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/locations.*'
+                MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
+                INTO PROCEDURE process_locations FORMAT PARQUET (
+                  subscriber_id <- subscriberid,
+                  offset_x <- offsetX,
+                  offset_y <- offsetY
+                )
+              `
+            );
+            break;
+          case "requests":
+            await Exec(
+              config,
+              `
+                CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
+                AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/requests.*'
+                MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
+                INTO PROCEDURE process_requests FORMAT PARQUET (
+                  subscriber_id <- subscriberid,
+                  domain <- domain
+                )
+              `
+            );
+            break;
+          case "purchases":
+            await Exec(
+              config,
+              `
+                CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
+                AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/purchases.*'
+                MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
+                INTO PROCEDURE process_purchases FORMAT PARQUET (
+                  subscriber_id <- subscriberid,
+                  vendor <- vendor
+                )
+              `
+            );
+            break;
         }
 
         await Exec(
@@ -313,9 +291,7 @@ export const ensurePipelinesExist = async (
           `START PIPELINE IF NOT RUNNING ${pipeline.pipelineName}`
         );
 
-        console.log(
-          `finished creating pipeline ${pipeline.pipelineName} for city ${pipeline.cityName}`
-        );
+        console.log(`finished creating pipeline ${pipeline.pipelineName}`);
       })
   );
 };
@@ -349,32 +325,6 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
         `ALTER PIPELINE ${name} SET OFFSETS EARLIEST DROP ORPHAN FILES`
       );
       await Exec(config, `START PIPELINE IF NOT RUNNING ${name}`);
-    })
-  );
-};
-
-export const dropExtraPipelines = async (config: ConnectionConfig) => {
-  const extraPipelines = await Query<{ pipelineName: string }>(
-    config,
-    `
-      SELECT pipeline_name AS pipelineName
-      FROM information_schema.pipelines
-      WHERE
-        database_name = ?
-        AND pipelineName NOT IN (
-          SELECT CONCAT(prefix.table_col, cities.city_id)
-          FROM ${config.database}.cities
-          JOIN TABLE(["locations_", "requests_", "purchases_"]) AS prefix
-        )
-        AND pipelineName != "worldcities"
-    `,
-    config.database
-  );
-
-  await Promise.all(
-    extraPipelines.map((pipeline) => {
-      console.log("dropping pipeline", pipeline.pipelineName);
-      return Exec(config, `DROP PIPELINE ${pipeline.pipelineName}`);
     })
   );
 };
@@ -573,19 +523,16 @@ export const runMatchingProcess = (
 // returns the timestamp to use in the next call to runUpdateSegments
 export const runUpdateSegments = async (
   config: ConnectionConfig,
-  since: string
+  since: string,
+  pruneSegments = true
 ) => {
   const nowISO = new Date().toISOString();
 
-  await Promise.all(
-    [
-      "update_location_segments",
-      "update_request_segments",
-      "update_purchase_segments",
-    ].map((procedure) => Exec(config, `CALL ${procedure}(?, ?)`, since, nowISO))
-  );
+  await Exec(config, "CALL update_segments(?, ?)", since, nowISO);
 
-  await Exec(config, "CALL prune_segments(?)", nowISO);
+  if (pruneSegments) {
+    await Exec(config, "CALL prune_segments(?)", nowISO);
+  }
 
   return nowISO;
 };
