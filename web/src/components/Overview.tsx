@@ -16,19 +16,20 @@ import {
   insertSeedData,
   pipelineStatus,
   runMatchingProcess,
-  runUpdateSegments
+  runUpdateSegments,
 } from "@/data/queries";
 import {
   configScaleFactor,
   connectionConfig,
-  connectionDatabase
+  connectionDatabase,
 } from "@/data/recoil";
 import { findSchemaObjectByName } from "@/data/sql";
+import { timeseriesIsEmpty } from "@/data/timeseries";
 import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { formatMs, formatNumber } from "@/format";
 import {
   useNotificationsDataKey,
-  useNotificationsRenderer
+  useNotificationsRenderer,
 } from "@/render/useNotificationsRenderer";
 import { ScaleFactor } from "@/scalefactors";
 import { CheckCircleIcon } from "@chakra-ui/icons";
@@ -57,7 +58,7 @@ import {
   useBoolean,
   useColorMode,
   useMediaQuery,
-  VStack
+  VStack,
 } from "@chakra-ui/react";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -307,13 +308,12 @@ const PipelinesSection = () => {
     workingCtrl.off();
   }, [workingCtrl, config, scaleFactor, pipelines]);
 
-  const data = useIngestChartData(config, "locations", "requests", "purchases");
+  const tables = ["locations", "requests", "purchases"] as const;
+  const data = useIngestChartData(config, ...tables);
 
   const emptyChart =
-    data.length < 2 ||
-    data.every(
-      ({ data }) => data.locations + data.purchases + data.requests === 0
-    );
+    tables.some((name) => data[name].length < 2) ||
+    tables.every((name) => timeseriesIsEmpty(data[name]));
 
   const ensurePipelinesButton = (
     <Button
@@ -351,7 +351,7 @@ const PipelinesSection = () => {
         emptyChart || !completed ? (
           <Center h={220}>{ensurePipelinesButton}</Center>
         ) : (
-          <IngestChart data={data} height={200} />
+          <IngestChart data={data} yAxisLabel="total rows" height={200} />
         )
       }
     />

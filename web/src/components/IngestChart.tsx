@@ -1,6 +1,6 @@
 import { ConnectionConfig } from "@/data/client";
 import { estimatedRowCountObj } from "@/data/queries";
-import { useTimeseries } from "@/data/useTimeseries";
+import { Timeseries, TimeseriesPoint } from "@/data/timeseries";
 import { Center, Spinner, Text, useColorMode } from "@chakra-ui/react";
 import {
   AnimatedLineSeries,
@@ -12,59 +12,84 @@ import {
 } from "@visx/xychart";
 import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 import { format } from "d3-format";
-import { useCallback } from "react";
+import { useCallback, useMemo, useRef } from "react";
+import useSWR from "swr";
 
 const SI_FORMAT = format("~s");
-
-type Props<TableName extends string> = {
-  data: { data: { [name in TableName]: number }; ts: Date }[];
-  width?: number;
-  height: number;
-};
 
 export const useIngestChartData = <TableName extends string>(
   config: ConnectionConfig,
   ...tables: TableName[]
-) =>
-  useTimeseries({
-    name: "estimatedRowCount",
-    deps: tables,
-    fetcher: useCallback(
-      () => estimatedRowCountObj(config, ...tables),
-      [config, tables]
-    ),
-    limit: 30,
-    intervalMS: 1000,
-  });
+) => {
+  type ReturnType = { [name in TableName]: Timeseries };
+  const emptyCache = useMemo(
+    () => tables.reduce((a, n) => ({ ...a, [n]: [] }), {} as ReturnType),
+    [tables]
+  );
+  const cache = useRef<ReturnType>(emptyCache);
 
-export const IngestChart = <T extends string>({ data, ...props }: Props<T>) => {
+  const { data } = useSWR(
+    ["estimatedRowCount.timeseries", ...tables],
+    async () => {
+      const newData = await estimatedRowCountObj(config, ...tables);
+      const now = new Date();
+
+      cache.current = tables.reduce((memo, name) => {
+        const ts = cache.current[name];
+
+        // add new point
+        ts.push([now, newData[name]]);
+
+        // truncate to last 30 points
+        memo[name] = ts.slice(-30);
+
+        return memo;
+      }, {} as ReturnType);
+
+      return cache.current;
+    },
+    { refreshInterval: 1000 }
+  );
+
+  return data ?? emptyCache;
+};
+
+type Props<TableName extends string> = {
+  data: { [name in TableName]: Timeseries };
+  yAxisLabel: string;
+  width?: number;
+  height: number;
+};
+
+export const IngestChart = <TableName extends string>({
+  data,
+  yAxisLabel,
+  ...props
+}: Props<TableName>) => {
   const { colorMode } = useColorMode();
+  const tables = Object.keys(data) as TableName[];
 
   const renderTooltip = useCallback(
-    ({ tooltipData, colorScale }: RenderTooltipParams<typeof data[0]>) => {
+    ({ tooltipData, colorScale }: RenderTooltipParams<TimeseriesPoint>) => {
       if (!colorScale || !tooltipData) {
         return null;
       }
-      return Object.keys(tooltipData.datumByKey)
+      return tables
         .sort(
           (a, b) =>
-            // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-            tooltipData.datumByKey[b].datum.data[b] -
-            // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-            tooltipData.datumByKey[a].datum.data[a]
+            tooltipData.datumByKey[b].datum[1] -
+            tooltipData.datumByKey[a].datum[1]
         )
-        .map((key) => {
-          const { datum } = tooltipData.datumByKey[key];
-          // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-          const value = datum.data[key] as number;
+        .map((name) => {
+          const { datum } = tooltipData.datumByKey[name];
           return (
-            <Text mb={1} key={key} color={colorScale(key)} fontSize="sm">
-              {key}: {format(".4~s")(value)}
+            <Text mb={1} key={name} color={colorScale(name)} fontSize="sm">
+              {name}: {format(".4~s")(datum[1])}
             </Text>
           );
         });
     },
-    []
+    [tables]
   );
 
   const yTickFormat = useCallback(
@@ -72,7 +97,7 @@ export const IngestChart = <T extends string>({ data, ...props }: Props<T>) => {
     []
   );
 
-  if (data.length < 2) {
+  if (tables.some((name) => data[name].length < 2)) {
     return (
       <Center height={props.height}>
         <Spinner size="md" />
@@ -80,23 +105,15 @@ export const IngestChart = <T extends string>({ data, ...props }: Props<T>) => {
     );
   }
 
-  const lines =
-    data.length > 0
-      ? Object.keys(data[0].data)
-          .filter((key) => key !== "ts")
-          .map((key) => (
-            <AnimatedLineSeries
-              key={key}
-              dataKey={key}
-              data={data}
-              xAccessor={(datum) => datum?.ts}
-              yAccessor={
-                // @ts-expect-error visx doesn't allow us to easily ensure that key matches here
-                (datum) => datum?.data[key]
-              }
-            />
-          ))
-      : null;
+  const lines = tables.map((name) => (
+    <AnimatedLineSeries
+      key={name}
+      dataKey={name}
+      data={data[name]}
+      xAccessor={(datum) => datum[0]}
+      yAccessor={(datum) => datum[1]}
+    />
+  ));
 
   return (
     <XYChart
@@ -111,7 +128,7 @@ export const IngestChart = <T extends string>({ data, ...props }: Props<T>) => {
         orientation="right"
         numTicks={props.height < 250 ? 3 : 5}
         tickFormat={yTickFormat}
-        label="rows"
+        label={yAxisLabel}
         labelOffset={20}
       />
       {lines}

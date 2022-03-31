@@ -348,32 +348,6 @@ export const checkPlans = async (config: ConnectionConfig) => {
   return badPlans.length > 0;
 };
 
-/*
-// We only need to count the metrics from the agreggators. The rows will always
-// pass through an aggregator, so a row will be counted once in the leaf and
-// once in the aggregator.
-export const SQL_CLUSTER_THROUGHPUT = `
-    SELECT 
-        VARIABLE_NAME AS variableName, 
-        SUM(cast(VARIABLE_VALUE as UNSIGNED)) AS variableValue, 
-        NOW(6) AS readTime
-    FROM
-        INFORMATION_SCHEMA.MV_GLOBAL_STATUS 
-    WHERE 
-        (
-            variable_name = 'Rows_affected_by_writes' OR
-            variable_name = 'Rows_returned_by_reads'
-        ) AND 
-        (
-            NODE_TYPE = 'MA' OR
-            NODE_TYPE = 'CA'
-        )
-    GROUP BY
-        VARIABLE_NAME;
-`;
-
-*/
-
 export const estimatedRowCount = <TableName extends string>(
   config: ConnectionConfig,
   ...tables: TableName[]

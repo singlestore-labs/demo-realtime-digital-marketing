@@ -17,7 +17,6 @@
   - give one or two examples of offers + segments
 - map page
   - offer creator
-- rows / second rather than cumulative (search code: SQL_CLUSTER_THROUGHPUT)
 
 # crazy idea: replace absolute time with relative
 

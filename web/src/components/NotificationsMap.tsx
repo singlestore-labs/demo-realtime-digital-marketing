@@ -100,7 +100,7 @@ const Stats = () => {
         <Text fontSize="sm" fontWeight="medium">
           Row count / time
         </Text>
-        <IngestChart data={ingestData} height={150} />
+        <IngestChart data={ingestData} yAxisLabel="total rows" height={150} />
       </Box>
     </>
   );
