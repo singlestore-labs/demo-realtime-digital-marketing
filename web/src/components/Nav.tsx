@@ -1,6 +1,7 @@
 import { DatabaseDrawer } from "@/components/DatabaseDrawer";
 import { useConnectionState } from "@/data/hooks";
 import { databaseDrawerIsOpen, simulatorEnabled } from "@/data/recoil";
+import { useSession } from "@/data/useSession";
 import {
   CheckCircleIcon,
   CloseIcon,
@@ -76,6 +77,7 @@ export const Nav = () => {
   const { connected, initialized } = useConnectionState();
   const isSimulatorEnabled = useRecoilValue(simulatorEnabled);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
+  const { session } = useSession();
 
   const links = (
     <>
@@ -94,11 +96,17 @@ export const Nav = () => {
     </>
   );
 
+  const databaseMenuButtonColor = connected
+    ? initialized && isSimulatorEnabled && session.isController
+      ? "green"
+      : "yellow"
+    : "red";
+
   let databaseMenuButtonText;
   if (!isSmallScreen) {
     databaseMenuButtonText = connected
       ? initialized
-        ? isSimulatorEnabled
+        ? isSimulatorEnabled && session.isController
           ? "connected"
           : "simulator disabled"
         : "needs schema"
@@ -136,15 +144,13 @@ export const Nav = () => {
                 size="sm"
                 ref={databaseBtnRef}
                 onClick={() => setDatabaseMenu(true)}
-                colorScheme={
-                  connected
-                    ? initialized && isSimulatorEnabled
-                      ? "green"
-                      : "yellow"
-                    : "red"
-                }
+                colorScheme={databaseMenuButtonColor}
               >
-                {initialized ? <CheckCircleIcon /> : <WarningTwoIcon />}
+                {databaseMenuButtonColor === "green" ? (
+                  <CheckCircleIcon />
+                ) : (
+                  <WarningTwoIcon />
+                )}
                 {isSmallScreen || <Text pl={2}>{databaseMenuButtonText}</Text>}
               </Button>
               <IconButton

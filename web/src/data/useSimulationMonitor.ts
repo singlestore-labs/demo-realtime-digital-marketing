@@ -6,6 +6,7 @@ import {
   truncateTimeseriesTables,
 } from "@/data/queries";
 import { configScaleFactor, connectionConfig } from "@/data/recoil";
+import { useSession } from "@/data/useSession";
 import { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 
@@ -15,6 +16,7 @@ export const useSimulationMonitor = (enabled: boolean) => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { initialized } = useConnectionState();
+  const { session } = useSession();
 
   const monitorTick = useCallback(
     (ctx: AbortController) => {
@@ -31,7 +33,7 @@ export const useSimulationMonitor = (enabled: boolean) => {
 
   useTick(monitorTick, {
     name: "SimulatorMonitor",
-    enabled: initialized && enabled,
+    enabled: initialized && enabled && session.isController,
     intervalMS: TICK_INTERVAL_MONITOR,
   });
 };

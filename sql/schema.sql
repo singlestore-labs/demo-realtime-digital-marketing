@@ -6,6 +6,14 @@ create rowstore table if not exists worldcities (
   INDEX (center)
 );
 
+create rowstore table if not exists sessions (
+  session_id TEXT NOT NULL,
+  is_controller BOOLEAN NOT NULL DEFAULT FALSE,
+  expires_at DATETIME(6) NOT NULL,
+
+  PRIMARY KEY (session_id)
+);
+
 create rowstore reference table if not exists cities (
   city_id BIGINT NOT NULL PRIMARY KEY,
   city_name TEXT NOT NULL,

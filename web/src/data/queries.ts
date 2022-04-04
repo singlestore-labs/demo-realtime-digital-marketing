@@ -737,3 +737,49 @@ export const zoneMetrics = (
 
   return Query<ZoneMetrics>(config, query.sql, ...query.params);
 };
+
+export type Session = {
+  sessionId: string;
+  isController: boolean;
+  expiresAt: Date;
+};
+
+export const updateSessions = (
+  config: ConnectionConfig,
+  sessionId: string,
+  leaseDurationSeconds: number
+): Promise<Session> =>
+  QueryOne(
+    config,
+    "CALL update_sessions(?, ?)",
+    sessionId,
+    leaseDurationSeconds
+  ).then(
+    ({ session_id, is_controller, expires_at }): Session => ({
+      sessionId: session_id as string,
+      isController: is_controller as boolean,
+      expiresAt: new Date(expires_at as string),
+    })
+  );
+
+export const setSessionController = (
+  config: ConnectionConfig,
+  sessionId: string,
+  isController: boolean
+) =>
+  Exec(
+    config,
+    `
+      UPDATE sessions
+      SET is_controller = session_id = IF(?, ?, (
+        SELECT session_id
+        FROM sessions
+        WHERE expires_at > NOW() AND session_id != ?
+        ORDER BY session_id DESC
+        LIMIT 1
+      ))
+    `,
+    isController,
+    sessionId,
+    sessionId
+  );

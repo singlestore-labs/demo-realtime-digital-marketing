@@ -243,7 +243,7 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
           </>
         }
         right={
-          <SimpleGrid columns={[1, 2, 2]} gap={1}>
+          <SimpleGrid columns={[1, 3, 3]} gap={1}>
             {Object.keys(schemaObjs.data || {})
               .sort()
               .map((name) => (
@@ -253,6 +253,7 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
                     (schemaObjs.data?.[name] ? "green" : "gray") +
                     (colorMode === "light" ? ".200" : ".600")
                   }
+                  fontSize="xs"
                   color={colorMode === "light" ? "gray.800" : "gray.100"}
                   textOverflow="ellipsis"
                   whiteSpace="nowrap"

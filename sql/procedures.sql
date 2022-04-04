@@ -87,4 +87,47 @@ BEGIN
   DELETE FROM subscriber_segments WHERE expires_at <= _until;
 END //
 
+CREATE OR REPLACE PROCEDURE update_sessions(_session_id TEXT, _lease_duration_sections INT)
+AS
+DECLARE
+  _num_alive_controllers QUERY(c INT) =
+    SELECT COUNT(*) FROM sessions
+    WHERE is_controller AND expires_at > NOW(6);
+
+  _num_transactions QUERY(i INT) = SELECT @@trancount;
+BEGIN
+  -- make sure this session exists
+  INSERT INTO sessions
+  SET
+    session_id = _session_id,
+    expires_at = NOW() + INTERVAL _lease_duration_sections SECOND
+  ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at);
+
+  START TRANSACTION;
+
+  -- ensure this session is the only controller if no other alive controllers are present
+  IF SCALAR(_num_alive_controllers) = 0 THEN
+    UPDATE sessions
+    SET is_controller = (session_id = _session_id);
+  END IF;
+
+  -- echo the session details to the caller
+  ECHO SELECT
+    session_id, is_controller, expires_at
+  FROM sessions
+  WHERE session_id = _session_id;
+
+  COMMIT;
+
+  -- delete any expired sessions (with a bit of lag)
+  DELETE FROM sessions
+  WHERE NOW(6) > (expires_at + INTERVAL (_lease_duration_sections * 2) SECOND);
+
+  EXCEPTION
+    WHEN OTHERS THEN
+      IF SCALAR(_num_transactions) > 0 THEN
+        ROLLBACK;
+      END IF;
+END //
+
 DELIMITER ;
