@@ -2,8 +2,9 @@ import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { DisconnectVaporButton } from "@/components/DisconnectVaporButton";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState } from "@/data/hooks";
-import { dropDatabase } from "@/data/queries";
+import { dropDatabase, setSessionController } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
+import { useSession } from "@/data/useSession";
 import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import {
   Alert,
@@ -35,12 +36,35 @@ type Props = {
 export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
+  const { session, refresh: refreshSession } = useSession();
+
+  const simEnabled = isSimulatorEnabled && session.isController;
 
   const config = useRecoilValue(connectionConfig);
   const { connected, initialized, isVapor } = useConnectionState();
   const advancedMenu = useDisclosure();
-  const [droppingDatabase, droppingDatabaseCtrl] = useBoolean(false);
 
+  const [togglingSimulator, togglingSimulatorControl] = useBoolean(false);
+  const onToggleSimulator = useCallback(async () => {
+    togglingSimulatorControl.on();
+
+    const newSimEnabled = !(isSimulatorEnabled && session.isController);
+    setSimulatorEnabled(newSimEnabled);
+    await setSessionController(config, session.sessionId, newSimEnabled);
+
+    refreshSession();
+    togglingSimulatorControl.off();
+  }, [
+    config,
+    isSimulatorEnabled,
+    refreshSession,
+    session.isController,
+    session.sessionId,
+    setSimulatorEnabled,
+    togglingSimulatorControl,
+  ]);
+
+  const [droppingDatabase, droppingDatabaseCtrl] = useBoolean(false);
   const onDropDatabase = useCallback(async () => {
     droppingDatabaseCtrl.on();
     await dropDatabase(config);
@@ -94,7 +118,7 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
               </ResetSchemaButton>
             </Alert>
             <Alert
-              status={isSimulatorEnabled ? "success" : "warning"}
+              status={simEnabled ? "success" : "warning"}
               borderRadius="md"
             >
               <AlertIcon />
@@ -104,10 +128,10 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
                 right={4}
                 top={3.5}
                 size="md"
-                colorScheme={isSimulatorEnabled ? "green" : "red"}
-                isChecked={isSimulatorEnabled}
-                disabled={!connected || !initialized}
-                onChange={() => setSimulatorEnabled(!isSimulatorEnabled)}
+                colorScheme={simEnabled ? "green" : "red"}
+                isChecked={simEnabled}
+                disabled={!connected || !initialized || togglingSimulator}
+                onChange={onToggleSimulator}
               />
             </Alert>
             <Text

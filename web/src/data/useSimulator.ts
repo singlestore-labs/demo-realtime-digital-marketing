@@ -1,6 +1,7 @@
 import { useConnectionState, useTick } from "@/data/hooks";
 import { runMatchingProcess, runUpdateSegments } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
+import { useSession } from "@/data/useSession";
 import { useCallback, useRef } from "react";
 import { useRecoilValue } from "recoil";
 
@@ -11,6 +12,7 @@ export const useSimulator = (enabled: boolean) => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
   const timestampCursor = useRef(new Date(0).toISOString());
+  const { session } = useSession();
 
   const matchingTick = useCallback(
     (ctx: AbortController) => runMatchingProcess({ ...config, ctx }, "minute"),
@@ -19,7 +21,7 @@ export const useSimulator = (enabled: boolean) => {
 
   useTick(matchingTick, {
     name: "SimulatorMatcher",
-    enabled: initialized && enabled,
+    enabled: initialized && enabled && session.isController,
     intervalMS: TICK_INTERVAL_MATCH,
   });
 
@@ -35,7 +37,7 @@ export const useSimulator = (enabled: boolean) => {
 
   useTick(updateSegmentsTick, {
     name: "SimulatorUpdateSegments",
-    enabled: initialized && enabled,
+    enabled: initialized && enabled && session.isController,
     intervalMS: TICK_INTERVAL_SEGMENTS,
   });
 };
