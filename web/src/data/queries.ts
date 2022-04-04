@@ -771,13 +771,13 @@ export const setSessionController = (
     config,
     `
       UPDATE sessions
-      SET is_controller = session_id = IF(?, ?, (
+      SET is_controller = IFNULL(session_id = IF(?, ?, (
         SELECT session_id
         FROM sessions
         WHERE expires_at > NOW() AND session_id != ?
         ORDER BY session_id DESC
         LIMIT 1
-      ))
+      )), FALSE)
     `,
     isController,
     sessionId,
