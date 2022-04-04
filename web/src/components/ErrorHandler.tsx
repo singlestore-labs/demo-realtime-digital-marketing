@@ -18,6 +18,7 @@ import dedent from "ts-dedent";
 
 type Props = {
   isResettingSchema?: boolean;
+  children?: ReactNode;
 };
 
 type State = {

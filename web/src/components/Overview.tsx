@@ -780,7 +780,7 @@ export const Overview = () => {
             explaining everything as we go. If you have any questions or issues,
             please file an issue on the [GitHub repo][1] or our [forums][2].
 
-            [1]: https://github.com/singlestore-labs/demo-realtime-digital-marketing
+            [1]: https://github.com/singlestore-labs/demo-realtime-digital-marketing/issues
             [2]: https://www.singlestore.com/forum/
             [3]: https://www.singlestore.com
           `}
