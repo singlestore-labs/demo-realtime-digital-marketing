@@ -52,6 +52,10 @@ export class SQLError extends Error {
   isDatabaseRecovering() {
     return this.code === 2269;
   }
+
+  isPlanMissing() {
+    return this.code === 1885;
+  }
 }
 
 export const QueryOne = async <T = Row>(
