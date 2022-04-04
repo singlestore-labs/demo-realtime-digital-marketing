@@ -7,7 +7,6 @@
 
 # next steps:
 
-- silence errors on reset (or cancel and pause all outstanding queries)
 - add an option to follow a specific subscriber
 - group offers by polygon in map
 - offer creation modal/page

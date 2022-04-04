@@ -3,6 +3,7 @@ import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import {
   configScaleFactor,
   connectionConfig,
+  resettingSchema,
   simulatorEnabled,
   skipCreateDatabase,
   tickDurationMs,
@@ -157,11 +158,13 @@ export const useResetSchema = ({
     useRecoilState(simulatorEnabled);
   const toast = useToast();
   const skipCreate = useRecoilValue(skipCreateDatabase);
+  const setResettingSchema = useSetRecoilState(resettingSchema);
 
   return useCallback(async () => {
     // pre schema reset
     const simulatorEnabledBefore = isSimulatorEnabled;
     setSimulatorEnabled(false);
+    setResettingSchema(true);
     before();
 
     // reset schema
@@ -193,9 +196,11 @@ export const useResetSchema = ({
     after();
     resetConnectionState();
     setSimulatorEnabled(simulatorEnabledBefore);
+    setResettingSchema(false);
   }, [
     isSimulatorEnabled,
     setSimulatorEnabled,
+    setResettingSchema,
     before,
     config,
     scaleFactor,

@@ -162,3 +162,8 @@ export const tickDurationMs = atomFamily<number | undefined, string>({
   key: "tickDurationMs",
   default: undefined,
 });
+
+export const resettingSchema = atom({
+  key: "resettingSchema",
+  default: false,
+});

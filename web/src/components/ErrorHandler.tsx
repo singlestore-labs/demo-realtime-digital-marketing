@@ -1,5 +1,6 @@
 import { CodeBlock } from "@/components/CodeBlock";
 import { SQLError } from "@/data/client";
+import { resettingSchema } from "@/data/recoil";
 import { RepeatIcon, WarningTwoIcon } from "@chakra-ui/icons";
 import {
   Button,
@@ -11,17 +12,32 @@ import {
   Text,
 } from "@chakra-ui/react";
 import React from "react";
+import { ReactNode } from "react-markdown/lib/react-markdown";
+import { useRecoilValue } from "recoil";
 import dedent from "ts-dedent";
+
+type Props = {
+  isResettingSchema?: boolean;
+};
 
 type State = {
   error?: Error;
 };
 
-export class ErrorBoundary extends React.Component<unknown, State> {
+export const ClientErrorBoundary = ({ children }: { children: ReactNode }) => {
+  const isResettingSchema = useRecoilValue(resettingSchema);
+  return (
+    <ErrorBoundary isResettingSchema={isResettingSchema}>
+      {children}
+    </ErrorBoundary>
+  );
+};
+
+export class ErrorBoundary extends React.Component<Props, State> {
   state: State = {};
 
-  constructor() {
-    super(undefined);
+  constructor(props: Props) {
+    super(props);
     this.handlePromiseRejection = this.handlePromiseRejection.bind(this);
   }
 
@@ -37,11 +53,19 @@ export class ErrorBoundary extends React.Component<unknown, State> {
   }
 
   handlePromiseRejection(ev: PromiseRejectionEvent) {
-    this.setState({ error: ev.reason });
+    if (this.props.isResettingSchema) {
+      console.warn("Ignoring error while resetting schema", ev.reason);
+    } else {
+      this.setState({ error: ev.reason });
+    }
   }
 
-  static getDerivedStateFromError(error: Error) {
-    return { error };
+  componentDidCatch(error: Error) {
+    if (this.props.isResettingSchema) {
+      console.warn("Ignoring error while resetting schema", error);
+    } else {
+      this.setState({ error });
+    }
   }
 
   render() {
