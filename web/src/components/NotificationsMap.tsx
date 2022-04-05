@@ -2,6 +2,7 @@ import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { PixiMap } from "@/components/PixiMap";
+import { useConnectionState } from "@/data/hooks";
 import { estimatedRowCountObj } from "@/data/queries";
 import {
   connectionConfig,
@@ -107,9 +108,10 @@ const Stats = () => {
 };
 
 export const NotificationsMap = () => {
+  const { connected, initialized } = useConnectionState();
   const enabled = useRecoilValue(simulatorEnabled);
-  useSimulationMonitor(enabled);
-  useSimulator(enabled);
+  useSimulationMonitor(enabled && connected && initialized);
+  useSimulator(enabled && connected && initialized);
 
   return (
     <Flex

@@ -1,3 +1,4 @@
+import { useConnectionState } from "@/data/hooks";
 import { updateSessions } from "@/data/queries";
 import { connectionConfig, resettingSchema } from "@/data/recoil";
 import { useRecoilValue } from "recoil";
@@ -29,12 +30,13 @@ const SESSION_LEASE_SECONDS = 60;
 export const useSession = () => {
   const config = useRecoilValue(connectionConfig);
   const isResettingSchema = useRecoilValue(resettingSchema);
+  const { connected, initialized } = useConnectionState();
   const { data, mutate } = useSWR(
     [config, "useSession"],
     () => updateSessions(config, SESSION_ID, SESSION_LEASE_SECONDS),
     {
       refreshInterval: 1000,
-      isPaused: () => isResettingSchema,
+      isPaused: () => isResettingSchema || !connected || !initialized,
     }
   );
   return {

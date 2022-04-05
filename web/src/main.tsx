@@ -2,7 +2,7 @@ import App from "@/components/App";
 import { ClientErrorBoundary, ErrorBoundary } from "@/components/ErrorHandler";
 import { chakraTheme } from "@/components/theme";
 import { resettingSchema } from "@/data/recoil";
-import { ChakraProvider, useToast } from "@chakra-ui/react";
+import { ChakraProvider, IToast, useToast } from "@chakra-ui/react";
 import React, { ReactNode } from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter } from "react-router-dom";
@@ -16,13 +16,21 @@ const SWRWrapper = ({ children }: { children: ReactNode }) => {
     if (isResettingSchema) {
       console.warn("Ignoring error while resetting schema", err);
     } else {
-      toast({
+      console.error(err);
+      const id = "swr-error";
+      const t = {
+        id: "swr-error",
         title: "An error occurred",
         description: err.message,
         status: "error",
         duration: 5000,
         isClosable: true,
-      });
+      } as IToast;
+      if (toast.isActive(id)) {
+        toast.update(id, t);
+      } else {
+        toast({ id, ...t });
+      }
     }
   };
 
