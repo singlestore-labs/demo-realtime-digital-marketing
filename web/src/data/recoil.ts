@@ -1,5 +1,5 @@
 import { ConnectionConfig } from "@/data/client";
-import { atom, AtomEffect, atomFamily, selector } from "recoil";
+import { atom, AtomEffect, atomFamily, DefaultValue, selector } from "recoil";
 import { ScaleFactor, ScaleFactors } from "../scalefactors";
 
 type LocalStorageEffectConfig<T> = {
@@ -34,7 +34,7 @@ const searchParamEffect =
     const { location } = window;
     if (location) {
       const search = new URLSearchParams(location.search);
-      setSelf(search.get(key));
+      setSelf(search.get(key) || new DefaultValue());
     }
   };
 
@@ -92,7 +92,7 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
     const sessionId = get(vaporSessionId);
     const baseUrl = get(vaporBaseUrl);
 
-    if (sessionId) {
+    if (sessionId && baseUrl) {
       try {
         const response = await fetch(
           baseUrl + "/api/v1/vapor/connect?sessionId=" + sessionId
