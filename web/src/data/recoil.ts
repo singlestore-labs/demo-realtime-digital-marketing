@@ -95,7 +95,7 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
     if (sessionId && baseUrl) {
       try {
         const response = await fetch(
-          baseUrl + "/api/v1/vapor/connect?sessionId=" + sessionId
+          baseUrl + "/api/v1/connect?sessionId=" + sessionId
         );
         if (response.status === 200) {
           const data = (await response.json()) as VaporClusterConnectionConfig;
