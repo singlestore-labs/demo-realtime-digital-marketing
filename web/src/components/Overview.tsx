@@ -13,7 +13,10 @@ import {
   checkPlans,
   ensurePipelinesExist,
   estimatedRowCountObj,
+  getPipelineSQL,
   insertSeedData,
+  PipelineName,
+  pipelineNames,
   pipelineStatus,
   runMatchingProcess,
   runUpdateSegments,
@@ -179,24 +182,52 @@ const SchemaObjectModal = ({
   );
 };
 
+const SchemaItem = ({
+  name,
+  status,
+  onClick,
+}: {
+  name: string;
+  status?: boolean;
+  onClick: () => void;
+}) => {
+  const { colorMode } = useColorMode();
+  return (
+    <GridItem
+      key={name}
+      bg={
+        (status ? "green" : "gray") + (colorMode === "light" ? ".200" : ".600")
+      }
+      fontSize="xs"
+      color={colorMode === "light" ? "gray.800" : "gray.100"}
+      textOverflow="ellipsis"
+      whiteSpace="nowrap"
+      overflow="hidden"
+      borderRadius="md"
+      px={2}
+      py={1}
+      textAlign="center"
+      _hover={{
+        fontWeight: "bold",
+      }}
+      cursor="pointer"
+      onClick={onClick}
+    >
+      {name}
+    </GridItem>
+  );
+};
+
 const SchemaSection = ({ initialized }: { initialized: boolean }) => {
   const [database, setDatabase] = useRecoilState(connectionDatabase);
   const schemaObjs = useSchemaObjects();
-  const { colorMode } = useColorMode();
   const [selectedSchemaObj, setSelectedSchemaObj] = useState<null | string>();
-
-  const onShowSchemaObj = useCallback(
-    (name: string) => setSelectedSchemaObj(name),
-    []
-  );
-
-  const onHideSchemaObj = useCallback(() => setSelectedSchemaObj(null), []);
 
   return (
     <>
       {!!selectedSchemaObj && (
         <SchemaObjectModal
-          onClose={onHideSchemaObj}
+          onClose={() => setSelectedSchemaObj(null)}
           schemaObjectName={selectedSchemaObj}
         />
       )}
@@ -247,34 +278,48 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
             {Object.keys(schemaObjs.data || {})
               .sort()
               .map((name) => (
-                <GridItem
+                <SchemaItem
                   key={name}
-                  bg={
-                    (schemaObjs.data?.[name] ? "green" : "gray") +
-                    (colorMode === "light" ? ".200" : ".600")
-                  }
-                  fontSize="xs"
-                  color={colorMode === "light" ? "gray.800" : "gray.100"}
-                  textOverflow="ellipsis"
-                  whiteSpace="nowrap"
-                  overflow="hidden"
-                  borderRadius="md"
-                  px={2}
-                  py={1}
-                  textAlign="center"
-                  _hover={{
-                    fontWeight: "bold",
-                  }}
-                  cursor="pointer"
-                  onClick={() => onShowSchemaObj(name)}
-                >
-                  {name}
-                </GridItem>
+                  name={name}
+                  status={schemaObjs.data?.[name]}
+                  onClick={() => setSelectedSchemaObj(name)}
+                />
               ))}
           </SimpleGrid>
         }
       />
     </>
+  );
+};
+
+const ShowPipelineModal = ({
+  onClose,
+  name,
+  scaleFactor,
+}: {
+  onClose: () => void;
+  name: PipelineName;
+  scaleFactor: ScaleFactor;
+}) => {
+  const sql = getPipelineSQL(name, scaleFactor);
+  const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
+
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      size={isSmallScreen ? "full" : "4xl"}
+      scrollBehavior="inside"
+    >
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Create statement for pipeline {name}</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <CodeBlock mb={4}>{sql}</CodeBlock>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
   );
 };
 
@@ -299,6 +344,14 @@ const PipelinesSection = () => {
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { pipelines, completed } = usePipelineStatus(config, scaleFactor);
   useSimulationMonitor(completed);
+
+  const getPipelineStatus = (name: PipelineName) => {
+    const pipeline = pipelines.data?.find((p) => p.pipelineName === name);
+    return pipeline ? !pipeline.needsUpdate : false;
+  };
+
+  const [selectedPipeline, setSelectedPipeline] =
+    useState<null | PipelineName>();
 
   const [working, workingCtrl] = useBoolean();
 
@@ -333,29 +386,52 @@ const PipelinesSection = () => {
   );
 
   return (
-    <Section
-      completed={completed}
-      title="Ingest data"
-      left={
-        <MarkdownText>
-          {`
-            The demo needs to load location, request, and purchase history from
-            simulated subscribers in real time. We will simulate these streams
-            using [SingleStore Pipelines][1] to ingest data from [AWS S3][2].
+    <>
+      {!!selectedPipeline && (
+        <ShowPipelineModal
+          onClose={() => setSelectedPipeline(null)}
+          name={selectedPipeline}
+          scaleFactor={scaleFactor}
+        />
+      )}
+      <Section
+        completed={completed}
+        title="Ingest data"
+        left={
+          <>
+            <MarkdownText>
+              {`
+                The demo needs to load location, request, and purchase history from
+                simulated subscribers in real time. We will simulate these streams
+                using [SingleStore Pipelines][1] to ingest data from [AWS S3][2].
 
-            [1]: https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html
-            [2]: https://aws.amazon.com/s3/
-          `}
-        </MarkdownText>
-      }
-      right={
-        emptyChart || !completed ? (
-          <Center h={220}>{ensurePipelinesButton}</Center>
-        ) : (
-          <IngestChart data={data} yAxisLabel="total rows" height={200} />
-        )
-      }
-    />
+                You can view the schema of each pipeline via the following buttons:
+
+                [1]: https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html
+                [2]: https://aws.amazon.com/s3/
+              `}
+            </MarkdownText>
+            <SimpleGrid columns={[1, 3, 3]} gap={1}>
+              {pipelineNames.map((name) => (
+                <SchemaItem
+                  key={name}
+                  name={name}
+                  status={getPipelineStatus(name)}
+                  onClick={() => setSelectedPipeline(name)}
+                />
+              ))}
+            </SimpleGrid>
+          </>
+        }
+        right={
+          emptyChart || !completed ? (
+            <Center h={220}>{ensurePipelinesButton}</Center>
+          ) : (
+            <IngestChart data={data} yAxisLabel="total rows" height={200} />
+          )
+        }
+      />
+    </>
   );
 };
 

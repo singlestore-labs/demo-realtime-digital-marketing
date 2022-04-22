@@ -3,7 +3,6 @@ import { PixiMapProps } from "@/components/PixiMap";
 import { useConnectionState } from "@/data/hooks";
 import { Offer, queryOffersInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
-import * as d3color from "d3-color";
 import { Omit } from "framer-motion/types/types";
 import { Bounds } from "pigeon-maps";
 import { useRecoilValue } from "recoil";
@@ -32,11 +31,10 @@ export const OfferMap = (props: Props) => {
     <Heatmap
       {...props}
       useCells={useCells}
+      colorInterpolater={() => "#04adff"}
       getCellConfig={(cell: Offer) => {
-        const color = d3color.rgb(0x04, 0xad, 0xff);
         return {
-          color,
-          hoverColor: color.brighter(1),
+          value: 1,
           wktPolygon: cell.notificationZone,
         };
       }}
