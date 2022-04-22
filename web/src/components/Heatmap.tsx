@@ -1,32 +1,50 @@
 import { PixiMap, PixiMapProps, UsePixiRenderer } from "@/components/PixiMap";
 import { useDebounce } from "@/data/hooks";
 import { Polygon, WKTPolygonToPolygon } from "@/geo";
+import { useConst } from "@chakra-ui/react";
 import * as d3color from "d3-color";
+import { ScaleSequential, scaleSequential } from "d3-scale";
 import { Bounds, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import { useCallback, useMemo } from "react";
 
-const colorToRGBNumber = (c: d3color.ColorCommonInstance): number => {
+// convert number (range 0-1) to color (hex)
+export type ColorInterpolater = (t: number) => string;
+
+interface RGBInterface {
+  rgb(): { r: number; g: number; b: number };
+  darker(n: number): RGBInterface;
+}
+
+const colorToRGBNumber = (c: RGBInterface): number => {
   const { r, g, b } = c.rgb();
   return (r << 16) | (g << 8) | b;
 };
 
 type CellConfig = {
   wktPolygon: string;
-  color: d3color.ColorCommonInstance;
-  hoverColor: d3color.ColorCommonInstance;
+  value: number;
 };
 
 class HeatmapCell extends PIXI.Container {
   points: Polygon;
   polygon: PIXI.Graphics;
   hovering = false;
+  color: number;
+  hoverColor: number;
 
-  constructor(public config: CellConfig) {
+  constructor(
+    public config: CellConfig,
+    colorScale: ScaleSequential<d3color.CubehelixColor>
+  ) {
     super();
     this.points = WKTPolygonToPolygon(config.wktPolygon);
     this.polygon = new PIXI.Graphics();
     this.addChild(this.polygon);
+
+    const color = colorScale(config.value);
+    this.color = colorToRGBNumber(color);
+    this.hoverColor = colorToRGBNumber(color.darker(1));
 
     this.polygon.interactive = true;
     this.polygon.on("mouseover", () => {
@@ -38,10 +56,10 @@ class HeatmapCell extends PIXI.Container {
   }
 
   update(latLngToPixel: (latlng: Point) => Point) {
-    const color = this.hovering ? this.config.hoverColor : this.config.color;
+    const color = this.hovering ? this.hoverColor : this.color;
     this.polygon.clear();
-    this.polygon.lineStyle(1, colorToRGBNumber(color), 0.5);
-    this.polygon.beginFill(colorToRGBNumber(color), 0.2);
+    this.polygon.lineStyle(1, color, 0.5);
+    this.polygon.beginFill(color, 0.2);
     this.polygon.drawPolygon(
       this.points.flatMap(([lng, lat]) => latLngToPixel([lat, lng]))
     );
@@ -52,17 +70,44 @@ class HeatmapCell extends PIXI.Container {
 type RendererProps<T> = {
   useCells: (bounds: Bounds, callback: (cells: T[]) => void) => void;
   getCellConfig: (cell: T) => CellConfig;
+  colorInterpolater: ColorInterpolater;
 };
 
 const makeUseRenderer =
   <T,>(props: RendererProps<T>): UsePixiRenderer =>
   ({ scene, latLngToPixel, bounds }) => {
     const debouncedBounds = useDebounce(bounds, 100);
+    const scale = useConst(() =>
+      scaleSequential((n: number) =>
+        d3color.cubehelix(props.colorInterpolater(n))
+      )
+    );
 
     props.useCells(debouncedBounds, (cells) => {
+      // clear the scene
       scene.removeChildren();
+
+      let minValue = Infinity;
+      let maxValue = -Infinity;
+
+      const cfgs: CellConfig[] = [];
       for (const cell of cells) {
-        scene.addChild(new HeatmapCell(props.getCellConfig(cell)));
+        const cfg = props.getCellConfig(cell);
+        cfgs.push(cfg);
+
+        if (cfg.value < minValue) {
+          minValue = cfg.value;
+        }
+        if (cfg.value > maxValue) {
+          maxValue = cfg.value;
+        }
+      }
+
+      // update the scale domain to match the data
+      scale.domain([minValue, maxValue]);
+
+      for (const cfg of cfgs) {
+        scene.addChild(new HeatmapCell(cfg, scale));
       }
     });
 
@@ -80,10 +125,10 @@ export type HeatmapProps<T> = RendererProps<T> &
   Omit<PixiMapProps<unknown>, "useRenderer" | "options">;
 
 export const Heatmap = <T,>(props: HeatmapProps<T>) => {
-  const { useCells, getCellConfig, ...rest } = props;
+  const { useCells, getCellConfig, colorInterpolater, ...rest } = props;
   const useRenderer = useMemo(
-    () => makeUseRenderer({ useCells, getCellConfig }),
-    [getCellConfig, useCells]
+    () => makeUseRenderer({ useCells, getCellConfig, colorInterpolater }),
+    [colorInterpolater, getCellConfig, useCells]
   );
   return <PixiMap {...rest} useRenderer={useRenderer} options={{}} />;
 };

@@ -27,6 +27,7 @@ import { compileWithStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
+import dedent from "ts-dedent";
 
 export const isConnected = async (config: ConnectionConfigOptionalDatabase) => {
   try {
@@ -187,12 +188,14 @@ export type SegmentConfig = {
   value: string;
 };
 
+export type PipelineName = "locations" | "requests" | "purchases";
+export const pipelineNames: PipelineName[] = ["locations", "requests", "purchases"];
+
 export const pipelineStatus = async (
   config: ConnectionConfig,
   scaleFactor: ScaleFactor
 ) => {
   const scaleFactorPrefix = scaleFactor.prefix;
-  const pipelines = ["locations", "requests", "purchases"];
 
   type Row = {
     pipelineName: string;
@@ -211,10 +214,10 @@ export const pipelineStatus = async (
         AND pipelines.pipeline_name IN (?, ?, ?)
     `,
     config.database,
-    ...pipelines
+    ...pipelineNames
   );
 
-  return pipelines.map((pipelineName) => {
+  return pipelineNames.map((pipelineName) => {
     const row = status.find((x) => x.pipelineName === pipelineName);
     return {
       pipelineName,
@@ -223,11 +226,49 @@ export const pipelineStatus = async (
   });
 };
 
+export const getPipelineSQL = (
+  name: PipelineName,
+  scaleFactor: ScaleFactor
+) => {
+  switch (name) {
+    case "locations":
+      return dedent`
+        CREATE OR REPLACE PIPELINE ${name}
+        AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactor.prefix}/locations.*'
+        MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
+        INTO PROCEDURE process_locations FORMAT PARQUET (
+          subscriber_id <- subscriberid,
+          offset_x <- offsetX,
+          offset_y <- offsetY
+        )
+      `;
+    case "requests":
+      return dedent`
+        CREATE OR REPLACE PIPELINE ${name}
+        AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactor.prefix}/requests.*'
+        MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
+        INTO PROCEDURE process_requests FORMAT PARQUET (
+          subscriber_id <- subscriberid,
+          domain <- domain
+        )
+      `;
+    case "purchases":
+      return dedent`
+        CREATE OR REPLACE PIPELINE ${name}
+        AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactor.prefix}/purchases.*'
+        MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
+        INTO PROCEDURE process_purchases FORMAT PARQUET (
+          subscriber_id <- subscriberid,
+          vendor <- vendor
+        )
+      `;
+  }
+};
+
 export const ensurePipelinesExist = async (
   config: ConnectionConfig,
   scaleFactor: ScaleFactor
 ) => {
-  const scaleFactorPrefix = scaleFactor.prefix;
   const pipelines = await pipelineStatus(config, scaleFactor);
 
   await Promise.all(
@@ -236,56 +277,13 @@ export const ensurePipelinesExist = async (
       .map(async (pipeline) => {
         console.log(`recreating pipeline ${pipeline.pipelineName}`);
 
-        switch (pipeline.pipelineName) {
-          case "locations":
-            await Exec(
-              config,
-              `
-                CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
-                AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/locations.*'
-                MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
-                INTO PROCEDURE process_locations FORMAT PARQUET (
-                  subscriber_id <- subscriberid,
-                  offset_x <- offsetX,
-                  offset_y <- offsetY
-                )
-              `
-            );
-            break;
-          case "requests":
-            await Exec(
-              config,
-              `
-                CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
-                AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/requests.*'
-                MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
-                INTO PROCEDURE process_requests FORMAT PARQUET (
-                  subscriber_id <- subscriberid,
-                  domain <- domain
-                )
-              `
-            );
-            break;
-          case "purchases":
-            await Exec(
-              config,
-              `
-                CREATE OR REPLACE PIPELINE ${pipeline.pipelineName}
-                AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactorPrefix}/purchases.*'
-                MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
-                INTO PROCEDURE process_purchases FORMAT PARQUET (
-                  subscriber_id <- subscriberid,
-                  vendor <- vendor
-                )
-              `
-            );
-            break;
-        }
+        await Exec(config, getPipelineSQL(pipeline.pipelineName, scaleFactor));
 
         await Exec(
           config,
           `ALTER PIPELINE ${pipeline.pipelineName} SET OFFSETS EARLIEST DROP ORPHAN FILES`
         );
+
         await Exec(
           config,
           `START PIPELINE IF NOT RUNNING ${pipeline.pipelineName}`
