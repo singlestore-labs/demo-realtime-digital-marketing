@@ -101,7 +101,7 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
           const data = (await response.json()) as VaporClusterConnectionConfig;
 
           return {
-            host: data.endpoint,
+            host: "https://" + data.endpoint,
             user: data.user,
             password: data.password,
             database: get(connectionDatabase),
