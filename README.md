@@ -81,7 +81,7 @@ This demo makes extensive use of stored procedures which contain all of the logi
 
 # Web application
 
-The [user interface][demo] is implemented as a single-page web application which runs entirely in the browser. The interface connects to any SingleStore cluster which has the [HTTP API][http-api] enabled. To get started quickly, we recommend either using our [Docker image][ciab] or the [SingleStore Managed Service][portal].
+The [user interface][demo] is implemented as a single-page web application which runs entirely in the browser. The interface connects to any SingleStore cluster which has the [Data API][data-api] enabled. To get started quickly, we recommend either using our [Docker image][ciab] or the [SingleStore Managed Service][portal].
 
 ## Quickstart: Docker Image
 
@@ -119,9 +119,8 @@ The [user interface][demo] is implemented as a single-page web application which
 
 1. [Sign up][try-free] for $500 in free managed service credits.
 2. Create a S-00 sized cluster in [the portal][portal]
-3. Contact support (see contact-us button in top right) to ask for the HTTP API to be enabled on your cluster
-4. Open the [Digital Marketing demo][demo] in Chrome or Firefox
-5. Plug in the connection details (replacing placeholders as needed):
+3. Open the [Digital Marketing demo][demo] in Chrome or Firefox
+4. Plug in the connection details (replacing placeholders as needed):
    
 | Key         | Value                          |
 | ----------- | ------------------------------ |
@@ -131,6 +130,6 @@ The [user interface][demo] is implemented as a single-page web application which
 
 [try-free]: https://www.singlestore.com/try-free/
 [demo]: https://digital-marketing.labs.singlestore.com
-[http-api]: https://docs.singlestore.com/docs/http-api/
+[data-api]: https://docs.singlestore.com/managed-service/en/reference/data-api.html
 [ciab]: https://github.com/memsql/deployment-docker
 [portal]: https://portal.singlestore.com/
