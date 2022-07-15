@@ -23,7 +23,7 @@ export const EnableSimulatorButton = () => {
     enablingCtrl.on();
 
     if (connected && initialized) {
-      await setSessionController(config, session.sessionId, true);
+      await setSessionController(config, session.sessionID, true);
     }
     setEnabled(true);
 
@@ -35,7 +35,7 @@ export const EnableSimulatorButton = () => {
     enablingCtrl,
     initialized,
     refreshSession,
-    session.sessionId,
+    session.sessionID,
     setEnabled,
   ]);
 

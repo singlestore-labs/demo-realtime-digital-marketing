@@ -737,24 +737,24 @@ export const zoneMetrics = (
 };
 
 export type Session = {
-  sessionId: string;
+  sessionID: string;
   isController: boolean;
   expiresAt: Date;
 };
 
 export const updateSessions = (
   config: ConnectionConfig,
-  sessionId: string,
+  sessionID: string,
   leaseDurationSeconds: number
 ): Promise<Session> =>
   QueryOne(
     config,
     "CALL update_sessions(?, ?)",
-    sessionId,
+    sessionID,
     leaseDurationSeconds
   ).then(
     ({ session_id, is_controller, expires_at }): Session => ({
-      sessionId: session_id as string,
+      sessionID: session_id as string,
       isController: is_controller as boolean,
       expiresAt: new Date(expires_at as string),
     })
@@ -762,7 +762,7 @@ export const updateSessions = (
 
 export const setSessionController = (
   config: ConnectionConfig,
-  sessionId: string,
+  sessionID: string,
   isController: boolean
 ) =>
   Exec(
@@ -778,6 +778,6 @@ export const setSessionController = (
       )), FALSE)
     `,
     isController,
-    sessionId,
-    sessionId
+    sessionID,
+    sessionID
   );

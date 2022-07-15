@@ -9,20 +9,20 @@ const SESSION_ID = (() => {
   const newUUID = () =>
     crypto && crypto.randomUUID ? crypto.randomUUID() : uuidv4();
 
-  let sessionId: string;
+  let sessionID: string;
 
   if (import.meta.hot) {
     const { data } = import.meta.hot;
     if (!("SESSION_ID" in data)) {
       data.SESSION_ID = newUUID();
     }
-    sessionId = data.SESSION_ID;
+    sessionID = data.SESSION_ID;
   } else {
-    sessionId = newUUID();
+    sessionID = newUUID();
   }
 
-  console.log(`Session ID: ${sessionId}`);
-  return sessionId;
+  console.log(`Session ID: ${sessionID}`);
+  return sessionID;
 })();
 
 const SESSION_LEASE_SECONDS = 60;
@@ -41,7 +41,7 @@ export const useSession = () => {
   );
   return {
     session: data || {
-      sessionId: SESSION_ID,
+      sessionID: SESSION_ID,
       isController: false,
       expiresAt: new Date(Date.now() + SESSION_LEASE_SECONDS * 1000),
     },
