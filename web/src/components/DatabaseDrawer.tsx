@@ -50,7 +50,7 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
 
     const newSimEnabled = !(isSimulatorEnabled && session.isController);
     setSimulatorEnabled(newSimEnabled);
-    await setSessionController(config, session.sessionId, newSimEnabled);
+    await setSessionController(config, session.sessionID, newSimEnabled);
 
     refreshSession();
     togglingSimulatorControl.off();
@@ -59,7 +59,7 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
     isSimulatorEnabled,
     refreshSession,
     session.isController,
-    session.sessionId,
+    session.sessionID,
     setSimulatorEnabled,
     togglingSimulatorControl,
   ]);

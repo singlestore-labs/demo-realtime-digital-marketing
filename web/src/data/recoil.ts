@@ -45,7 +45,7 @@ export const skipCreateDatabase = atom({
 });
 
 export const vaporSessionId = atom({
-  key: "sessionId",
+  key: "sessionID",
   default: null,
   effects: [searchParamEffect()],
 });
@@ -89,13 +89,13 @@ export type VaporClusterConnectionConfig = {
 export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
   key: "vaporConnectionConfig",
   get: async ({ get }) => {
-    const sessionId = get(vaporSessionId);
+    const sessionID = get(vaporSessionId);
     const baseUrl = get(vaporBaseUrl);
 
-    if (sessionId && baseUrl) {
+    if (sessionID && baseUrl) {
       try {
         const response = await fetch(
-          baseUrl + "/api/v1/connect?sessionId=" + sessionId
+          baseUrl + "/api/v1/connect?sessionID=" + sessionID
         );
         if (response.status === 200) {
           const data = (await response.json()) as VaporClusterConnectionConfig;
