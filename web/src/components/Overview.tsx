@@ -137,14 +137,10 @@ const ConnectionSection = ({
       left={
         <MarkdownText>
           {`
-            This demo requires a connection to SingleStore's HTTP API. Please
+            This demo requires a connection to SingleStore's Data API. Please
             ensure the connection details on the right are correct.
             
-            **Note**: The HTTP API may need to be enabled on your SingleStore
-            cluster. To do so please see [our documentation][1] or contact
-            support for assistance.
-            
-            [1]: https://docs.singlestore.com/docs/http-api/
+            [1]: https://docs.singlestore.com/managed-service/en/reference/data-api.html
           `}
         </MarkdownText>
       }

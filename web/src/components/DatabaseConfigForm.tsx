@@ -35,7 +35,7 @@ export const DatabaseConfigForm = ({
           <MarkdownText>
             {`
               The protocol (http, https), host, and port for the SingleStore
-              [HTTP API][1].
+              [Data API][1].
 
               [1]: https://docs.singlestore.com/docs/http-api/
             `}
