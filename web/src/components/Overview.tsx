@@ -242,33 +242,39 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
               `}
             </MarkdownText>
             <Divider mt={4} mb={6} />
-            <HStack alignItems="flex-end">
-              <FormControl flex={1}>
-                <FormLabel
-                  fontSize="xs"
-                  fontWeight="bold"
-                  textTransform="uppercase"
-                >
-                  Database name
-                </FormLabel>
-                <Input
-                  placeholder="martech"
-                  value={database}
-                  size="sm"
-                  onChange={(e) => setDatabase(e.target.value)}
-                />
-              </FormControl>
-              <Box flex={1} textAlign="center">
-                <ResetSchemaButton
-                  colorScheme="blue"
-                  size="sm"
-                  disabled={initialized}
-                  skipSeedData
-                >
-                  {initialized ? "Schema is setup" : "Setup schema"}
-                </ResetSchemaButton>
-              </Box>
-            </HStack>
+            {initialized ? (
+              <ResetSchemaButton
+                colorScheme="yellow"
+                size="sm"
+                skipSeedData
+                resetDataOnly
+              >
+                Restart tutorial
+              </ResetSchemaButton>
+            ) : (
+              <HStack alignItems="flex-end">
+                <FormControl flex={1}>
+                  <FormLabel
+                    fontSize="xs"
+                    fontWeight="bold"
+                    textTransform="uppercase"
+                  >
+                    Database name
+                  </FormLabel>
+                  <Input
+                    placeholder="martech"
+                    value={database}
+                    size="sm"
+                    onChange={(e) => setDatabase(e.target.value)}
+                  />
+                </FormControl>
+                <Box flex={1} textAlign="center">
+                  <ResetSchemaButton colorScheme="blue" size="sm" skipSeedData>
+                    Setup schema
+                  </ResetSchemaButton>
+                </Box>
+              </HStack>
+            )}
           </>
         }
         right={
@@ -516,6 +522,7 @@ const SegmentationSection = () => {
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
+  const [warmingUp, setWarmingUp] = useState(false);
   const timestampCursor = useRef(new Date().toISOString());
 
   const done = !!tableCounts.data?.subscriber_segments;
@@ -530,11 +537,7 @@ const SegmentationSection = () => {
 
     tableCounts.mutate();
 
-    if ((elapsed || 0) > 1000) {
-      if (await checkPlans(config)) {
-        console.log("Queries are still warming up...");
-      }
-    }
+    setWarmingUp((elapsed || 0) > 1000 && (await checkPlans(config)));
   }, [startTimer, config, stopTimer, tableCounts, elapsed]);
 
   let workEstimate;
@@ -591,11 +594,11 @@ const SegmentationSection = () => {
               {isRunning ? "...running" : "Match subscribers to segments"}
             </Button>
             {workEstimate}
-            {(elapsed || 0) > 1000 && (
+            {warmingUp && (
               <Alert status="warning">
                 <AlertIcon />
-                Query took longer than expected, SingleStore is still warming
-                up. Please wait a little bit and then try again.
+                Queries are still warming up. Please wait for a little bit and
+                then try again.
               </Alert>
             )}
           </VStack>
@@ -613,6 +616,7 @@ const MatchingSection = () => {
 
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
   const [sentNotifications, setSentNotifications] = useState(0);
+  const [warmingUp, setWarmingUp] = useState(false);
 
   const done = !!tableCounts.data?.notifications;
 
@@ -631,11 +635,7 @@ const MatchingSection = () => {
     tableCounts.mutate();
     swrMutate(notificationsDataKey);
 
-    if ((elapsed || 0) > 1000) {
-      if (await checkPlans(config)) {
-        console.log("Queries are still warming up...");
-      }
-    }
+    setWarmingUp((elapsed || 0) > 1000 && (await checkPlans(config)));
   }, [
     stopTimer,
     tableCounts,
@@ -701,11 +701,11 @@ const MatchingSection = () => {
               />
             </Box>
             {workEstimate}
-            {(elapsed || 0) > 1000 && (
+            {warmingUp && (
               <Alert status="warning">
                 <AlertIcon />
-                Query took longer than expected, SingleStore is still warming
-                up. Please wait a little bit and then try again.
+                Queries are still warming up. Please wait for a little bit and
+                then try again.
               </Alert>
             )}
           </VStack>

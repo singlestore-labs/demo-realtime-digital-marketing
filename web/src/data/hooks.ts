@@ -5,7 +5,6 @@ import {
   connectionConfig,
   resettingSchema,
   simulatorEnabled,
-  skipCreateDatabase,
   tickDurationMs,
   vaporConnectionConfig,
 } from "@/data/recoil";
@@ -13,7 +12,7 @@ import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 import { useToast } from "@chakra-ui/react";
 import { useCallback, useEffect, useReducer, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 
 const defaultSchemaObjects: { [key: string]: boolean } = Object.fromEntries(
   [
@@ -142,14 +141,26 @@ export const useTick = (
   }, [enabled, tick, intervalMS, name, setTickDurationMs]);
 };
 
+export const useInvalidateSWRCache = () => {
+  const { cache } = useSWRConfig();
+  if (!(cache instanceof Map)) {
+    throw new Error(
+      "useInvalidateSWRCache requires the cache provider to be a Map instance"
+    );
+  }
+  return useCallback(() => cache.clear(), [cache]);
+};
+
 export const useResetSchema = ({
   before,
   after,
   includeSeedData,
+  resetDataOnly = false,
 }: {
   before: () => void;
   after: () => void;
   includeSeedData: boolean;
+  resetDataOnly: boolean;
 }) => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
@@ -157,8 +168,8 @@ export const useResetSchema = ({
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
   const toast = useToast();
-  const skipCreate = useRecoilValue(skipCreateDatabase);
   const setResettingSchema = useSetRecoilState(resettingSchema);
+  const invalidateSWRCache = useInvalidateSWRCache();
 
   return useCallback(async () => {
     // pre schema reset
@@ -184,7 +195,7 @@ export const useResetSchema = ({
       },
       scaleFactor,
       includeSeedData,
-      skipCreate: !!skipCreate,
+      resetDataOnly,
     });
 
     // TODO: re-enable this once scale factors don't TKO clusters
@@ -195,6 +206,7 @@ export const useResetSchema = ({
     // post schema reset
     after();
     resetConnectionState();
+    invalidateSWRCache();
     setSimulatorEnabled(simulatorEnabledBefore);
     setResettingSchema(false);
   }, [
@@ -205,9 +217,10 @@ export const useResetSchema = ({
     config,
     scaleFactor,
     includeSeedData,
-    skipCreate,
+    resetDataOnly,
     after,
     resetConnectionState,
+    invalidateSWRCache,
     toast,
   ]);
 };

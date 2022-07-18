@@ -16,13 +16,7 @@ import {
   DEFAULT_CITY,
   randomOffers,
 } from "@/data/offers";
-import {
-  BASE_DATA,
-  FUNCTIONS,
-  PROCEDURES,
-  S3_BUCKET_NAME,
-  TABLES,
-} from "@/data/sql";
+import { FUNCTIONS, PROCEDURES, S3_BUCKET_NAME, TABLES } from "@/data/sql";
 import { compileWithStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
@@ -126,20 +120,26 @@ export const resetSchema = async (
     progress,
     scaleFactor,
     includeSeedData,
-    skipCreate = false,
+    resetDataOnly = false,
   }: {
     progress: (msg: string, status: "info" | "success") => void;
     scaleFactor: ScaleFactor;
     includeSeedData: boolean;
-    skipCreate: boolean;
+    resetDataOnly: boolean;
   }
 ) => {
-  if (!skipCreate) {
+  if (!resetDataOnly) {
     progress("Dropping existing schema", "info");
     await dropDatabase(config);
 
     progress("Creating database", "info");
     await ExecNoDb(config, "CREATE DATABASE `" + config.database + "`");
+  }
+
+  if (resetDataOnly) {
+    progress("Resetting data", "info");
+    await dropPipelines(config);
+    await truncateData(config);
   }
 
   for (const obj of FUNCTIONS) {
@@ -155,6 +155,7 @@ export const resetSchema = async (
     await Exec(config, obj.createStmt);
   }
 
+  progress(`Initializing reference data`, "info");
   await insertBaseData(config);
   await createCity(config, DEFAULT_CITY);
 
@@ -167,8 +168,37 @@ export const resetSchema = async (
 };
 
 export const insertBaseData = async (config: ConnectionConfig) => {
-  for (const query of BASE_DATA) {
-    await Exec(config, query);
+  await Exec(
+    config,
+    `
+      CREATE OR REPLACE PIPELINE worldcities
+      AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/cities.ndjson'
+      SKIP DUPLICATE KEY ERRORS
+      INTO TABLE worldcities
+      FORMAT JSON (
+        city_id <- id,
+        city_name <- name,
+        @lat <- lat,
+        @lng <- lng
+      )
+      SET center = GEOGRAPHY_POINT(@lng, @lat)
+    `
+  );
+  await Exec(config, `START PIPELINE worldcities`);
+
+  const hasLink = await QueryOne<{ c: number }>(
+    config,
+    `
+      select count(*) as c from information_schema.links
+      where database_name = ? and link = "aws_s3"
+    `,
+    config.database
+  );
+  if (hasLink.c === 0) {
+    await Exec(
+      config,
+      `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`
+    );
   }
 };
 
@@ -230,6 +260,21 @@ export const pipelineStatus = async (
   });
 };
 
+export const truncateData = (config: ConnectionConfig) =>
+  Promise.all([
+    Exec(config, "TRUNCATE TABLE cities"),
+    Exec(config, "TRUNCATE TABLE locations"),
+    Exec(config, "TRUNCATE TABLE notifications"),
+    Exec(config, "TRUNCATE TABLE offers"),
+    Exec(config, "TRUNCATE TABLE purchases"),
+    Exec(config, "TRUNCATE TABLE requests"),
+    Exec(config, "TRUNCATE TABLE segments"),
+    Exec(config, "TRUNCATE TABLE sessions"),
+    Exec(config, "TRUNCATE TABLE subscriber_segments"),
+    Exec(config, "TRUNCATE TABLE subscribers"),
+    Exec(config, "TRUNCATE TABLE subscribers_last_notification"),
+  ]);
+
 export const getPipelineSQL = (
   name: PipelineName,
   scaleFactor: ScaleFactor
@@ -268,6 +313,13 @@ export const getPipelineSQL = (
       `;
   }
 };
+
+export const dropPipelines = async (config: ConnectionConfig) =>
+  await Promise.all(
+    pipelineNames
+      .map((pipeline) => Exec(config, `DROP PIPELINE IF EXISTS ${pipeline}`))
+      .concat([Exec(config, `DROP PIPELINE IF EXISTS worldcities`)])
+  );
 
 export const ensurePipelinesExist = async (
   config: ConnectionConfig,

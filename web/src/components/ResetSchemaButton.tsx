@@ -18,12 +18,12 @@ import {
 import React, { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 
-export interface Props
-  extends HTMLChakraProps<"button">,
-    ButtonOptions,
-    ThemingProps<"Button"> {
-  skipSeedData?: boolean;
-}
+export type Props = HTMLChakraProps<"button"> &
+  ButtonOptions &
+  ThemingProps<"Button"> & {
+    skipSeedData?: boolean;
+    resetDataOnly?: boolean;
+  };
 
 export const ResetSchemaButton = (props: Props) => {
   const { connected, initialized } = useConnectionState();
@@ -31,7 +31,7 @@ export const ResetSchemaButton = (props: Props) => {
   const [resettingSchema, resettingSchemaCtrl] = useBoolean();
   const database = useRecoilValue(connectionDatabase);
   const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
-  const { skipSeedData, disabled, ...restProps } = props;
+  const { skipSeedData, resetDataOnly, disabled, ...restProps } = props;
 
   const onResetSchema = useResetSchema({
     before: useCallback(() => resettingSchemaCtrl.on(), [resettingSchemaCtrl]),
@@ -40,6 +40,7 @@ export const ResetSchemaButton = (props: Props) => {
       resetSchemaDialog.onClose();
     }, [resetSchemaDialog, resettingSchemaCtrl]),
     includeSeedData: !skipSeedData,
+    resetDataOnly: !!resetDataOnly,
   });
 
   return (
