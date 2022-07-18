@@ -168,6 +168,21 @@ export const resetSchema = async (
 };
 
 export const insertBaseData = async (config: ConnectionConfig) => {
+  const hasLink = await QueryOne<{ c: number }>(
+    config,
+    `
+      select count(*) as c from information_schema.links
+      where database_name = ? and link = "aws_s3"
+    `,
+    config.database
+  );
+  if (hasLink.c === 0) {
+    await Exec(
+      config,
+      `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`
+    );
+  }
+
   await Exec(
     config,
     `
@@ -185,21 +200,6 @@ export const insertBaseData = async (config: ConnectionConfig) => {
     `
   );
   await Exec(config, `START PIPELINE worldcities`);
-
-  const hasLink = await QueryOne<{ c: number }>(
-    config,
-    `
-      select count(*) as c from information_schema.links
-      where database_name = ? and link = "aws_s3"
-    `,
-    config.database
-  );
-  if (hasLink.c === 0) {
-    await Exec(
-      config,
-      `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`
-    );
-  }
 };
 
 export const insertSeedData = (
