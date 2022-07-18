@@ -130,7 +130,7 @@ const fetchEndpoint = async (
     console.log("running query", sql, args);
   }
 
-  const response = await fetch(`${config.host}/api/v1/${endpoint}`, {
+  const response = await fetch(`${config.host}/api/v2/${endpoint}`, {
     method: "POST",
     signal: config.ctx?.signal,
     headers: {
