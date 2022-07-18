@@ -189,7 +189,11 @@ export type SegmentConfig = {
 };
 
 export type PipelineName = "locations" | "requests" | "purchases";
-export const pipelineNames: PipelineName[] = ["locations", "requests", "purchases"];
+export const pipelineNames: PipelineName[] = [
+  "locations",
+  "requests",
+  "purchases",
+];
 
 export const pipelineStatus = async (
   config: ConnectionConfig,
