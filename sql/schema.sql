@@ -110,7 +110,7 @@ create table if not exists notifications (
   SORT KEY (ts)
 );
 
-create rowstore reference table segments (
+create rowstore reference table if not exists segments (
   segment_id BIGINT NOT NULL,
 
   valid_interval ENUM ("minute", "hour", "day", "week", "month") NOT NULL,
@@ -122,7 +122,7 @@ create rowstore reference table segments (
   KEY (filter_kind, filter_value)
 );
 
-create rowstore table subscriber_segments (
+create rowstore table if not exists subscriber_segments (
   city_id BIGINT NOT NULL,
   subscriber_id BIGINT NOT NULL,
   segment_id BIGINT NOT NULL,

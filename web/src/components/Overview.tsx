@@ -37,6 +37,8 @@ import {
 import { ScaleFactor } from "@/scalefactors";
 import { CheckCircleIcon } from "@chakra-ui/icons";
 import {
+  Alert,
+  AlertIcon,
   Box,
   Button,
   Center,
@@ -63,7 +65,7 @@ import {
   useMediaQuery,
   VStack,
 } from "@chakra-ui/react";
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
 
@@ -240,33 +242,39 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
               `}
             </MarkdownText>
             <Divider mt={4} mb={6} />
-            <HStack alignItems="flex-end">
-              <FormControl flex={1}>
-                <FormLabel
-                  fontSize="xs"
-                  fontWeight="bold"
-                  textTransform="uppercase"
-                >
-                  Database name
-                </FormLabel>
-                <Input
-                  placeholder="martech"
-                  value={database}
-                  size="sm"
-                  onChange={(e) => setDatabase(e.target.value)}
-                />
-              </FormControl>
-              <Box flex={1} textAlign="center">
-                <ResetSchemaButton
-                  colorScheme="blue"
-                  size="sm"
-                  disabled={initialized}
-                  skipSeedData
-                >
-                  {initialized ? "Schema is setup" : "Setup schema"}
-                </ResetSchemaButton>
-              </Box>
-            </HStack>
+            {initialized ? (
+              <ResetSchemaButton
+                colorScheme="yellow"
+                size="sm"
+                skipSeedData
+                resetDataOnly
+              >
+                Restart tutorial
+              </ResetSchemaButton>
+            ) : (
+              <HStack alignItems="flex-end">
+                <FormControl flex={1}>
+                  <FormLabel
+                    fontSize="xs"
+                    fontWeight="bold"
+                    textTransform="uppercase"
+                  >
+                    Database name
+                  </FormLabel>
+                  <Input
+                    placeholder="martech"
+                    value={database}
+                    size="sm"
+                    onChange={(e) => setDatabase(e.target.value)}
+                  />
+                </FormControl>
+                <Box flex={1} textAlign="center">
+                  <ResetSchemaButton colorScheme="blue" size="sm" skipSeedData>
+                    Setup schema
+                  </ResetSchemaButton>
+                </Box>
+              </HStack>
+            )}
           </>
         }
         right={
@@ -510,68 +518,11 @@ const OffersSection = () => {
   );
 };
 
-const WarmupSection = ({
-  done,
-  setDone,
-}: {
-  done: boolean;
-  setDone: (done: boolean) => void;
-}) => {
-  const config = useRecoilValue(connectionConfig);
-  const timestampCursor = useRef(new Date().toISOString());
-
-  useEffect(() => {
-    if (done) {
-      return;
-    }
-
-    const ctx = new AbortController();
-    const cfgWithCtx = { ...config, ctx };
-
-    (async () => {
-      try {
-        for (let i = 0; i < 10; i++) {
-          timestampCursor.current = await runUpdateSegments(
-            cfgWithCtx,
-            timestampCursor.current,
-            false
-          );
-          await runMatchingProcess(cfgWithCtx, "second");
-
-          if (i > 1 && !(await checkPlans(cfgWithCtx))) {
-            return;
-          }
-        }
-      } catch (e) {
-        if (ctx.signal.aborted) {
-          return;
-        }
-        if (e instanceof DOMException && e.name === "AbortError") {
-          return;
-        }
-        throw e;
-      }
-    })().then(() => setDone(true));
-
-    return () => {
-      ctx.abort();
-    };
-  }, [config, done, setDone]);
-
-  return done ? null : (
-    <GridItem colSpan={[1, 1, 2]}>
-      <Center w="100%" h="200px" color="gray.500">
-        <Spinner size="md" mr={4} />
-        <Heading size="md">Warming up queries...</Heading>
-      </Center>
-    </GridItem>
-  );
-};
-
 const SegmentationSection = () => {
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
+  const [warmingUp, setWarmingUp] = useState(false);
   const timestampCursor = useRef(new Date().toISOString());
 
   const done = !!tableCounts.data?.subscriber_segments;
@@ -585,7 +536,9 @@ const SegmentationSection = () => {
     stopTimer();
 
     tableCounts.mutate();
-  }, [config, tableCounts, startTimer, stopTimer]);
+
+    setWarmingUp((elapsed || 0) > 1000 && (await checkPlans(config)));
+  }, [startTimer, config, stopTimer, tableCounts, elapsed]);
 
   let workEstimate;
   if (elapsed && tableCounts.data) {
@@ -641,6 +594,13 @@ const SegmentationSection = () => {
               {isRunning ? "...running" : "Match subscribers to segments"}
             </Button>
             {workEstimate}
+            {warmingUp && (
+              <Alert status="warning">
+                <AlertIcon />
+                Queries are still warming up. Please wait for a little bit and
+                then try again.
+              </Alert>
+            )}
           </VStack>
         </Center>
       }
@@ -656,6 +616,7 @@ const MatchingSection = () => {
 
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
   const [sentNotifications, setSentNotifications] = useState(0);
+  const [warmingUp, setWarmingUp] = useState(false);
 
   const done = !!tableCounts.data?.notifications;
 
@@ -673,13 +634,16 @@ const MatchingSection = () => {
 
     tableCounts.mutate();
     swrMutate(notificationsDataKey);
+
+    setWarmingUp((elapsed || 0) > 1000 && (await checkPlans(config)));
   }, [
-    config,
-    startTimer,
     stopTimer,
     tableCounts,
     swrMutate,
     notificationsDataKey,
+    elapsed,
+    startTimer,
+    config,
   ]);
 
   let workEstimate;
@@ -737,6 +701,13 @@ const MatchingSection = () => {
               />
             </Box>
             {workEstimate}
+            {warmingUp && (
+              <Alert status="warning">
+                <AlertIcon />
+                Queries are still warming up. Please wait for a little bit and
+                then try again.
+              </Alert>
+            )}
           </VStack>
         </Center>
       }
@@ -757,9 +728,11 @@ const SummarySection = () => {
             data engineer. Here are some recommendations on what to do next:
 
             * Visit the [live demo dashboard][1]
+            * Visit the [analytics page][2]
             * Explore the ${database} database in SingleStore Studio
 
             [1]: map
+            [2]: analytics
           `}
         </MarkdownText>
       }
@@ -781,7 +754,6 @@ export const Overview = () => {
     config,
     connected && initialized
   );
-  const [warmupDone, setWarmupDone] = useState(false);
 
   const sectionDefinitions = [
     {
@@ -805,12 +777,6 @@ export const Overview = () => {
     {
       completed: tableCounts ? tableCounts.offers > 0 : false,
       component: <OffersSection key="offers" />,
-    },
-    {
-      completed: warmupDone,
-      component: (
-        <WarmupSection key="warmup" done={warmupDone} setDone={setWarmupDone} />
-      ),
     },
     {
       completed: tableCounts ? tableCounts.subscriber_segments > 0 : false,

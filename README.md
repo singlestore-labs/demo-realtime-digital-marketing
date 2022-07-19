@@ -13,6 +13,8 @@ This application is a demo of how to use [SingleStore][singlestore] to serve ads
 
 This application runs entirely within the web-browser and can be accessed publicly at https://digital-marketing.labs.singlestore.com
 
+![architecture diagram](doc/architecture.png)
+
 If you have any questions or issues, please file an issue on the [GitHub repo][gh-issues] or our [forums][forums].
 
 [singlestore]: https://www.singlestore.com
