@@ -25,6 +25,7 @@ import {
   configScaleFactor,
   connectionConfig,
   connectionDatabase,
+  resettingSchema,
 } from "@/data/recoil";
 import { findSchemaObjectByName } from "@/data/sql";
 import { timeseriesIsEmpty } from "@/data/timeseries";
@@ -347,7 +348,8 @@ const PipelinesSection = () => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { pipelines, completed } = usePipelineStatus(config, scaleFactor);
-  useSimulationMonitor(completed);
+  const isResettingSchema = useRecoilValue(resettingSchema);
+  useSimulationMonitor(completed && !isResettingSchema);
 
   const getPipelineStatus = (name: PipelineName) => {
     const pipeline = pipelines.data?.find((p) => p.pipelineName === name);

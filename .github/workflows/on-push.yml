@@ -34,6 +34,14 @@ jobs:
         with:
           working-directory: web
 
+      - name: Prettier
+        run: yarn prettier --check .
+        working-directory: web
+
+      - name: Lint
+        run: yarn eslint .
+        working-directory: web
+
       - name: Check typescript
         run: yarn run tsc
         working-directory: web
