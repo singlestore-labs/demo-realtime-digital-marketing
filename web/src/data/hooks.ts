@@ -10,7 +10,13 @@ import {
 } from "@/data/recoil";
 import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 import { useToast } from "@chakra-ui/react";
-import { useCallback, useEffect, useReducer, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
 
@@ -142,13 +148,17 @@ export const useTick = (
 };
 
 export const useInvalidateSWRCache = () => {
-  const { cache } = useSWRConfig();
+  const { cache, mutate } = useSWRConfig();
   if (!(cache instanceof Map)) {
     throw new Error(
       "useInvalidateSWRCache requires the cache provider to be a Map instance"
     );
   }
-  return useCallback(() => cache.clear(), [cache]);
+  return useCallback(async () => {
+    for (const [key] of cache) {
+      await mutate(key);
+    }
+  }, [cache, mutate]);
 };
 
 export const useResetSchema = ({
@@ -164,7 +174,6 @@ export const useResetSchema = ({
 }) => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
-  const { reset: resetConnectionState } = useConnectionState();
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
   const toast = useToast();
@@ -205,8 +214,7 @@ export const useResetSchema = ({
 
     // post schema reset
     after();
-    resetConnectionState();
-    invalidateSWRCache();
+    await invalidateSWRCache();
     setSimulatorEnabled(simulatorEnabledBefore);
     setResettingSchema(false);
   }, [
@@ -219,7 +227,6 @@ export const useResetSchema = ({
     includeSeedData,
     resetDataOnly,
     after,
-    resetConnectionState,
     invalidateSWRCache,
     toast,
   ]);
@@ -265,4 +272,24 @@ export const useTimer = () => {
     startTimer: () => dispatch({ type: "start" }),
     stopTimer: () => dispatch({ type: "stop" }),
   };
+};
+
+export const useMountedCallback = (
+  callback: () => void,
+  deps: React.DependencyList
+) => {
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  return useCallback(() => {
+    if (mounted.current) {
+      callback();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
 };

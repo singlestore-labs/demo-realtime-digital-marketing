@@ -199,7 +199,7 @@ export const insertBaseData = async (config: ConnectionConfig) => {
       SET center = GEOGRAPHY_POINT(@lng, @lat)
     `
   );
-  await Exec(config, `START PIPELINE worldcities`);
+  await Exec(config, `START PIPELINE IF NOT RUNNING worldcities`);
 };
 
 export const insertSeedData = (
@@ -316,9 +316,9 @@ export const getPipelineSQL = (
 
 export const dropPipelines = async (config: ConnectionConfig) =>
   await Promise.all(
-    pipelineNames
-      .map((pipeline) => Exec(config, `DROP PIPELINE IF EXISTS ${pipeline}`))
-      .concat([Exec(config, `DROP PIPELINE IF EXISTS worldcities`)])
+    pipelineNames.map((pipeline) =>
+      Exec(config, `DROP PIPELINE IF EXISTS ${pipeline}`)
+    )
   );
 
 export const ensurePipelinesExist = async (

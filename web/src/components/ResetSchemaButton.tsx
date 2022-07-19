@@ -1,4 +1,8 @@
-import { useConnectionState, useResetSchema } from "@/data/hooks";
+import {
+  useConnectionState,
+  useMountedCallback,
+  useResetSchema,
+} from "@/data/hooks";
 import { connectionDatabase } from "@/data/recoil";
 import {
   AlertDialog,
@@ -35,7 +39,7 @@ export const ResetSchemaButton = (props: Props) => {
 
   const onResetSchema = useResetSchema({
     before: useCallback(() => resettingSchemaCtrl.on(), [resettingSchemaCtrl]),
-    after: useCallback(() => {
+    after: useMountedCallback(() => {
       resettingSchemaCtrl.off();
       resetSchemaDialog.onClose();
     }, [resetSchemaDialog, resettingSchemaCtrl]),
