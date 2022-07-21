@@ -3,7 +3,9 @@ import { useConnectionState } from "@/data/hooks";
 import { createCity, removeCity } from "@/data/offers";
 import {
   City,
-  getCities, lookupClosestCity, seedCityWithOffers
+  getCities,
+  lookupClosestCity,
+  seedCityWithOffers,
 } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { onClick } from "@/events";
