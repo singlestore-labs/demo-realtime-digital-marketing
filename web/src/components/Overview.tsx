@@ -8,7 +8,6 @@ import { PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { ConnectionConfig } from "@/data/client";
 import { useConnectionState, useSchemaObjects, useTimer } from "@/data/hooks";
-import { DEFAULT_CITY } from "@/data/offers";
 import {
   checkPlans,
   ensurePipelinesExist,
@@ -174,7 +173,7 @@ const SchemaObjectModal = ({
         <ModalHeader>Create statement for {obj.name}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <CodeBlock mb={4}>{obj.createStmt}</CodeBlock>
+          <CodeBlock mb={4}>{obj.statement}</CodeBlock>
         </ModalBody>
       </ModalContent>
     </Modal>
@@ -461,16 +460,15 @@ const useTableCounts = (config: ConnectionConfig, enabled = true) =>
 
 const OffersSection = () => {
   const config = useRecoilValue(connectionConfig);
-  const scaleFactor = useRecoilValue(configScaleFactor);
   const [working, workingCtrl] = useBoolean();
   const tableCounts = useTableCounts(config);
 
   const onSeedData = useCallback(async () => {
     workingCtrl.on();
-    await insertSeedData(config, DEFAULT_CITY, scaleFactor);
+    await insertSeedData(config);
     tableCounts.mutate();
     workingCtrl.off();
-  }, [config, scaleFactor, tableCounts, workingCtrl]);
+  }, [config, tableCounts, workingCtrl]);
 
   const done = !!tableCounts.data?.offers;
 
@@ -733,7 +731,7 @@ const SummarySection = () => {
             * Visit the [analytics page][2]
             * Explore the ${database} database in SingleStore Studio
 
-            [1]: map
+            [1]: /
             [2]: analytics
           `}
         </MarkdownText>
