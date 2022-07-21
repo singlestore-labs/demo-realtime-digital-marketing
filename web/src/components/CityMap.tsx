@@ -3,9 +3,7 @@ import { useConnectionState } from "@/data/hooks";
 import { createCity, removeCity } from "@/data/offers";
 import {
   City,
-  getCities,
-  insertSeedData,
-  lookupClosestCity,
+  getCities, lookupClosestCity, seedCityWithOffers
 } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { onClick } from "@/events";
@@ -84,7 +82,7 @@ const useRenderer: UsePixiRenderer = ({
         diameter: city.diameter,
       };
       await createCity(config, cityConfig);
-      await insertSeedData(config, cityConfig, ScaleFactors[0]);
+      await seedCityWithOffers(config, cityConfig, ScaleFactors[0]);
       mutate();
     },
     [config, mutate]

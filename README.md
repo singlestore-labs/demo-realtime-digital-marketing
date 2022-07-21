@@ -8,6 +8,7 @@
 - [Web application](#web-application)
   - [Quickstart: Docker Image](#quickstart-docker-image)
   - [Quickstart: SingleStore Managed Service](#quickstart-singlestore-managed-service)
+- [Manually running the demo in pure SQL](#manually-running-the-demo-in-pure-sql)
 
 This application is a demo of how to use [SingleStore][singlestore] to serve ads to users based on their behavior and realtime location. The demo is based on location, purchase, and request history from millions of simulated subscribers for a hypothetical service company.
 
@@ -135,3 +136,26 @@ The [user interface][demo] is implemented as a single-page web application which
 [data-api]: https://docs.singlestore.com/managed-service/en/reference/data-api.html
 [ciab]: https://github.com/memsql/deployment-docker
 [portal]: https://portal.singlestore.com/
+
+# Manually running the demo in pure SQL
+
+This entire demo can be run standalone on any SingleStore cluster without needing the Web UI. To do this, run all of the SQL scripts in the [./sql](./sql) folder in the following order:
+
+* functions.sql
+* schema.sql
+* procedures.sql
+* seed.sql
+* pipelines.sql (requires variable replacement, see below)
+
+We can do this on the command line like so:
+
+```bash
+mysql -u root -h 172.17.0.3 -ptest -e "create database martech"
+mysql -u root -h 172.17.0.3 -ptest martech < sql/functions.sql
+mysql -u root -h 172.17.0.3 -ptest martech < sql/schema.sql
+mysql -u root -h 172.17.0.3 -ptest martech < sql/procedures.sql
+mysql -u root -h 172.17.0.3 -ptest martech < sql/seed.sql
+sed 's/${PARTITIONS}/2/;s/${SCALE_FACTOR}/v2\/100k-2p/' pipelines.sql | mysql -u root -h 172.17.0.3 -ptest martech
+```
+
+Note that we are replacing the PARTITIONS and SCALE_FACTOR variables in pipelines.sql with acceptable values. See [scalefactors.ts](./web/src/scalefactors.ts) for additional options.

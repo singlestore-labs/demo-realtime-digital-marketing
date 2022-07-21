@@ -82,10 +82,10 @@ export const Nav = () => {
   const links = (
     <>
       <NavLink to="/" onClick={navMenu.onClose}>
-        Overview
-      </NavLink>
-      <NavLink to="/map" onClick={navMenu.onClose}>
         Map
+      </NavLink>
+      <NavLink to="/overview" onClick={navMenu.onClose}>
+        Overview
       </NavLink>
       <NavLink to="/admin" onClick={navMenu.onClose}>
         Admin
