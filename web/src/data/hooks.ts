@@ -202,7 +202,6 @@ export const useResetSchema = ({
           toast({ id, title, status, duration: null });
         }
       },
-      scaleFactor,
       includeSeedData,
       resetDataOnly,
     });
