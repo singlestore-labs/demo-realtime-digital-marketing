@@ -1,8 +1,7 @@
 declare module "*.sql" {
   export type SchemaObject = {
-    kind: string;
-    name?: string;
-    statement: string;
+    name: string;
+    createStmt: string;
   };
 
   const src: SchemaObject[];

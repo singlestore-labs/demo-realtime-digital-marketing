@@ -1,5 +1,4 @@
 import react from "@vitejs/plugin-react";
-import { basename } from "path";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -18,25 +17,26 @@ export default defineConfig({
 
 function transformSQL() {
   const sqlRegex = /\.(sql)$/;
+  const schemaRegex = /schema\.(sql)$/;
 
-  const parseStatement = (
-    raw: string
-  ): { kind: string; name?: string; statement: string } => {
-    const statement = raw.trim();
-    const kind = statement.split(" ")[0].trim().toLowerCase();
-    const name = statement.match(/^CREATE.+?(?<name>\w+)(as| )*\(?\n/i)?.groups
+  const parseCreateStmt = (
+    stmt: string
+  ): { name: string; createStmt: string } => {
+    const createStmt = stmt.trim();
+    const name = createStmt.match(/^CREATE.+?(?<name>\w+)(as| )*\(/i)?.groups
       ?.name;
     if (name) {
-      return { kind, name, statement };
+      return { name, createStmt };
     }
-    return { kind, statement };
+    console.error(stmt);
+    throw new Error("failed to parse table name");
   };
 
-  const parseStatements = (raw: string) =>
+  const parseTables = (raw: string) =>
     raw
-      .split(/(?<=;)/)
+      .split(/(?<=\);)/)
       .filter((s) => !!s.trim())
-      .map(parseStatement);
+      .map(parseCreateStmt);
 
   const parseProcedures = (raw: string) =>
     raw
@@ -44,30 +44,20 @@ function transformSQL() {
       .split(/(?<=END \/\/)/)
       .filter((s) => !!s.trim())
       .map((s) => s.replace("END //", "END"))
-      .map(parseStatement);
-
-  const render = (data) => ({
-    code: `export default ${JSON.stringify(data)};`,
-    map: null,
-  });
+      .map(parseCreateStmt);
 
   return {
     name: "transform-sql",
 
     transform(src: string, id: string) {
       if (sqlRegex.test(id)) {
-        switch (basename(id)) {
-          case "schema.sql":
-            return render(parseStatements(src));
-          case "seed.sql":
-            return render(parseStatements(src));
-          case "pipelines.sql":
-            return render(parseStatements(src));
-          case "functions.sql":
-            return render(parseProcedures(src));
-          case "procedures.sql":
-            return render(parseProcedures(src));
-        }
+        const arr = schemaRegex.test(id)
+          ? parseTables(src)
+          : parseProcedures(src);
+        return {
+          code: `export default ${JSON.stringify(arr)};`,
+          map: null,
+        };
       }
     },
   };

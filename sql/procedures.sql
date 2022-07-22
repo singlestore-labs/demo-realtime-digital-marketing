@@ -73,23 +73,23 @@ BEGIN
   RETURN _count;
 END //
 
-CREATE OR REPLACE PROCEDURE update_segments (
-  _since DATETIME(6), _until DATETIME(6)
-) AS BEGIN
+CREATE OR REPLACE PROCEDURE update_segments(_since DATETIME(6), _until DATETIME(6))
+AS
+BEGIN
   INSERT INTO subscriber_segments
   SELECT * FROM dynamic_subscriber_segments(_since, _until)
   ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at);
 END //
 
-CREATE OR REPLACE PROCEDURE prune_segments (
-  _until DATETIME(6)
-) AS BEGIN
+CREATE OR REPLACE PROCEDURE prune_segments(_until DATETIME(6))
+AS
+BEGIN
   DELETE FROM subscriber_segments WHERE expires_at <= _until;
 END //
 
-CREATE OR REPLACE PROCEDURE update_sessions (
-  _session_id TEXT, _lease_duration_sections INT
-) AS DECLARE
+CREATE OR REPLACE PROCEDURE update_sessions(_session_id TEXT, _lease_duration_sections INT)
+AS
+DECLARE
   _num_alive_controllers QUERY(c INT) =
     SELECT COUNT(*) FROM sessions
     WHERE is_controller AND expires_at > NOW(6);

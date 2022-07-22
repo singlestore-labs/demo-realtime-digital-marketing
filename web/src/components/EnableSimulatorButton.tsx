@@ -1,4 +1,4 @@
-import { useConnectionState, useMountedCallback } from "@/data/hooks";
+import { useConnectionState } from "@/data/hooks";
 import { setSessionController } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { useSession } from "@/data/useSession";
@@ -19,10 +19,6 @@ export const EnableSimulatorButton = () => {
   const { connected, initialized } = useConnectionState();
 
   const [enabling, enablingCtrl] = useBoolean(false);
-  const stopSpinner = useMountedCallback(
-    () => enablingCtrl.off,
-    [enablingCtrl]
-  );
   const onEnableSimulator = useCallback(async () => {
     enablingCtrl.on();
 
@@ -32,7 +28,7 @@ export const EnableSimulatorButton = () => {
     setEnabled(true);
 
     refreshSession();
-    stopSpinner();
+    enablingCtrl.off();
   }, [
     config,
     connected,
@@ -41,7 +37,6 @@ export const EnableSimulatorButton = () => {
     refreshSession,
     session.sessionID,
     setEnabled,
-    stopSpinner,
   ]);
 
   return (

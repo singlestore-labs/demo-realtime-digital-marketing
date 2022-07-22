@@ -26,8 +26,8 @@ function App() {
         <Nav />
         <Box m={4} flex="1">
           <Routes>
-            <Route path="/" element={<NotificationsMap />} />
-            <Route path="/overview" element={<Overview />} />
+            <Route path="/" element={<Overview />} />
+            <Route path="/map" element={<NotificationsMap />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/analytics" element={<AnalyticsDashboard />} />
             <Route path="*" element={<Navigate to="/" replace />} />

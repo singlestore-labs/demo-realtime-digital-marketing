@@ -2,7 +2,6 @@ import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { PixiMap } from "@/components/PixiMap";
-import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState } from "@/data/hooks";
 import { estimatedRowCountObj } from "@/data/queries";
 import {
@@ -132,18 +131,10 @@ export const NotificationsMap = () => {
             users based on their behavior and realtime location. The demo is
             based on location, purchase, and request history from millions of
             simulated subscribers for a hypothetical service company. To learn
-            about how this works please visit the [overview page](overview).
+            about how this works please visit the [overview page](/).
           `}
         </MarkdownText>
-        {connected && !initialized ? (
-          <ResetSchemaButton colorScheme="blue" size="sm">
-            Setup database
-          </ResetSchemaButton>
-        ) : enabled ? (
-          <Stats />
-        ) : (
-          <EnableSimulatorButton />
-        )}
+        {enabled ? <Stats /> : <EnableSimulatorButton />}
       </Stack>
     </Flex>
   );

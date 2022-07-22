@@ -16,17 +16,12 @@ import {
   DEFAULT_CITY,
   randomOffers,
 } from "@/data/offers";
-import {
-  findPipelineByName,
-  FUNCTIONS,
-  PROCEDURES,
-  SEED,
-  TABLES,
-} from "@/data/sql";
+import { FUNCTIONS, PROCEDURES, S3_BUCKET_NAME, TABLES } from "@/data/sql";
 import { compileWithStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
+import dedent from "ts-dedent";
 
 export const isConnected = async (config: ConnectionConfigOptionalDatabase) => {
   try {
@@ -94,9 +89,9 @@ export const schemaObjects = async (
 
   return Object.fromEntries(
     [
-      TABLES.map(({ name }) => [name, name && tables.includes(name)]),
-      PROCEDURES.map(({ name }) => [name, name && procedures.includes(name)]),
-      FUNCTIONS.map(({ name }) => [name, name && functions.includes(name)]),
+      TABLES.map(({ name }) => [name, tables.includes(name)]),
+      PROCEDURES.map(({ name }) => [name, procedures.includes(name)]),
+      FUNCTIONS.map(({ name }) => [name, functions.includes(name)]),
     ].flat()
   );
 };
@@ -123,10 +118,12 @@ export const resetSchema = async (
   config: ConnectionConfig,
   {
     progress,
+    scaleFactor,
     includeSeedData,
     resetDataOnly = false,
   }: {
     progress: (msg: string, status: "info" | "success") => void;
+    scaleFactor: ScaleFactor;
     includeSeedData: boolean;
     resetDataOnly: boolean;
   }
@@ -147,35 +144,65 @@ export const resetSchema = async (
 
   for (const obj of FUNCTIONS) {
     progress(`Creating function: ${obj.name}`, "info");
-    await Exec(config, obj.statement);
+    await Exec(config, obj.createStmt);
   }
   for (const obj of TABLES) {
     progress(`Creating table: ${obj.name}`, "info");
-    await Exec(config, obj.statement);
+    await Exec(config, obj.createStmt);
   }
   for (const obj of PROCEDURES) {
     progress(`Creating procedure: ${obj.name}`, "info");
-    await Exec(config, obj.statement);
+    await Exec(config, obj.createStmt);
   }
 
-  progress("Creating New York", "info");
+  progress(`Initializing reference data`, "info");
+  await insertBaseData(config);
   await createCity(config, DEFAULT_CITY);
 
   if (includeSeedData) {
     progress("Creating sample data", "info");
-    await insertSeedData(config);
+    await insertSeedData(config, DEFAULT_CITY, scaleFactor);
   }
 
   progress("Schema initialized", "success");
 };
 
-export const insertSeedData = async (config: ConnectionConfig) => {
-  for (const obj of SEED) {
-    await Exec(config, obj.statement);
+export const insertBaseData = async (config: ConnectionConfig) => {
+  const hasLink = await QueryOne<{ c: number }>(
+    config,
+    `
+      select count(*) as c from information_schema.links
+      where database_name = ? and link = "aws_s3"
+    `,
+    config.database
+  );
+  if (hasLink.c === 0) {
+    await Exec(
+      config,
+      `CREATE LINK aws_s3 AS S3 CREDENTIALS '{}' CONFIG '{ "region": "us-east-1" }'`
+    );
   }
+
+  await Exec(
+    config,
+    `
+      CREATE OR REPLACE PIPELINE worldcities
+      AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/cities.ndjson'
+      SKIP DUPLICATE KEY ERRORS
+      INTO TABLE worldcities
+      FORMAT JSON (
+        city_id <- id,
+        city_name <- name,
+        @lat <- lat,
+        @lng <- lng
+      )
+      SET center = GEOGRAPHY_POINT(@lng, @lat)
+    `
+  );
+  await Exec(config, `START PIPELINE IF NOT RUNNING worldcities`);
 };
 
-export const seedCityWithOffers = (
+export const insertSeedData = (
   config: ConnectionConfig,
   city: CityConfig,
   scaleFactor: ScaleFactor
@@ -252,28 +279,47 @@ export const getPipelineSQL = (
   name: PipelineName,
   scaleFactor: ScaleFactor
 ) => {
-  const pipeline = findPipelineByName(name);
-  const varRegex = /\$\{([^}]+)\}/g; // varRegex matches ${varName}
-  return pipeline.statement.replaceAll(varRegex, (_, key) => {
-    switch (key) {
-      case "SCALE_FACTOR":
-        return scaleFactor.prefix;
-      case "PARTITIONS":
-        return scaleFactor.partitions.toString();
-      default:
-        throw new Error(`Unknown variable: ${key}`);
-    }
-  });
+  switch (name) {
+    case "locations":
+      return dedent`
+        CREATE OR REPLACE PIPELINE ${name}
+        AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactor.prefix}/locations.*'
+        MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
+        INTO PROCEDURE process_locations FORMAT PARQUET (
+          subscriber_id <- subscriberid,
+          offset_x <- offsetX,
+          offset_y <- offsetY
+        )
+      `;
+    case "requests":
+      return dedent`
+        CREATE OR REPLACE PIPELINE ${name}
+        AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactor.prefix}/requests.*'
+        MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
+        INTO PROCEDURE process_requests FORMAT PARQUET (
+          subscriber_id <- subscriberid,
+          domain <- domain
+        )
+      `;
+    case "purchases":
+      return dedent`
+        CREATE OR REPLACE PIPELINE ${name}
+        AS LOAD DATA LINK aws_s3 '${S3_BUCKET_NAME}/${scaleFactor.prefix}/purchases.*'
+        MAX_PARTITIONS_PER_BATCH ${scaleFactor.partitions}
+        INTO PROCEDURE process_purchases FORMAT PARQUET (
+          subscriber_id <- subscriberid,
+          vendor <- vendor
+        )
+      `;
+  }
 };
 
-export const dropPipelines = async (config: ConnectionConfig) => {
-  await Exec(config, `STOP ALL PIPELINES`);
+export const dropPipelines = async (config: ConnectionConfig) =>
   await Promise.all(
     pipelineNames.map((pipeline) =>
       Exec(config, `DROP PIPELINE IF EXISTS ${pipeline}`)
     )
   );
-};
 
 export const ensurePipelinesExist = async (
   config: ConnectionConfig,
