@@ -7,6 +7,7 @@ import { useConnectionState } from "@/data/hooks";
 import { estimatedRowCountObj } from "@/data/queries";
 import {
   connectionConfig,
+  databaseDrawerIsOpen,
   simulatorEnabled,
   tickDurationMs,
 } from "@/data/recoil";
@@ -14,8 +15,10 @@ import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { useSimulator } from "@/data/useSimulator";
 import { formatMs } from "@/format";
 import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
+import { SettingsIcon } from "@chakra-ui/icons";
 import {
   Box,
+  Button,
   Flex,
   SimpleGrid,
   Stack,
@@ -25,7 +28,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import useSWR from "swr";
 
 const Stats = () => {
@@ -114,6 +117,32 @@ export const NotificationsMap = () => {
   useSimulationMonitor(enabled && connected && initialized);
   useSimulator(enabled && connected && initialized);
 
+  const setDatabaseMenu = useSetRecoilState(databaseDrawerIsOpen);
+
+  let inner;
+  if (!connected) {
+    inner = (
+      <Button
+        size="sm"
+        onClick={() => setDatabaseMenu(true)}
+        colorScheme="green"
+      >
+        <SettingsIcon />
+        <Text pl={2}>Connect to SingleStore</Text>
+      </Button>
+    );
+  } else if (!initialized) {
+    inner = (
+      <ResetSchemaButton colorScheme="blue" size="sm">
+        Setup database
+      </ResetSchemaButton>
+    );
+  } else if (!enabled) {
+    inner = <EnableSimulatorButton />;
+  } else {
+    inner = <Stats />;
+  }
+
   return (
     <Flex
       gap={4}
@@ -135,15 +164,7 @@ export const NotificationsMap = () => {
             about how this works please visit the [overview page](overview).
           `}
         </MarkdownText>
-        {connected && !initialized ? (
-          <ResetSchemaButton colorScheme="blue" size="sm">
-            Setup database
-          </ResetSchemaButton>
-        ) : enabled ? (
-          <Stats />
-        ) : (
-          <EnableSimulatorButton />
-        )}
+        {inner}
       </Stack>
     </Flex>
   );
