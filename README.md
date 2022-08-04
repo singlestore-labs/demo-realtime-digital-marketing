@@ -8,6 +8,7 @@
 - [Web application](#web-application)
   - [Quickstart: Docker Image](#quickstart-docker-image)
   - [Quickstart: SingleStore Managed Service](#quickstart-singlestore-managed-service)
+- [Running the web interface locally](#running-the-web-interface-locally)
 - [Manually running the demo in pure SQL](#manually-running-the-demo-in-pure-sql)
 
 This application is a demo of how to use [SingleStore][singlestore] to serve ads to users based on their behavior and realtime location. The demo is based on location, purchase, and request history from millions of simulated subscribers for a hypothetical service company.
@@ -136,6 +137,16 @@ The [user interface][demo] is implemented as a single-page web application which
 [data-api]: https://docs.singlestore.com/managed-service/en/reference/data-api.html
 [ciab]: https://github.com/memsql/deployment-docker
 [portal]: https://portal.singlestore.com/
+
+# Running the web interface locally
+
+Rather than using https://digital-marketing.labs.singlestore.com it's possible to run the web interface locally via Docker. You can do this like so:
+
+```bash
+docker run -d --name demo -p 3000:3000 ghcr.io/singlestore-labs/demo-realtime-digital-marketing
+```
+
+After running the above command the web interface will be running at http://localhost:3000.
 
 # Manually running the demo in pure SQL
 
