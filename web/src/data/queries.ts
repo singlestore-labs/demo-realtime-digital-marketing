@@ -376,20 +376,21 @@ export const estimatedRowCount = <TableName extends string>(
       SELECT tableName, MAX(count) :> BIGINT AS count
       FROM (
         SELECT
-          table_name AS tableName,
-          SUM(rows) AS count
-        FROM information_schema.table_statistics stats
-        INNER JOIN information_schema.mv_nodes nodes ON (
-          stats.host = nodes.ip_addr
-          AND stats.port = nodes.port
-        )
+          table_name AS tableName, SUM(rows) AS count
+        FROM information_schema.table_statistics
         WHERE
-          (
-            partition_type = "Master"
-            OR (
-              partition_type = "Reference" AND nodes.type = "MA"
-            )
-          )
+          partition_type = "Master"
+          AND ordinal IS NOT NULL
+          AND database_name = ?
+          AND table_name IN (${tablesSQL})
+        GROUP BY table_name
+        UNION ALL
+        SELECT
+          table_name AS tableName, MAX(rows) AS count
+        FROM information_schema.table_statistics
+        WHERE
+          partition_type = "Reference"
+          AND ordinal IS NULL
           AND database_name = ?
           AND table_name IN (${tablesSQL})
         GROUP BY table_name
@@ -399,6 +400,7 @@ export const estimatedRowCount = <TableName extends string>(
       )
       GROUP BY tableName
     `,
+    config.database,
     config.database
   );
 };
