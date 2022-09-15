@@ -39,6 +39,9 @@
     "ts-dedent": "^2.2.0",
     "uuid": "^8.3.2"
   },
+  "resolutions": {
+    "csstype": "3.0.10"
+  },
   "devDependencies": {
     "@babel/core": "^7.16.12",
     "@chakra-ui/cli": "^1.8.1",
