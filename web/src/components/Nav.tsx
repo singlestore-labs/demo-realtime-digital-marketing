@@ -1,3 +1,4 @@
+import { useAnalytics } from "@/analytics";
 import { DatabaseDrawer } from "@/components/DatabaseDrawer";
 import { useConnectionState } from "@/data/hooks";
 import { databaseDrawerIsOpen, simulatorEnabled } from "@/data/recoil";
@@ -78,6 +79,7 @@ export const Nav = () => {
   const isSimulatorEnabled = useRecoilValue(simulatorEnabled);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
   const { session } = useSession();
+  useAnalytics();
 
   const links = (
     <>

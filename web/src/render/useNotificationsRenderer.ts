@@ -1,3 +1,4 @@
+import { trackAnalyticsEvent } from "@/analytics";
 import { UsePixiRenderer } from "@/components/PixiMap";
 import { useConnectionState, useDebounce } from "@/data/hooks";
 import { queryNotificationsInBounds } from "@/data/queries";
@@ -105,7 +106,9 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
       refreshInterval: REFRESH_INTERVAL,
       isPaused: () => !initialized,
       onSuccess: (newNotifications) => {
-        if (newNotifications.length > 0) {
+        const { length } = newNotifications;
+        if (length > 0) {
+          trackAnalyticsEvent("new-notifications", { length });
           timestampCursor.current = newNotifications[0][0];
 
           for (const [, lng, lat] of newNotifications) {

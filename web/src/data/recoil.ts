@@ -116,6 +116,7 @@ export const connectionConfig = selector<ConnectionConfig>({
   get: ({ get }) => {
     const portalConfig = get(portalConnectionConfig);
     if (portalConfig) {
+      trackAnalyticsEvent("portal-connection");
       return portalConfig;
     }
 
