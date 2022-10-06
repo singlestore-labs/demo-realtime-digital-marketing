@@ -1,4 +1,3 @@
-
 import { Modal, ModalOverlay, ModalContent, ModalBody, ModalFooter, Button } from "@chakra-ui/react";
 import { useState } from "react";
 import LAPTOP_CIRCLE_ICON from "../assets/laptop-circle-icon.svg"
