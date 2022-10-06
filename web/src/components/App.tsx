@@ -7,49 +7,12 @@ import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
 import { Suspense, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { WelcomeModal } from "@/components/WelcomeModal";
-import {
-  connectionDatabase,
-  connectionHost,
-  connectionPassword,
-  connectionUser,
-} from "@/data/recoil";
-import { useRecoilState } from "recoil";
-import { useLocation } from "react-router-dom";
+import { usePortalConnection } from "@/use-portal-connection";
 
 function App() {
-  const [_host, setHost] = useRecoilState(connectionHost);
-  const [_user, setUser] = useRecoilState(connectionUser);
-  const [_password, setPassword] = useRecoilState(connectionPassword);
-  const [_database, setDatabase] = useRecoilState(connectionDatabase);
-  const { pathname, search } = useLocation();
-  console.log("......!.", {_user, _password})
-
-  function connect() {
-    // get hostname from URL
-    // username by default
-    // password?
-    if (search) {
-      const queryParams = new URLSearchParams(search);
-      const hostname = queryParams.get("hostname");
-      const credentials = queryParams.get("credentials");
-      console.log({ hostname, credentials })
-      if (hostname) {
-        setHost(`https://${hostname}`)
-      }
-      if (credentials) {
-        const decodedCredentials = atob(credentials);
-        const { username, password } = JSON.parse(decodedCredentials)
-        setUser(username);
-        setPassword("")
-
-      }
-      setDatabase("martech")
-    }
-  }
+  const { connect } = usePortalConnection();
 
   useEffect(() => {
-    console.log("...s...!.")
-
     connect()
   }, [connect])
 

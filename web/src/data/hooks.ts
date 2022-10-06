@@ -52,7 +52,7 @@ export const useConnectionState = () => {
 
   const connected = useSWR(["isConnected", config], () => isConnected(config));
   const schemaObjs = useSchemaObjects(!connected.data);
-console.log({con: !!connected.data, schema: schemaObjs.data, init: Object.values(schemaObjs.data || [])})
+
   return {
     isVapor: !!vaporConfig,
     connected: !!connected.data,
