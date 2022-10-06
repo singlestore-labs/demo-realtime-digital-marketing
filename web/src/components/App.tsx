@@ -13,8 +13,8 @@ function App() {
   const { connect } = usePortalConnection();
 
   useEffect(() => {
-    connect()
-  }, [connect])
+    connect();
+  }, [connect]);
 
   const loadingFallback = (
     <Center height="100vh">
