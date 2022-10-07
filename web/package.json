@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "prettier":"prettier --write 'src/**/*.{scss,tsx,js,ts,x}'"
+    "prettier":"prettier --write 'src/**/*.{tsx,ts}'"
   },
   "dependencies": {
     "@chakra-ui/icons": "^1.1.1",
