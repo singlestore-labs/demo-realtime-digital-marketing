@@ -3,6 +3,7 @@ import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import {
   configScaleFactor,
   connectionConfig,
+  portalConnectionConfig,
   resettingSchema,
   simulatorEnabled,
   tickDurationMs,
@@ -48,13 +49,22 @@ export const useConnectionState = () => {
   // we are using ES6 spread syntax to remove database from config
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { database, ...config } = useRecoilValue(connectionConfig);
-  const vaporConfig = useRecoilValue(vaporConnectionConfig);
+  let portalConfig;
+  let vaporConfig;
+
+  if (portalConnectionConfig) {
+    portalConfig = useRecoilValue(portalConnectionConfig);
+  } else if (vaporConnectionConfig) {
+    vaporConfig = useRecoilValue(vaporConnectionConfig);
+  }
 
   const connected = useSWR(["isConnected", config], () => isConnected(config));
   const schemaObjs = useSchemaObjects(!connected.data);
 
   return {
     isVapor: !!vaporConfig,
+    // if the connection is automatically done to Portal UI
+    isPortalUser: !!portalConfig,
     connected: !!connected.data,
     initialized:
       !!connected.data && Object.values(schemaObjs.data || []).every(Boolean),

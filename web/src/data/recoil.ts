@@ -1,6 +1,7 @@
 import { ConnectionConfig } from "@/data/client";
 import { atom, AtomEffect, atomFamily, DefaultValue, selector } from "recoil";
 import { ScaleFactor, ScaleFactors } from "../scalefactors";
+import { useLocation } from "react-router-dom";
 
 type LocalStorageEffectConfig<T> = {
   encode: (v: T) => string;
@@ -74,7 +75,7 @@ export const connectionDatabase = atom({
   effects: [localStorageEffect()],
 });
 
-export type VaporClusterConnectionConfig = {
+export type ClusterConnectionConfig = {
   endpoint: string;
   user: string;
   password: string;
@@ -92,7 +93,7 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
           baseUrl + "/api/v1/connect?sessionID=" + sessionID
         );
         if (response.status === 200) {
-          const data = (await response.json()) as VaporClusterConnectionConfig;
+          const data = (await response.json()) as ClusterConnectionConfig;
 
           return {
             host: "https://" + data.endpoint,
@@ -105,6 +106,30 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
         console.log(
           `Failed to connect to vapor at ${baseUrl}, falling back to local config`
         );
+      }
+    }
+  },
+});
+
+export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
+  key: "portalConnectionConfig",
+  get: async ({ get }) => {
+    const { search } = useLocation();
+    if (search) {
+      console.log({ search });
+      const queryParams = new URLSearchParams(search);
+      const portalHostname = queryParams.get("hostname");
+      const portalCredentials = queryParams.get("credentials");
+
+      if (portalCredentials) {
+        const decodedCredentials = atob(portalCredentials);
+        const { username, password } = JSON.parse(decodedCredentials);
+        return {
+          host: "https://" + portalHostname,
+          user: username,
+          password: password,
+          database: get(connectionDatabase),
+        };
       }
     }
   },
