@@ -4,17 +4,10 @@ import { Nav } from "@/components/Nav";
 import { NotificationsMap } from "@/components/NotificationsMap";
 import { Overview } from "@/components/Overview";
 import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { usePortalConnection } from "@/use-portal-connection";
 
 function App() {
-  const { connect } = usePortalConnection();
-
-  useEffect(() => {
-    connect();
-  }, [connect]);
-
   const loadingFallback = (
     <Center height="100vh">
       <Spinner
