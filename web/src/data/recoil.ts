@@ -1,7 +1,6 @@
 import { ConnectionConfig } from "@/data/client";
 import { atom, AtomEffect, atomFamily, DefaultValue, selector } from "recoil";
 import { ScaleFactor, ScaleFactors } from "../scalefactors";
-import { useLocation } from "react-router-dom";
 
 type LocalStorageEffectConfig<T> = {
   encode: (v: T) => string;
@@ -114,9 +113,8 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
 export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
   key: "portalConnectionConfig",
   get: async ({ get }) => {
-    const { search } = useLocation();
+    const {search} = window.location;
     if (search) {
-      console.log({ search });
       const queryParams = new URLSearchParams(search);
       const portalHostname = queryParams.get("hostname");
       const portalCredentials = queryParams.get("credentials");
@@ -139,8 +137,11 @@ export const connectionConfig = selector<ConnectionConfig>({
   key: "connectionConfig",
   get: ({ get }) => {
     const vaporConfig = get(vaporConnectionConfig);
+    const portalConfig = get(portalConnectionConfig);
     if (vaporConfig) {
       return vaporConfig;
+    } else if(portalConfig){
+      return portalConfig;
     }
 
     const host = get(connectionHost);
