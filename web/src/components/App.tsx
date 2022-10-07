@@ -6,7 +6,6 @@ import { Overview } from "@/components/Overview";
 import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
 import { Suspense, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { WelcomeModal } from "@/components/WelcomeModal";
 import { usePortalConnection } from "@/use-portal-connection";
 
 function App() {
@@ -32,7 +31,6 @@ function App() {
     <Suspense fallback={loadingFallback}>
       <Flex height="100vh" direction="column">
         <Nav />
-        <WelcomeModal />
         <Box m={4} flex="1">
           <Routes>
             <Route path="/" element={<NotificationsMap />} />
