@@ -48,7 +48,7 @@ export const useConnectionState = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { database, ...config } = useRecoilValue(connectionConfig);
   const vaporConfig = useRecoilValue(vaporConnectionConfig);
-  
+
   const connected = useSWR(["isConnected", config], () => isConnected(config));
   const schemaObjs = useSchemaObjects(!connected.data);
 

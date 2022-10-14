@@ -74,6 +74,18 @@ export const connectionDatabase = atom({
   effects: [localStorageEffect()],
 });
 
+export const portalHostname = atom({
+  key: "hostname",
+  default: null,
+  effects: [searchParamEffect()],
+});
+
+export const portalCredentials = atom({
+  key: "credentials",
+  default: null,
+  effects: [searchParamEffect()],
+});
+
 export type ClusterConnectionConfig = {
   endpoint: string;
   user: string;
@@ -113,17 +125,20 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
 export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
   key: "portalConnectionConfig",
   get: async ({ get }) => {
-    const {search} = window.location;
-    if (search) {
-      const queryParams = new URLSearchParams(search);
-      const portalHostname = queryParams.get("hostname");
-      const portalCredentials = queryParams.get("credentials");
+    const portalHostnameValue = get(portalHostname);
+    const portalCredentialsValue = get(portalCredentials);
 
-      if (portalCredentials) {
-        const decodedCredentials = atob(portalCredentials);
+    if (portalCredentialsValue) {
+      let decodedCredentials;
+      try {
+        decodedCredentials = atob(portalCredentialsValue);
+      } catch (e) {
+        console.error("error conecting to Portal", { e });
+      }
+      if (decodedCredentials) {
         const { username, password } = JSON.parse(decodedCredentials);
         return {
-          host: "https://" + portalHostname,
+          host: "https://" + portalHostnameValue,
           user: username,
           password: password,
           database: get(connectionDatabase),
@@ -140,7 +155,7 @@ export const connectionConfig = selector<ConnectionConfig>({
     const portalConfig = get(portalConnectionConfig);
     if (vaporConfig) {
       return vaporConfig;
-    } else if(portalConfig){
+    } else if (portalConfig) {
       return portalConfig;
     }
 
