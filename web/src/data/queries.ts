@@ -7,21 +7,21 @@ import {
   QueryNoDb,
   QueryOne,
   QueryTuples,
-  SQLError
+  SQLError,
 } from "@/data/client";
 import {
   CityConfig,
   createCity,
   createOffers,
   DEFAULT_CITY,
-  randomOffers
+  randomOffers,
 } from "@/data/offers";
 import {
   findPipelineByName,
   FUNCTIONS,
   PROCEDURES,
   SEED,
-  TABLES
+  TABLES,
 } from "@/data/sql";
 import { compileWithStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
