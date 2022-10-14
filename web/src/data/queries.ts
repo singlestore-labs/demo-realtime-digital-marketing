@@ -7,21 +7,21 @@ import {
   QueryNoDb,
   QueryOne,
   QueryTuples,
-  SQLError,
+  SQLError
 } from "@/data/client";
 import {
   CityConfig,
   createCity,
   createOffers,
   DEFAULT_CITY,
-  randomOffers,
+  randomOffers
 } from "@/data/offers";
 import {
   findPipelineByName,
   FUNCTIONS,
   PROCEDURES,
   SEED,
-  TABLES,
+  TABLES
 } from "@/data/sql";
 import { compileWithStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
@@ -250,7 +250,8 @@ export const truncateData = (config: ConnectionConfig) =>
 
 export const getPipelineSQL = (
   name: PipelineName,
-  scaleFactor: ScaleFactor
+  scaleFactor: ScaleFactor,
+  maxPartitions: number
 ) => {
   const pipeline = findPipelineByName(name);
   const varRegex = /\$\{([^}]+)\}/g; // varRegex matches ${varName}
@@ -259,7 +260,7 @@ export const getPipelineSQL = (
       case "SCALE_FACTOR":
         return scaleFactor.prefix;
       case "PARTITIONS":
-        return scaleFactor.partitions.toString();
+        return Math.min(maxPartitions, scaleFactor.partitions).toString();
       default:
         throw new Error(`Unknown variable: ${key}`);
     }
@@ -280,6 +281,7 @@ export const ensurePipelinesExist = async (
   scaleFactor: ScaleFactor
 ) => {
   const pipelines = await pipelineStatus(config, scaleFactor);
+  const numPartitions = await countPartitions(config);
 
   await Promise.all(
     pipelines
@@ -287,7 +289,10 @@ export const ensurePipelinesExist = async (
       .map(async (pipeline) => {
         console.log(`recreating pipeline ${pipeline.pipelineName}`);
 
-        await Exec(config, getPipelineSQL(pipeline.pipelineName, scaleFactor));
+        await Exec(
+          config,
+          getPipelineSQL(pipeline.pipelineName, scaleFactor, numPartitions)
+        );
 
         await Exec(
           config,

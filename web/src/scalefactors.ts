@@ -7,6 +7,18 @@ export type ScaleFactor = {
 
 export const ScaleFactors: ScaleFactor[] = [
   {
+    name: "micro",
+    maxRows: 1_000_000,
+    prefix: "v2/1k-2p",
+    partitions: 2,
+  },
+  {
+    name: "tiny",
+    maxRows: 5_000_000,
+    prefix: "v2/10k-2p",
+    partitions: 2,
+  },
+  {
     name: "s00",
     maxRows: 10_000_000,
     prefix: "v2/100k-2p",

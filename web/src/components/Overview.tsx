@@ -305,7 +305,7 @@ const ShowPipelineModal = ({
   name: PipelineName;
   scaleFactor: ScaleFactor;
 }) => {
-  const sql = getPipelineSQL(name, scaleFactor);
+  const sql = getPipelineSQL(name, scaleFactor, 8);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   return (
