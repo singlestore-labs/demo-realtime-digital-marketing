@@ -1,6 +1,6 @@
 import { ConnectionConfig } from "@/data/client";
 import { atom, AtomEffect, atomFamily, DefaultValue, selector } from "recoil";
-import { ScaleFactor, ScaleFactors } from "../scalefactors";
+import { defaultScaleFactor, ScaleFactor, ScaleFactors } from "../scalefactors";
 
 type LocalStorageEffectConfig<T> = {
   encode: (v: T) => string;
@@ -131,12 +131,12 @@ export const connectionConfig = selector<ConnectionConfig>({
 
 export const configScaleFactor = atom<ScaleFactor>({
   key: "configScaleFactor",
-  default: ScaleFactors[0],
+  default: defaultScaleFactor,
   effects: [
     localStorageEffect({
       encode: (v: ScaleFactor) => v.name,
       decode: (v: string) =>
-        ScaleFactors.find((sf) => sf.name === v) || ScaleFactors[0],
+        ScaleFactors.find((sf) => sf.name === v) || defaultScaleFactor,
     }),
   ],
 });

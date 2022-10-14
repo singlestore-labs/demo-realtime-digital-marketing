@@ -66,6 +66,8 @@ export const ScaleFactors: ScaleFactor[] = [
 export const getScaleFactor = (name: string): ScaleFactor =>
   ScaleFactors.find((sf) => sf.name === name) || ScaleFactors[0];
 
+export const defaultScaleFactor = getScaleFactor("s00");
+
 export const pickScaleFactor = (numPartitions: number): ScaleFactor => {
   // pick the scale factor with the largest number of partitions <= numPartitions
   return (
