@@ -14,29 +14,29 @@ const localStorageEffect =
       decode: JSON.parse,
     }
   ): AtomEffect<T> =>
-  ({ setSelf, onSet, node }) => {
-    const key = `recoil.localstorage.${node.key}`;
-    const savedValue = localStorage.getItem(key);
-    if (savedValue != null) {
-      setSelf(decode(savedValue));
-    }
+    ({ setSelf, onSet, node }) => {
+      const key = `recoil.localstorage.${node.key}`;
+      const savedValue = localStorage.getItem(key);
+      if (savedValue != null) {
+        setSelf(decode(savedValue));
+      }
 
-    onSet((newValue, _, isReset) => {
-      isReset
-        ? localStorage.removeItem(key)
-        : localStorage.setItem(key, encode(newValue));
-    });
-  };
+      onSet((newValue, _, isReset) => {
+        isReset
+          ? localStorage.removeItem(key)
+          : localStorage.setItem(key, encode(newValue));
+      });
+    };
 
 const searchParamEffect =
   (): AtomEffect<string | null> =>
-  ({ setSelf, node: { key } }) => {
-    const { location } = window;
-    if (location) {
-      const search = new URLSearchParams(location.search);
-      setSelf(search.get(key) || new DefaultValue());
-    }
-  };
+    ({ setSelf, node: { key } }) => {
+      const { location } = window;
+      if (location) {
+        const search = new URLSearchParams(location.search);
+        setSelf(search.get(key) || new DefaultValue());
+      }
+    };
 
 export const vaporSessionId = atom({
   key: "sessionID",
@@ -74,7 +74,25 @@ export const connectionDatabase = atom({
   effects: [localStorageEffect()],
 });
 
-export type VaporClusterConnectionConfig = {
+export const portalDatabase = atom({
+  key: "database",
+  default: "martech",
+  effects: [searchParamEffect()],
+});
+
+export const portalHostname = atom({
+  key: "hostname",
+  default: null,
+  effects: [searchParamEffect()],
+});
+
+export const portalCredentials = atom({
+  key: "credentials",
+  default: null,
+  effects: [searchParamEffect()],
+});
+
+export type ClusterConnectionConfig = {
   endpoint: string;
   user: string;
   password: string;
@@ -92,7 +110,7 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
           baseUrl + "/api/v1/connect?sessionID=" + sessionID
         );
         if (response.status === 200) {
-          const data = (await response.json()) as VaporClusterConnectionConfig;
+          const data = (await response.json()) as ClusterConnectionConfig;
 
           return {
             host: "https://" + data.endpoint,
@@ -110,12 +128,46 @@ export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
   },
 });
 
+export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
+  key: "portalConnectionConfig",
+  get: async ({ get }) => {
+    const portalHostnameValue = get(portalHostname);
+    const portalCredentialsValue = get(portalCredentials);
+    const portalDatabaseValue = get(portalDatabase);
+
+    if (portalCredentialsValue) {
+      let decodedCredentials;
+      try {
+        decodedCredentials = atob(portalCredentialsValue);
+      } catch (e) {
+        console.log(
+          "Failed to decode Portal credentials, falling back to local config."
+        );
+      }
+      if (portalHostnameValue && decodedCredentials && portalDatabaseValue) {
+        const { username, password } = JSON.parse(decodedCredentials);
+        if (username && password) {
+          return {
+            host: "https://" + portalHostnameValue,
+            user: username,
+            password: password,
+            database: portalDatabaseValue,
+          };
+        }
+      }
+    }
+  },
+});
+
 export const connectionConfig = selector<ConnectionConfig>({
   key: "connectionConfig",
   get: ({ get }) => {
     const vaporConfig = get(vaporConnectionConfig);
+    const portalConfig = get(portalConnectionConfig);
     if (vaporConfig) {
       return vaporConfig;
+    } else if (portalConfig) {
+      return portalConfig;
     }
 
     const host = get(connectionHost);

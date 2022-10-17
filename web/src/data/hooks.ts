@@ -1,7 +1,6 @@
 import { SQLError } from "@/data/client";
 import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import {
-  configScaleFactor,
   connectionConfig,
   resettingSchema,
   simulatorEnabled,
@@ -173,7 +172,6 @@ export const useResetSchema = ({
   resetDataOnly: boolean;
 }) => {
   const config = useRecoilValue(connectionConfig);
-  const scaleFactor = useRecoilValue(configScaleFactor);
   const [isSimulatorEnabled, setSimulatorEnabled] =
     useRecoilState(simulatorEnabled);
   const toast = useToast();
@@ -222,7 +220,6 @@ export const useResetSchema = ({
     setResettingSchema,
     before,
     config,
-    scaleFactor,
     includeSeedData,
     resetDataOnly,
     after,

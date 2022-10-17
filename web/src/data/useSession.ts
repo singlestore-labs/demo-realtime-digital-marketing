@@ -21,7 +21,6 @@ const SESSION_ID = (() => {
     sessionID = newUUID();
   }
 
-  console.log(`Session ID: ${sessionID}`);
   return sessionID;
 })();
 
