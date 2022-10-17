@@ -133,6 +133,8 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
   get: async ({ get }) => {
     const portalHostnameValue = get(portalHostname);
     const portalCredentialsValue = get(portalCredentials);
+    const portalDatabaseValue = get(portalCredentials);
+
     if (portalCredentialsValue) {
       let decodedCredentials;
       try {
@@ -140,13 +142,13 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
       } catch (e) {
         console.error("error conecting to Portal", { e });
       }
-      if (decodedCredentials) {
+      if (portalHostnameValue && decodedCredentials && portalDatabaseValue) {
         const { username, password } = JSON.parse(decodedCredentials);
         return {
           host: "https://" + portalHostnameValue,
           user: username,
           password: password,
-          database: get(portalDatabase),
+          database: portalDatabaseValue,
         };
       }
     }
