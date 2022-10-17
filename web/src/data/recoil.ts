@@ -14,29 +14,29 @@ const localStorageEffect =
       decode: JSON.parse,
     }
   ): AtomEffect<T> =>
-  ({ setSelf, onSet, node }) => {
-    const key = `recoil.localstorage.${node.key}`;
-    const savedValue = localStorage.getItem(key);
-    if (savedValue != null) {
-      setSelf(decode(savedValue));
-    }
+    ({ setSelf, onSet, node }) => {
+      const key = `recoil.localstorage.${node.key}`;
+      const savedValue = localStorage.getItem(key);
+      if (savedValue != null) {
+        setSelf(decode(savedValue));
+      }
 
-    onSet((newValue, _, isReset) => {
-      isReset
-        ? localStorage.removeItem(key)
-        : localStorage.setItem(key, encode(newValue));
-    });
-  };
+      onSet((newValue, _, isReset) => {
+        isReset
+          ? localStorage.removeItem(key)
+          : localStorage.setItem(key, encode(newValue));
+      });
+    };
 
 const searchParamEffect =
   (): AtomEffect<string | null> =>
-  ({ setSelf, node: { key } }) => {
-    const { location } = window;
-    if (location) {
-      const search = new URLSearchParams(location.search);
-      setSelf(search.get(key) || new DefaultValue());
-    }
-  };
+    ({ setSelf, node: { key } }) => {
+      const { location } = window;
+      if (location) {
+        const search = new URLSearchParams(location.search);
+        setSelf(search.get(key) || new DefaultValue());
+      }
+    };
 
 export const vaporSessionId = atom({
   key: "sessionID",
@@ -133,23 +133,27 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
   get: async ({ get }) => {
     const portalHostnameValue = get(portalHostname);
     const portalCredentialsValue = get(portalCredentials);
-    const portalDatabaseValue = get(portalCredentials);
+    const portalDatabaseValue = get(portalDatabase);
 
     if (portalCredentialsValue) {
       let decodedCredentials;
       try {
         decodedCredentials = atob(portalCredentialsValue);
       } catch (e) {
-        console.error("error conecting to Portal", { e });
+        console.log(
+          "Failed to decode Portal credentials, falling back to local config."
+        );
       }
       if (portalHostnameValue && decodedCredentials && portalDatabaseValue) {
         const { username, password } = JSON.parse(decodedCredentials);
-        return {
-          host: "https://" + portalHostnameValue,
-          user: username,
-          password: password,
-          database: portalDatabaseValue,
-        };
+        if (username && password) {
+          return {
+            host: "https://" + portalHostnameValue,
+            user: username,
+            password: password,
+            database: portalDatabaseValue,
+          };
+        }
       }
     }
   },
