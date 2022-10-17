@@ -74,6 +74,12 @@ export const connectionDatabase = atom({
   effects: [localStorageEffect()],
 });
 
+export const portalDatabase = atom({
+  key: "database",
+  default: "martech",
+  effects: [searchParamEffect()],
+});
+
 export const portalHostname = atom({
   key: "hostname",
   default: null,
@@ -127,7 +133,6 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
   get: async ({ get }) => {
     const portalHostnameValue = get(portalHostname);
     const portalCredentialsValue = get(portalCredentials);
-
     if (portalCredentialsValue) {
       let decodedCredentials;
       try {
@@ -141,7 +146,7 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
           host: "https://" + portalHostnameValue,
           user: username,
           password: password,
-          database: get(connectionDatabase),
+          database: get(portalDatabase),
         };
       }
     }
