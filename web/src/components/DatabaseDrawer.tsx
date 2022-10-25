@@ -1,5 +1,4 @@
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
-import { DisconnectVaporButton } from "@/components/DisconnectVaporButton";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState } from "@/data/hooks";
 import { dropDatabase, setSessionController } from "@/data/queries";
@@ -41,7 +40,7 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
   const simEnabled = isSimulatorEnabled && session.isController;
 
   const config = useRecoilValue(connectionConfig);
-  const { connected, initialized, isVapor } = useConnectionState();
+  const { connected, initialized } = useConnectionState();
   const advancedMenu = useDisclosure();
 
   const [togglingSimulator, togglingSimulatorControl] = useBoolean(false);
@@ -85,22 +84,12 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
 
         <DrawerBody>
           <Stack spacing={4}>
-            {isVapor ? null : (
-              <DatabaseConfigForm showScaleFactor showDatabase />
-            )}
+            <DatabaseConfigForm showScaleFactor showDatabase />
             <Alert status={connected ? "success" : "error"} borderRadius="md">
               <AlertIcon />
               <AlertTitle>
                 {connected ? "connected" : "disconnected"}
               </AlertTitle>
-              {isVapor ? (
-                <DisconnectVaporButton
-                  position="absolute"
-                  right={4}
-                  top={3}
-                  size="xs"
-                />
-              ) : null}
             </Alert>
             <Alert
               status={initialized ? "success" : "warning"}

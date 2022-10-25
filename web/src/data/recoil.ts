@@ -14,41 +14,29 @@ const localStorageEffect =
       decode: JSON.parse,
     }
   ): AtomEffect<T> =>
-    ({ setSelf, onSet, node }) => {
-      const key = `recoil.localstorage.${node.key}`;
-      const savedValue = localStorage.getItem(key);
-      if (savedValue != null) {
-        setSelf(decode(savedValue));
-      }
+  ({ setSelf, onSet, node }) => {
+    const key = `recoil.localstorage.${node.key}`;
+    const savedValue = localStorage.getItem(key);
+    if (savedValue != null) {
+      setSelf(decode(savedValue));
+    }
 
-      onSet((newValue, _, isReset) => {
-        isReset
-          ? localStorage.removeItem(key)
-          : localStorage.setItem(key, encode(newValue));
-      });
-    };
+    onSet((newValue, _, isReset) => {
+      isReset
+        ? localStorage.removeItem(key)
+        : localStorage.setItem(key, encode(newValue));
+    });
+  };
 
 const searchParamEffect =
-  (): AtomEffect<string | null> =>
-    ({ setSelf, node: { key } }) => {
-      const { location } = window;
-      if (location) {
-        const search = new URLSearchParams(location.search);
-        setSelf(search.get(key) || new DefaultValue());
-      }
-    };
-
-export const vaporSessionId = atom({
-  key: "sessionID",
-  default: null,
-  effects: [searchParamEffect()],
-});
-
-export const vaporBaseUrl = atom({
-  key: "vaporBaseUrl",
-  default: "https://vapor.labs.singlestore.com",
-  effects: [searchParamEffect()],
-});
+  (searchParam: string): AtomEffect<string | null> =>
+  ({ setSelf }) => {
+    const { location } = window;
+    if (location) {
+      const search = new URLSearchParams(location.search);
+      setSelf(search.get(searchParam) || new DefaultValue());
+    }
+  };
 
 export const connectionHost = atom({
   key: "connectionHost",
@@ -58,7 +46,7 @@ export const connectionHost = atom({
 
 export const connectionUser = atom({
   key: "connectionUser",
-  default: "root",
+  default: "admin",
   effects: [localStorageEffect()],
 });
 
@@ -75,57 +63,21 @@ export const connectionDatabase = atom({
 });
 
 export const portalDatabase = atom({
-  key: "database",
+  key: "portalDatabase",
   default: "martech",
-  effects: [searchParamEffect()],
+  effects: [searchParamEffect("database")],
 });
 
 export const portalHostname = atom({
-  key: "hostname",
+  key: "portalHostname",
   default: null,
-  effects: [searchParamEffect()],
+  effects: [searchParamEffect("hostname")],
 });
 
 export const portalCredentials = atom({
-  key: "credentials",
+  key: "portalCredentials",
   default: null,
-  effects: [searchParamEffect()],
-});
-
-export type ClusterConnectionConfig = {
-  endpoint: string;
-  user: string;
-  password: string;
-};
-
-export const vaporConnectionConfig = selector<ConnectionConfig | undefined>({
-  key: "vaporConnectionConfig",
-  get: async ({ get }) => {
-    const sessionID = get(vaporSessionId);
-    const baseUrl = get(vaporBaseUrl);
-
-    if (sessionID && baseUrl) {
-      try {
-        const response = await fetch(
-          baseUrl + "/api/v1/connect?sessionID=" + sessionID
-        );
-        if (response.status === 200) {
-          const data = (await response.json()) as ClusterConnectionConfig;
-
-          return {
-            host: "https://" + data.endpoint,
-            user: data.user,
-            password: data.password,
-            database: get(connectionDatabase),
-          };
-        }
-      } catch (e) {
-        console.log(
-          `Failed to connect to vapor at ${baseUrl}, falling back to local config`
-        );
-      }
-    }
-  },
+  effects: [searchParamEffect("credentials")],
 });
 
 export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
@@ -138,7 +90,7 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
     if (portalCredentialsValue) {
       let decodedCredentials;
       try {
-        decodedCredentials = atob(portalCredentialsValue);
+        decodedCredentials = window.atob(portalCredentialsValue);
       } catch (e) {
         console.log(
           "Failed to decode Portal credentials, falling back to local config."
@@ -162,11 +114,8 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
 export const connectionConfig = selector<ConnectionConfig>({
   key: "connectionConfig",
   get: ({ get }) => {
-    const vaporConfig = get(vaporConnectionConfig);
     const portalConfig = get(portalConnectionConfig);
-    if (vaporConfig) {
-      return vaporConfig;
-    } else if (portalConfig) {
+    if (portalConfig) {
       return portalConfig;
     }
 

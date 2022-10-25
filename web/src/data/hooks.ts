@@ -5,7 +5,6 @@ import {
   resettingSchema,
   simulatorEnabled,
   tickDurationMs,
-  vaporConnectionConfig,
 } from "@/data/recoil";
 import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 import { useToast } from "@chakra-ui/react";
@@ -47,13 +46,11 @@ export const useConnectionState = () => {
   // we are using ES6 spread syntax to remove database from config
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { database, ...config } = useRecoilValue(connectionConfig);
-  const vaporConfig = useRecoilValue(vaporConnectionConfig);
 
   const connected = useSWR(["isConnected", config], () => isConnected(config));
   const schemaObjs = useSchemaObjects(!connected.data);
 
   return {
-    isVapor: !!vaporConfig,
     connected: !!connected.data,
     initialized:
       !!connected.data && Object.values(schemaObjs.data || []).every(Boolean),
