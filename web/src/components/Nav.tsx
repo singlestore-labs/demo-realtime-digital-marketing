@@ -79,7 +79,6 @@ export const Nav = () => {
   const isSimulatorEnabled = useRecoilValue(simulatorEnabled);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
   const { session } = useSession();
-  useAnalytics();
 
   const links = (
     <>
