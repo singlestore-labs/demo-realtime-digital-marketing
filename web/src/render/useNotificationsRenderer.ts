@@ -116,8 +116,7 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
       refreshInterval: REFRESH_INTERVAL,
       isPaused: () => !initialized,
       onSuccess: (newNotifications) => {
-        const { length } = newNotifications;
-        if (length > 0) {
+        if (newNotifications.length > 0) {
           // we just want to log new notications once to avoid a lot of noise
           if (!logNewNotifications) {
             setLogNewNotifications(true);
