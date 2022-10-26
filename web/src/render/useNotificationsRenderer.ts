@@ -6,7 +6,7 @@ import { connectionConfig } from "@/data/recoil";
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
 import { Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -92,6 +92,16 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 50);
   const swrKey = useNotificationsDataKey();
+  const [logNewNotifications, setLogNewNotifications] = useState<
+    boolean | null
+  >();
+
+  useEffect(() => {
+    if (logNewNotifications) {
+      trackAnalyticsEvent("new-notifications");
+      setLogNewNotifications(false);
+    }
+  }, [logNewNotifications]);
 
   useSWR(
     swrKey,
@@ -108,7 +118,10 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
       onSuccess: (newNotifications) => {
         const { length } = newNotifications;
         if (length > 0) {
-          trackAnalyticsEvent("new-notifications", { length });
+          // we just want to log new notications once to avoid a lot of noise
+          if (!logNewNotifications) {
+            setLogNewNotifications(true);
+          }
           timestampCursor.current = newNotifications[0][0];
 
           for (const [, lng, lat] of newNotifications) {

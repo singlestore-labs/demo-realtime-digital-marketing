@@ -3,13 +3,16 @@ import { userSessionID } from "@/data/recoil";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useRecoilState } from "recoil";
-import { v4 as uuidv4 } from "uuid";
 
 export function trackAnalyticsEvent(
   event: string,
   params?: Record<string, string | number>
 ) {
-  window.analytics.track(`rtdm-${event}`, params);
+  if (window.analytics) {
+    window.analytics.track(`rtdm-${event}`, params);
+  } else {
+    console.warn("window.analytics is not defined");
+  }
 }
 
 export function useAnalytics() {
@@ -29,14 +32,10 @@ export function useAnalytics() {
   }, [connectionType]);
 
   useEffect(() => {
-    if (userID === "") {
-      const newUserID = uuidv4();
-      setUserID(newUserID);
-    }
     if (window.analytics) {
       window.analytics.identify(userID);
     } else {
-      console.warn("Analytics are not defined");
+      console.warn("window.analytics is not defined");
     }
   }, [userID, setUserID]);
 }
