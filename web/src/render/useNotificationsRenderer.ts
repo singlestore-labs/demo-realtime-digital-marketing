@@ -92,16 +92,7 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 50);
   const swrKey = useNotificationsDataKey();
-  const [logNewNotifications, setLogNewNotifications] = useState<
-    boolean | null
-  >();
-
-  useEffect(() => {
-    if (logNewNotifications) {
-      trackAnalyticsEvent("new-notifications");
-      setLogNewNotifications(false);
-    }
-  }, [logNewNotifications]);
+  const trackedNotifications = useRef(false);
 
   useSWR(
     swrKey,
@@ -118,8 +109,9 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
       onSuccess: (newNotifications) => {
         if (newNotifications.length > 0) {
           // we just want to log new notications once to avoid a lot of noise
-          if (!logNewNotifications) {
-            setLogNewNotifications(true);
+          if (!trackedNotifications.current) {
+            trackAnalyticsEvent("new-notifications");
+            trackedNotifications.current = true;
           }
           timestampCursor.current = newNotifications[0][0];
 
