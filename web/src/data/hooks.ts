@@ -2,6 +2,7 @@ import { SQLError } from "@/data/client";
 import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import {
   connectionConfig,
+  portalConnectionConfig,
   resettingSchema,
   simulatorEnabled,
   tickDurationMs,
@@ -46,9 +47,17 @@ export const useConnectionState = () => {
   // we are using ES6 spread syntax to remove database from config
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { database, ...config } = useRecoilValue(connectionConfig);
-
   const connected = useSWR(["isConnected", config], () => isConnected(config));
   const schemaObjs = useSchemaObjects(!connected.data);
+  const portalConfig = useRecoilValue(portalConnectionConfig);
+
+  let connectionType;
+
+  if (portalConfig) {
+    connectionType = "portal";
+  } else if (connected.data) {
+    connectionType = "manual";
+  }
 
   return {
     connected: !!connected.data,
@@ -58,6 +67,7 @@ export const useConnectionState = () => {
       connected.mutate();
       schemaObjs.mutate();
     },
+    connectionType,
   };
 };
 

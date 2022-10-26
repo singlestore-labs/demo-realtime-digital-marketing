@@ -1,3 +1,4 @@
+import { trackAnalyticsEvent } from "@/analytics";
 import { useConnectionState, useMountedCallback } from "@/data/hooks";
 import { setSessionController } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
@@ -25,6 +26,7 @@ export const EnableSimulatorButton = () => {
   );
   const onEnableSimulator = useCallback(async () => {
     enablingCtrl.on();
+    trackAnalyticsEvent("enable-simulator");
 
     if (connected && initialized) {
       await setSessionController(config, session.sessionID, true);

@@ -1,3 +1,4 @@
+import { trackAnalyticsEvent } from "@/analytics";
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState } from "@/data/hooks";
@@ -65,6 +66,7 @@ export const DatabaseDrawer = ({ isOpen, onClose, finalFocusRef }: Props) => {
 
   const [droppingDatabase, droppingDatabaseCtrl] = useBoolean(false);
   const onDropDatabase = useCallback(async () => {
+    trackAnalyticsEvent("drop-database");
     droppingDatabaseCtrl.on();
     await dropDatabase(config);
     droppingDatabaseCtrl.off();

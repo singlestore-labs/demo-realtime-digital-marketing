@@ -1,3 +1,4 @@
+import { useAnalytics } from "@/analytics";
 import { DatabaseDrawer } from "@/components/DatabaseDrawer";
 import { useConnectionState } from "@/data/hooks";
 import { databaseDrawerIsOpen, simulatorEnabled } from "@/data/recoil";

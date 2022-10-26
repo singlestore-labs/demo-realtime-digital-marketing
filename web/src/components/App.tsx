@@ -1,3 +1,4 @@
+import { useAnalytics } from "@/analytics";
 import { Admin } from "@/components/Admin";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { Nav } from "@/components/Nav";
@@ -20,8 +21,14 @@ function App() {
     </Center>
   );
 
+  const Analytics = () => {
+    useAnalytics();
+    return <></>;
+  };
+
   return (
     <Suspense fallback={loadingFallback}>
+      <Analytics />
       <Flex height="100vh" direction="column">
         <Nav />
         <Box m={4} flex="1">

@@ -1,3 +1,4 @@
+import { trackAnalyticsEvent } from "@/analytics";
 import { PixiMap, PixiMapProps, UsePixiRenderer } from "@/components/PixiMap";
 import { useConnectionState } from "@/data/hooks";
 import { createCity, removeCity } from "@/data/offers";
@@ -84,6 +85,7 @@ const useRenderer: UsePixiRenderer = ({
         diameter: city.diameter,
       };
       await createCity(config, cityConfig);
+      trackAnalyticsEvent("create-city");
       await seedCityWithOffers(config, cityConfig, ScaleFactors[0]);
       mutate();
     },
@@ -93,6 +95,7 @@ const useRenderer: UsePixiRenderer = ({
   const onRemoveCity = useCallback(
     async (city: City) => {
       await removeCity(config, city.id);
+      trackAnalyticsEvent("remove-city");
       mutate();
     },
     [config, mutate]
