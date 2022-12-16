@@ -28,6 +28,7 @@ import {
 import { findSchemaObjectByName } from "@/data/sql";
 import { timeseriesIsEmpty } from "@/data/timeseries";
 import { useSimulationMonitor } from "@/data/useSimulationMonitor";
+import { toISOStringNoTZ } from "@/datetime";
 import { formatMs, formatNumber } from "@/format";
 import {
   useNotificationsDataKey,
@@ -494,7 +495,7 @@ const SegmentationSection = () => {
   const tableCounts = useTableCounts(config);
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
   const [warmingUp, setWarmingUp] = useState(false);
-  const timestampCursor = useRef(new Date().toISOString());
+  const timestampCursor = useRef(toISOStringNoTZ(new Date()));
 
   const done = !!tableCounts.data?.subscriber_segments;
 

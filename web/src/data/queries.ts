@@ -24,6 +24,7 @@ import {
   TABLES,
 } from "@/data/sql";
 import { compileWithStatement } from "@/data/sqlgen";
+import { toISOStringNoTZ } from "@/datetime";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
 import { Bounds } from "pigeon-maps";
@@ -487,12 +488,12 @@ export const truncateTimeseriesTables = async (
 
       const ts = new Date((minTs + deltaPercent * (maxTs - minTs)) * 1000);
       console.log(
-        `removing rows from ${tableName} older than ${ts.toISOString()}`
+        `removing rows from ${tableName} older than ${toISOStringNoTZ(ts)}`
       );
       await Exec(
         config,
         `DELETE FROM ${tableName} WHERE ts <= ?`,
-        ts.toISOString()
+        toISOStringNoTZ(ts)
       );
     })
   );
@@ -523,7 +524,7 @@ export const runUpdateSegments = async (
   since: string,
   pruneSegments = true
 ) => {
-  const nowISO = new Date().toISOString();
+  const nowISO = toISOStringNoTZ(new Date());
 
   await Exec(config, "CALL update_segments(?, ?)", since, nowISO);
 
