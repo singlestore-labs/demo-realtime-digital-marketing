@@ -164,7 +164,7 @@ export const PixiMap = <T,>({
   const [zoom, setZoom] = useState(defaultZoom);
 
   return (
-    <Box borderRadius="lg" overflow="hidden" height={height} {...rest}>
+    <Box borderRadius="none" overflow="hidden" height={height} {...rest}>
       <Map
         dprs={[1, 2]}
         provider={stamenProvider("toner-lite")}

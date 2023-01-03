@@ -1,37 +1,33 @@
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
-import { PixiMap } from "@/components/PixiMap";
+import { PixiMap } from "@/components/shared/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState } from "@/data/hooks";
-import { estimatedRowCountObj } from "@/data/queries";
 import {
   connectionConfig,
-  databaseDrawerIsOpen,
   simulatorEnabled,
-  tickDurationMs,
 } from "@/data/recoil";
 import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { useSimulator } from "@/data/useSimulator";
-import { formatMs } from "@/format";
 import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
 import { SettingsIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
   Flex,
-  SimpleGrid,
+  Heading,
+  Icon,
+  Spacer,
   Stack,
-  Stat,
-  StatLabel,
-  StatNumber,
   Text,
+  useMediaQuery,
 } from "@chakra-ui/react";
-import { format } from "d3-format";
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import useSWR from "swr";
+import { Stats } from "./stats";
+import { BsCircle, BsCircleFill, BsInfoCircleFill } from "react-icons/bs";
 
-const Stats = () => {
+const StatsWrapper = () => {
   const config = useRecoilValue(connectionConfig);
 
   const ingestData = useIngestChartData(
@@ -43,70 +39,24 @@ const Stats = () => {
     "subscriber_segments"
   );
 
-  const tableCounts = useSWR(
-    ["notificationsMapTableCounts", config],
-    () =>
-      estimatedRowCountObj(
-        config,
-        "offers",
-        "subscribers",
-        "cities",
-        "segments"
-      ),
-    { refreshInterval: 1000 }
-  );
-
-  const matchingDuration = useRecoilValue(tickDurationMs("SimulatorMatcher"));
-  const updateSegmentsDuration = useRecoilValue(
-    tickDurationMs("SimulatorUpdateSegments")
-  );
-
-  const formatStat = format(".4~s");
-  const stats = tableCounts.data ? (
-    <SimpleGrid spacing={2} minChildWidth="120px">
-      <Stat>
-        <StatLabel>Offers</StatLabel>
-        <StatNumber>{formatStat(tableCounts.data.offers)}</StatNumber>
-      </Stat>
-      <Stat>
-        <StatLabel>Cities</StatLabel>
-        <StatNumber>{formatStat(tableCounts.data.cities)}</StatNumber>
-      </Stat>
-      <Stat>
-        <StatLabel>Subscribers</StatLabel>
-        <StatNumber>{formatStat(tableCounts.data.subscribers)}</StatNumber>
-      </Stat>
-      <Stat>
-        <StatLabel>Segments</StatLabel>
-        <StatNumber>{formatStat(tableCounts.data.segments)}</StatNumber>
-      </Stat>
-      <Stat>
-        <StatLabel>Segmentation</StatLabel>
-        <StatNumber>{formatMs(updateSegmentsDuration)}</StatNumber>
-      </Stat>
-      <Stat>
-        <StatLabel>Matching</StatLabel>
-        <StatNumber>{formatMs(matchingDuration)}</StatNumber>
-      </Stat>
-    </SimpleGrid>
-  ) : null;
-
   return (
     <>
-      <MarkdownText>
-        {`
-          The map on this page displays notifications as they are delivered to
-          subscribers in realtime. Below, you will find some key statistics
-          about the demo.
-        `}
-      </MarkdownText>
-      {stats}
-      <Box>
-        <Text fontSize="sm" fontWeight="medium">
-          Row count / time
-        </Text>
+      <Stack spacing={3}>
+        <Heading as={"h4"} size={"md"}>Key Metrics</Heading>
+          <Text size="md">Serving ads real-time to sumulate Subscribers</Text>
+        <Stats />
+      </Stack>
+      <Stack border="1px solid silver" borderRadius="10px" padding="15px">
+        <Flex justifyContent={"space-between"} alignItems={"center"}>
+          <Text fontSize="sm" fontWeight="bold">
+            INGESTED DATA
+          </Text>
+          <Flex justifyContent={"space-between"} gap={2} fontSize={"xs"} alignItems={"center"} color={"#4F34C7"} >
+            <Icon as={BsInfoCircleFill} /> <Text>Hover over graph for schema details</Text>
+          </Flex>
+        </Flex>
         <IngestChart data={ingestData} yAxisLabel="total rows" height={150} />
-      </Box>
+      </Stack>
     </>
   );
 };
@@ -116,15 +66,14 @@ export const NotificationsMap = () => {
   const enabled = useRecoilValue(simulatorEnabled);
   useSimulationMonitor(enabled && connected && initialized);
   useSimulator(enabled && connected && initialized);
-
-  const setDatabaseMenu = useSetRecoilState(databaseDrawerIsOpen);
+  const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   let inner;
   if (!connected) {
     inner = (
       <Button
         size="sm"
-        onClick={() => setDatabaseMenu(true)}
+        onClick={() => window.open('/configure', "_self")}
         colorScheme="green"
       >
         <SettingsIcon />
@@ -140,7 +89,7 @@ export const NotificationsMap = () => {
   } else if (!enabled) {
     inner = <EnableSimulatorButton />;
   } else {
-    inner = <Stats />;
+    inner = <StatsWrapper />;
   }
 
   return (
@@ -148,12 +97,24 @@ export const NotificationsMap = () => {
       gap={4}
       justifyContent="space-between"
       direction={["column", "column", "row"]}
+      margin={0}
+      padding={0}
+      position={"relative"}
       height="100%"
     >
-      <Stack spacing={4} flex="2 2 0" minHeight="200px" maxHeight="100%">
-        <PixiMap useRenderer={useNotificationsRenderer} options={{}} />
-      </Stack>
-      <Stack spacing={4} flex="1 1 0" minWidth="0">
+       <Stack
+          spacing={4}
+          position={isSmallScreen ? 'relative' : 'absolute' }
+          boxShadow={"0px 3px 2px 0px #ddddde"}
+          background={"white"}
+          zIndex={4}
+          left={0}
+          top={0}
+          width={isSmallScreen ? "100%" : "30%"}
+          height={isSmallScreen ? "auto": "100%"}
+          borderBottomRightRadius={"10px"}
+          padding={"40px 30px"}
+      >
         <MarkdownText>
           {`
 
@@ -166,6 +127,10 @@ export const NotificationsMap = () => {
         </MarkdownText>
         {inner}
       </Stack>
+      <Stack zIndex={1} spacing={2} width={"100%"} height="100%">
+        <PixiMap useRenderer={useNotificationsRenderer} options={{}} />
+      </Stack>
+     
     </Flex>
   );
 };

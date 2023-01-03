@@ -1,5 +1,5 @@
 import { Heatmap } from "@/components/Heatmap";
-import { PixiMapProps } from "@/components/PixiMap";
+import { PixiMapProps } from "../components/shared/PixiMap";
 import { useConnectionState } from "@/data/hooks";
 import { Offer, queryOffersInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";

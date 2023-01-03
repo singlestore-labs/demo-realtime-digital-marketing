@@ -3,7 +3,7 @@ import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { OfferMap } from "@/components/OfferMap";
-import { PixiMap } from "@/components/PixiMap";
+import { PixiMap } from "../../shared/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { ConnectionConfig } from "@/data/client";
 import { useConnectionState, useSchemaObjects, useTimer } from "@/data/hooks";
@@ -41,8 +41,10 @@ import {
   Box,
   Button,
   Center,
+  Collapse,
   Container,
   Divider,
+  Flex,
   FormControl,
   FormLabel,
   Grid,
@@ -59,6 +61,8 @@ import {
   ModalOverlay,
   SimpleGrid,
   Spinner,
+  Stack,
+  Text,
   useBoolean,
   useColorMode,
   useMediaQuery,
@@ -769,27 +773,18 @@ export const Overview = () => {
   }
 
   return (
-    <Container maxW="container.lg" mt={10} mb="30vh">
-      <Box maxW="container.md" mb={10} px={0}>
-        <MarkdownText>
-          {`
-            ## Realtime Digital Marketing
-
-            This application is a demo of how to use [SingleStore][3] to serve ads to
-            users based on their behavior and realtime location. The demo is
-            based on location, purchase, and request history from millions of
-            simulated subscribers for a hypothetical service company.
-
-            This page will take you through the process of setting up the demo,
-            explaining everything as we go. If you have any questions or issues,
-            please file an issue on the [GitHub repo][1] or our [forums][2].
-
-            [1]: https://github.com/singlestore-labs/demo-realtime-digital-marketing/issues
-            [2]: https://www.singlestore.com/forum/
-            [3]: https://www.singlestore.com
-          `}
-        </MarkdownText>
-      </Box>
+    <Container maxW="75%" mt={10} mb="30vh">
+      <Flex gap={4} justifyContent={"space-between"} alignItems={"center"} marginBottom={"50px"}>
+        <Box>
+          <Heading fontSize={"md"}>Application set up</Heading>
+          <Text size="xs" overflowWrap={"break-word"}>
+            Connect to a SingleStoreDB workspace to see how SingleStoreDB can power the Realtime Digital Marketing applications. If you have any questions or issues, please file an issue on the GitHub repo or on our forums.
+          </Text>
+        </Box>
+        <Box>
+          <Button size={"sm"} colorScheme={"red"}>Reset Application</Button>
+        </Box>
+      </Flex>
       <Grid
         columnGap={6}
         rowGap={10}

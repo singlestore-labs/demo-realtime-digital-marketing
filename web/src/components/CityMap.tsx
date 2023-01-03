@@ -1,5 +1,5 @@
 import { trackAnalyticsEvent } from "@/analytics";
-import { PixiMap, PixiMapProps, UsePixiRenderer } from "@/components/PixiMap";
+import { PixiMap, PixiMapProps, UsePixiRenderer } from "@/components/shared/PixiMap";
 import { useConnectionState } from "@/data/hooks";
 import { createCity, removeCity } from "@/data/offers";
 import {

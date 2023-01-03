@@ -1562,6 +1562,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-github-button@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@types/react-github-button/-/react-github-button-0.1.1.tgz#5aa6961f70f2fbb56ca3e7664fd35913e4d4a1e6"
+  integrity sha512-1xaD0XHOmR6RlKAaF4AAyq5AhAqUhXZCW11gs+VQhIprA8Oe1I/HdfsWHxpDGjFFyBvgEdNfD3NSrFhGkQO3Gw==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react@*", "@types/react@^17.0.15", "@types/react@^17.0.33":
   version "17.0.42"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.42.tgz#8242b9219bf8a911c47f248e327206fea3f4ee5a"
@@ -4448,6 +4455,13 @@ react-focus-lock@2.5.2:
     react-clientside-effect "^1.2.5"
     use-callback-ref "^1.2.5"
     use-sidecar "^1.0.5"
+
+react-github-button@^0.1.11:
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/react-github-button/-/react-github-button-0.1.11.tgz#fc61e1f1e1371169d3618c1ba37306ba04081e56"
+  integrity sha512-KL/kieQiR5DXd1RxWMegr4Igyz9+Lm6ZVwjpN5rQyttz/sdEq8DF1R/vzLl2f58nChJe0sKE3U3A7QRK+Zb01w==
+  dependencies:
+    prop-types "^15.5.10"
 
 react-icons@^4.3.1:
   version "4.3.1"
