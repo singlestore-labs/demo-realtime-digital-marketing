@@ -2,6 +2,7 @@ import { useConnectionState, useTick } from "@/data/hooks";
 import { runMatchingProcess, runUpdateSegments } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { useSession } from "@/data/useSession";
+import { toISOStringNoTZ } from "@/datetime";
 import { useCallback, useRef } from "react";
 import { useRecoilValue } from "recoil";
 
@@ -11,7 +12,7 @@ const TICK_INTERVAL_SEGMENTS = 1 * 1000;
 export const useSimulator = (enabled: boolean) => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
-  const timestampCursor = useRef(new Date(0).toISOString());
+  const timestampCursor = useRef(toISOStringNoTZ(new Date(0)));
   const { session } = useSession();
 
   const matchingTick = useCallback(

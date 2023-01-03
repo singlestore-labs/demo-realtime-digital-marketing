@@ -3,6 +3,7 @@ import { UsePixiRenderer } from "@/components/PixiMap";
 import { useConnectionState, useDebounce } from "@/data/hooks";
 import { queryNotificationsInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
+import { toISOStringNoTZ } from "@/datetime";
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
 import { Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
@@ -87,7 +88,7 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   latLngToPixel,
   bounds,
 }) => {
-  const timestampCursor = useRef(new Date().toISOString());
+  const timestampCursor = useRef(toISOStringNoTZ(new Date()));
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 50);
