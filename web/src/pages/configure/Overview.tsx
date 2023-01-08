@@ -3,7 +3,7 @@ import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { OfferMap } from "@/components/OfferMap";
-import { PixiMap } from "../../shared/PixiMap";
+import { PixiMap } from "../../components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { ConnectionConfig } from "@/data/client";
 import { useConnectionState, useSchemaObjects, useTimer } from "@/data/hooks";
@@ -35,7 +35,6 @@ import {
   useNotificationsRenderer,
 } from "@/render/useNotificationsRenderer";
 import { ScaleFactor } from "@/scalefactors";
-import { CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertIcon,
@@ -44,7 +43,6 @@ import {
   Center,
   Collapse,
   Container,
-  Divider,
   Flex,
   FormControl,
   FormLabel,
@@ -52,7 +50,7 @@ import {
   GridItem,
   Heading,
   HStack,
-  IconProps,
+  Icon,
   Input,
   Modal,
   ModalBody,
@@ -62,68 +60,149 @@ import {
   ModalOverlay,
   SimpleGrid,
   Spinner,
-  Stack,
   Text,
   useBoolean,
-  useColorMode,
+  useColorModeValue,
   useMediaQuery,
   VStack,
 } from "@chakra-ui/react";
-import { ReactNode, useCallback, useRef, useState } from "react";
+import {
+  ReactElement,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
+import {
+  BsCheck2Circle,
+  BsCheckCircleFill,
+  BsGearFill,
+  BsInfoCircleFill,
+} from "react-icons/bs";
+import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+
+const primaryColorSchema = () => {
+  return {
+    primaryBackground: useColorModeValue("#ECE8FD", "#2F206E"),
+    primaryFont: useColorModeValue("#553ACF", "#ECE8FD"),
+  };
+};
+
+const CollapsibleSection = (props: {
+  title: string | ReactElement;
+  childComponent: ReactElement;
+  disabled: boolean;
+  buttonStyle: React.CSSProperties;
+  containerStyle?: React.CSSProperties;
+  childContainerStyle?: React.CSSProperties;
+}) => {
+  const [sectionOpen, setSectionOpen] = useState(!props.disabled);
+
+  useEffect(() => {
+    setSectionOpen(!props.disabled);
+  }, [props.disabled]);
+
+  return (
+    <div style={props.containerStyle}>
+      <Button
+        justifyContent={"space-between"}
+        size={"sm"}
+        width={"100%"}
+        style={props.buttonStyle}
+        onClick={() => setSectionOpen(!sectionOpen)}
+      >
+        {props.title}
+        {sectionOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+      </Button>
+      <div style={props.childContainerStyle}>
+        <Collapse in={sectionOpen}>{props.childComponent}</Collapse>
+      </div>
+    </div>
+  );
+};
 
 const Section = (props: {
   completed: boolean;
+  previousStepCompleted: boolean;
   title: string;
   left: ReactNode;
   right: ReactNode;
 }) => {
-  const { completed, title, left, right } = props;
-  const { colorMode } = useColorMode();
-
-  const colorSuffix = colorMode === "light" ? ".300" : ".500";
-  const textColor = completed ? "gray" + colorSuffix : undefined;
-  const iconColor = (completed ? "green" : "gray") + colorSuffix;
-
-  const iconProps: IconProps = {
-    boxSize: 6,
-    position: "relative",
-    bottom: 0.5,
-    mr: 2,
-  };
+  const { title, left, right } = props;
 
   return (
-    <>
-      <GridItem>
-        <Heading as="h2" size="lg" mb={4} color={textColor}>
-          <CheckCircleIcon color={iconColor} {...iconProps} />
+    <CollapsibleSection
+      disabled={!props.completed && !props.previousStepCompleted}
+      title={
+        <Flex width={"100%"} alignItems={"center"} gap={1.5}>
+          {props.completed ? (
+            <Icon as={BsCheckCircleFill} />
+          ) : (
+            <Icon as={BsInfoCircleFill} />
+          )}
           {title}
-        </Heading>
-        {left}
-      </GridItem>
-      <GridItem>{right}</GridItem>
-    </>
+        </Flex>
+      }
+      childComponent={
+        <Grid templateColumns="repeat(2, 1fr)" gap={5}>
+          <GridItem>{left}</GridItem>
+          <GridItem>{right}</GridItem>
+        </Grid>
+      }
+      buttonStyle={{
+        border:
+          !props.completed && !props.previousStepCompleted
+            ? `1px solid ${useColorModeValue(
+                "#ECE8FD",
+                "rgba(85, 58, 207, 0.5)"
+              )}`
+            : undefined,
+        background: props.completed
+          ? useColorModeValue("#ECE8FD", "#CCC3F9")
+          : props.previousStepCompleted
+          ? "#2F206E"
+          : "transparent",
+        color: props.completed
+          ? "#553ACF"
+          : props.previousStepCompleted
+          ? "#ECE8FD"
+          : "rgba(119, 117, 130, 0.8)",
+      }}
+      containerStyle={{
+        marginTop: "30px",
+        marginBottom: "30px",
+      }}
+      childContainerStyle={{
+        padding: "10px",
+        opacity: props.previousStepCompleted ? 1 : 0.5,
+        pointerEvents: props.previousStepCompleted ? undefined : "none",
+      }}
+    />
   );
 };
 
 const ConnectionSection = ({ connected }: { connected: boolean }) => {
   return (
-    <Section
-      completed={connected}
-      title="Connect to SingleStore"
-      left={
-        <MarkdownText>
-          {`
-            This demo requires a connection to SingleStore's Data API. Please
-            ensure the connection details on the right are correct.
+    <>
+      <Section
+        completed={connected}
+        title="Connect to SingleStore"
+        previousStepCompleted={true}
+        left={
+          <MarkdownText>
+            {`
+            Fill the fields with your database’s username, password and endpoint.
             
-            [1]: https://docs.singlestore.com/managed-service/en/reference/data-api.html
+            [Know more](https://docs.singlestore.com/managed-service/en/reference/data-api.html)
           `}
-        </MarkdownText>
-      }
-      right={<DatabaseConfigForm />}
-    />
+          </MarkdownText>
+        }
+        right={<DatabaseConfigForm />}
+      />
+    </>
   );
 };
 
@@ -165,15 +244,13 @@ const SchemaItem = ({
   status?: boolean;
   onClick: () => void;
 }) => {
-  const { colorMode } = useColorMode();
+  const { primaryBackground, primaryFont } = primaryColorSchema();
   return (
     <GridItem
       key={name}
-      bg={
-        (status ? "green" : "gray") + (colorMode === "light" ? ".200" : ".600")
-      }
+      bg={primaryBackground}
       fontSize="xs"
-      color={colorMode === "light" ? "gray.800" : "gray.100"}
+      color={primaryFont}
       textOverflow="ellipsis"
       whiteSpace="nowrap"
       overflow="hidden"
@@ -192,10 +269,17 @@ const SchemaItem = ({
   );
 };
 
-const SchemaSection = ({ initialized }: { initialized: boolean }) => {
+const SchemaSection = ({
+  initialized,
+  previousStepCompleted,
+}: {
+  initialized: boolean;
+  previousStepCompleted: boolean;
+}) => {
   const [database, setDatabase] = useRecoilState(connectionDatabase);
   const schemaObjs = useSchemaObjects();
   const [selectedSchemaObj, setSelectedSchemaObj] = useState<null | string>();
+  const { primaryBackground, primaryFont } = primaryColorSchema();
 
   return (
     <>
@@ -207,27 +291,16 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
       )}
       <Section
         completed={initialized}
+        previousStepCompleted={previousStepCompleted}
         title="Setup the schema"
         left={
           <>
             <MarkdownText>
               {`
-                Our schema includes the database and a set of tables and views we
-                need to store all of our data. Use the controls below to set the
-                database name and create the schema.
+                A schema includes a database, tables and views to store all the data. Use the tags to create the schema.
               `}
             </MarkdownText>
-            <Divider mt={4} mb={6} />
-            {initialized ? (
-              <ResetSchemaButton
-                colorScheme="yellow"
-                size="sm"
-                skipSeedData
-                resetDataOnly
-              >
-                Restart tutorial
-              </ResetSchemaButton>
-            ) : (
+            {initialized ? undefined : (
               <HStack alignItems="flex-end">
                 <FormControl flex={1}>
                   <FormLabel
@@ -244,8 +317,13 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
                     onChange={(e) => setDatabase(e.target.value)}
                   />
                 </FormControl>
-                <Box flex={1} textAlign="center">
-                  <ResetSchemaButton colorScheme="blue" size="sm" skipSeedData>
+                <Box flex={1}>
+                  <ResetSchemaButton
+                    background={primaryBackground}
+                    color={primaryFont}
+                    size="sm"
+                    skipSeedData
+                  >
                     Setup schema
                   </ResetSchemaButton>
                 </Box>
@@ -254,18 +332,21 @@ const SchemaSection = ({ initialized }: { initialized: boolean }) => {
           </>
         }
         right={
-          <SimpleGrid columns={[1, 3, 3]} gap={1}>
-            {Object.keys(schemaObjs.data || {})
-              .sort()
-              .map((name) => (
-                <SchemaItem
-                  key={name}
-                  name={name}
-                  status={schemaObjs.data?.[name]}
-                  onClick={() => setSelectedSchemaObj(name)}
-                />
-              ))}
-          </SimpleGrid>
+          <Flex direction={"column"} gap={3}>
+            <Heading size={"sm"}>Tags</Heading>
+            <SimpleGrid columns={[1, 3, 3]} gap={1}>
+              {Object.keys(schemaObjs.data || {})
+                .sort()
+                .map((name) => (
+                  <SchemaItem
+                    key={name}
+                    name={name}
+                    status={schemaObjs.data?.[name]}
+                    onClick={() => setSelectedSchemaObj(name)}
+                  />
+                ))}
+            </SimpleGrid>
+          </Flex>
         }
       />
     </>
@@ -319,7 +400,7 @@ const usePipelineStatus = (
   return { pipelines, completed };
 };
 
-const PipelinesSection = () => {
+const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { pipelines, completed } = usePipelineStatus(config, scaleFactor);
@@ -378,18 +459,15 @@ const PipelinesSection = () => {
       <Section
         completed={completed}
         title="Ingest data"
+        previousStepCompleted={props.previousStepCompleted}
         left={
           <>
             <MarkdownText>
               {`
-                The demo needs to load location, request, and purchase history from
-                simulated subscribers in real time. We will simulate these streams
-                using [SingleStore Pipelines][1] to ingest data from [AWS S3][2].
-
+                The application simulates streams for location, request and purchase history from simulated subscribers
+                using [SingleStore](https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html) Pipelines and [AWS S3](https://aws.amazon.com/s3/).
+                
                 You can view the schema of each pipeline via the following buttons:
-
-                [1]: https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html
-                [2]: https://aws.amazon.com/s3/
               `}
             </MarkdownText>
             <SimpleGrid columns={[1, 3, 3]} gap={1}>
@@ -434,10 +512,11 @@ const useTableCounts = (config: ConnectionConfig, enabled = true) =>
     { isPaused: () => !enabled }
   );
 
-const OffersSection = () => {
+const OffersSection = (props: { previousStepCompleted: boolean }) => {
   const config = useRecoilValue(connectionConfig);
   const [working, workingCtrl] = useBoolean();
   const tableCounts = useTableCounts(config);
+  const { primaryBackground, primaryFont } = primaryColorSchema();
 
   const onSeedData = useCallback(async () => {
     workingCtrl.on();
@@ -452,16 +531,14 @@ const OffersSection = () => {
     <Section
       completed={done}
       title="Offers"
+      previousStepCompleted={props.previousStepCompleted}
       left={
         <>
           <MarkdownText>
             {`
-              This demo allows any company to place offers. Each offer has a
-              maximum bid price, activation zone, list of segments, and
-              notification content. As subscribers move around, they are
-              continuously matched to offers based on their location and
-              whichever segments they are members of. If multiple offers match
-              the offer with the highest bid price will be selected.
+              Companies submit offers with a maximum bid price, notification zone, list of segments and notification content.
+              As subscribers travel, they are matched with offers based on their location and segments.
+              If multiple offers match to a subscriber, the highest bid price is selected.There are 200 simulated offers in the database.
             `}
             {!done &&
               `
@@ -476,30 +553,43 @@ const OffersSection = () => {
                 database.
             `}
           </MarkdownText>
-        </>
-      }
-      right={
-        !done ? (
-          <Center h="100%">
-            <Button onClick={onSeedData} disabled={working}>
+          {!done ? (
+            <Button
+              background={primaryBackground}
+              color={primaryFont}
+              onClick={onSeedData}
+              disabled={working}
+            >
               {working && <Spinner mr={2} />}
               {working ? "loading..." : done ? "loaded offers!" : "load offers"}
             </Button>
-          </Center>
-        ) : (
+          ) : undefined}
+        </>
+      }
+      right={
+        <Flex
+          direction={"column"}
+          gap={4}
+          padding={"15px"}
+          border={"1px solid"}
+          borderRadius={"15px"}
+          borderColor={"#553ACF"}
+        >
+          <Heading size={"xs"}>NOTIFICATION ZONE FOR NEW YORK</Heading>
           <OfferMap height={300} defaultZoom={13} />
-        )
+        </Flex>
       }
     />
   );
 };
 
-const SegmentationSection = () => {
+const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
   const [warmingUp, setWarmingUp] = useState(false);
   const timestampCursor = useRef(toISOStringNoTZ(new Date()));
+  const { primaryBackground, primaryFont } = primaryColorSchema();
 
   const done = !!tableCounts.data?.subscriber_segments;
 
@@ -540,55 +630,55 @@ const SegmentationSection = () => {
     <Section
       completed={done}
       title="Segmentation"
+      previousStepCompleted={props.previousStepCompleted}
       left={
-        <MarkdownText>
-          {`
-            As mentioned above, each offer includes a list of segments. A
-            segment is defined by a simple rule like "bought a coffee in the
-            last day" or "visited the grocery store in the last week". While we
-            could evaluate all of the segments dynamically when matching offers
-            to subscribers, we would be wasting a lot of compute time since
-            segment memberships don't change very often. Instead we will
-            use a routine to periodically cache the mapping between subscribers
-            and segments.
+        <>
+          <MarkdownText>
+            {`
+            A segment is defined by a simple rule, such as “bought a coffee in the last day” or “visited the grocery store in the last week”.
+            While segments could be evaluated dynamically when matching offers to subscribers, this would waste compute time since segment
+            memberships rarely change. Instead SingleStore periodically caches the mapping between subscribers and segments for faster results.
 
             Click the button to run the update interactively, or run the following query in your favorite SQL client:
-
-                select count(*)
-                from dynamic_subscriber_segments(
-                  date_sub_dynamic(now(), "minute"),
-                  now()
-                );
           `}
-        </MarkdownText>
+          </MarkdownText>
+
+          <Button
+            background={primaryBackground}
+            color={primaryFont}
+            disabled={isRunning}
+            onClick={onClick}
+          >
+            {isRunning && <Spinner mr={2} />}
+            {isRunning ? "...running" : "Match subscribers to segments"}
+          </Button>
+          {workEstimate}
+          {warmingUp && (
+            <Alert status="warning">
+              <AlertIcon />
+              Queries are still warming up. Please wait for a little bit and
+              then try again.
+            </Alert>
+          )}
+        </>
       }
       right={
-        <Center h="100%">
-          <VStack gap={4} textAlign="center">
-            <Button disabled={isRunning} onClick={onClick}>
-              {isRunning && <Spinner mr={2} />}
-              {isRunning ? "...running" : "Match subscribers to segments"}
-            </Button>
-            {workEstimate}
-            {warmingUp && (
-              <Alert status="warning">
-                <AlertIcon />
-                Queries are still warming up. Please wait for a little bit and
-                then try again.
-              </Alert>
-            )}
-          </VStack>
-        </Center>
+        <Flex direction={"column"} gap={4} padding={"10px"}>
+          <MarkdownText>
+            {`    select count(*) from dynamic_subscriber_segments(date_sub_dynamic(now(), "minute"), now());`}
+          </MarkdownText>
+        </Flex>
       }
     />
   );
 };
 
-const MatchingSection = () => {
+const MatchingSection = (props: { previousStepCompleted: boolean }) => {
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
   const notificationsDataKey = useNotificationsDataKey();
   const { mutate: swrMutate } = useSWRConfig();
+  const { primaryBackground, primaryFont } = primaryColorSchema();
 
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
   const [sentNotifications, setSentNotifications] = useState(0);
@@ -645,9 +735,11 @@ const MatchingSection = () => {
     <Section
       completed={done}
       title="Matching"
+      previousStepCompleted={props.previousStepCompleted}
       left={
-        <MarkdownText>
-          {`
+        <>
+          <MarkdownText>
+            {`
             Now that we have offers and have assigned subscribers to segments,
             we are finally able to deliver ads to subscribers as push
             notifications. In this demo, rather than actually sending
@@ -657,45 +749,51 @@ const MatchingSection = () => {
             Click the button to generate notifications interactively, or run the
             following query in your favorite SQL client:
 
-                select * from match_offers_to_subscribers("second");
           `}
-        </MarkdownText>
+          </MarkdownText>
+          <br />
+          <Button
+            background={primaryBackground}
+            color={primaryFont}
+            disabled={isRunning}
+            onClick={onClick}
+          >
+            {isRunning && <Spinner mr={2} />}
+            {isRunning ? "...running" : "Generate notifications"}
+          </Button>
+        </>
       }
       right={
-        <Center h="100%">
-          <VStack gap={4} w="100%">
-            <Button disabled={isRunning} onClick={onClick}>
-              {isRunning && <Spinner mr={2} />}
-              {isRunning ? "...running" : "Generate notifications"}
-            </Button>
-            <Box width="100%">
-              <PixiMap
-                height={250}
-                defaultZoom={12}
-                useRenderer={useNotificationsRenderer}
-                options={{}}
-              />
-            </Box>
-            {workEstimate}
-            {warmingUp && (
-              <Alert status="warning">
-                <AlertIcon />
-                Queries are still warming up. Please wait for a little bit and
-                then try again.
-              </Alert>
-            )}
-          </VStack>
-        </Center>
+        <Flex direction={"column"} gap={4} padding={"10px"}>
+          <MarkdownText>{`    select * from match_offers_to_subscribers("second");`}</MarkdownText>
+          <Box width="100%">
+            <PixiMap
+              height={250}
+              defaultZoom={12}
+              useRenderer={useNotificationsRenderer}
+              options={{}}
+            />
+          </Box>
+          {workEstimate}
+          {warmingUp && (
+            <Alert status="warning">
+              <AlertIcon />
+              Queries are still warming up. Please wait for a little bit and
+              then try again.
+            </Alert>
+          )}
+        </Flex>
       }
     />
   );
 };
 
-const SummarySection = () => {
+const SummarySection = (props: { previousStepCompleted: boolean }) => {
   const database = useRecoilValue(connectionDatabase);
   return (
     <Section
-      completed={true}
+      completed={props.previousStepCompleted}
+      previousStepCompleted={props.previousStepCompleted}
       title="Putting it all together"
       left={
         <MarkdownText>
@@ -738,61 +836,91 @@ export const Overview = () => {
     },
     {
       completed: initialized,
-      component: <SchemaSection key="schema" initialized={initialized} />,
+      component: (
+        <SchemaSection
+          key="schema"
+          initialized={initialized}
+          previousStepCompleted={connected}
+        />
+      ),
     },
     {
       completed: pipelinesCompleted,
-      component: <PipelinesSection key="pipelines" />,
+      component: (
+        <PipelinesSection key="pipelines" previousStepCompleted={initialized} />
+      ),
     },
     {
       completed: tableCounts ? tableCounts.offers > 0 : false,
-      component: <OffersSection key="offers" />,
+      component: (
+        <OffersSection
+          key="offers"
+          previousStepCompleted={pipelinesCompleted}
+        />
+      ),
     },
     {
       completed: tableCounts ? tableCounts.subscriber_segments > 0 : false,
-      component: <SegmentationSection key="segmentation" />,
+      component: (
+        <SegmentationSection
+          key="segmentation"
+          previousStepCompleted={tableCounts ? tableCounts.offers > 0 : false}
+        />
+      ),
     },
     {
       completed: tableCounts ? tableCounts.notifications > 0 : false,
-      component: <MatchingSection key="matching" />,
+      component: (
+        <MatchingSection
+          key="matching"
+          previousStepCompleted={
+            tableCounts ? tableCounts.subscriber_segments > 0 : false
+          }
+        />
+      ),
     },
     {
-      completed: true,
-      component: <SummarySection key="summary" />,
+      completed: tableCounts ? tableCounts.notifications > 0 : false,
+      component: (
+        <SummarySection
+          key="summary"
+          previousStepCompleted={
+            tableCounts ? tableCounts.notifications > 0 : false
+          }
+        />
+      ),
     },
   ];
 
-  let lastCompleted = true;
   const sections = [];
   for (const { completed, component } of sectionDefinitions) {
-    if (lastCompleted) {
-      sections.push(component);
-      lastCompleted = completed;
-    } else {
-      break;
-    }
+    sections.push(component);
   }
 
   return (
     <Container maxW="75%" mt={10} mb="30vh">
-      <Flex gap={4} justifyContent={"space-between"} alignItems={"center"} marginBottom={"50px"}>
+      <Flex gap={5} justifyContent={"space-between"} marginBottom={"50px"}>
         <Box>
           <Heading fontSize={"md"}>Application set up</Heading>
           <Text size="xs" overflowWrap={"break-word"}>
-            Connect to a SingleStoreDB workspace to see how SingleStoreDB can power the Realtime Digital Marketing applications. If you have any questions or issues, please file an issue on the GitHub repo or on our forums.
+            Connect to a SingleStoreDB workspace to see how SingleStoreDB can
+            power the Realtime Digital Marketing applications. If you have any
+            questions or issues, please file an issue on the GitHub repo or on
+            our forums.
           </Text>
         </Box>
         <Box>
-          <Button size={"sm"} colorScheme={"red"}>Reset Application</Button>
+          <ResetSchemaButton
+            colorScheme="red"
+            size="sm"
+            skipSeedData
+            resetDataOnly
+          >
+            Reset application
+          </ResetSchemaButton>
         </Box>
       </Flex>
-      <Grid
-        columnGap={6}
-        rowGap={10}
-        templateColumns={["minmax(0, 1fr)", null, "repeat(2, minmax(0, 1fr))"]}
-      >
-        {sections}
-      </Grid>
+      {sections}
     </Container>
   );
 };

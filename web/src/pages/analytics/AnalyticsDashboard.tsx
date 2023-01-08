@@ -1,6 +1,5 @@
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/Heatmap";
-import { MarkdownText } from "@/components/MarkdownText";
 import { useConnectionState } from "@/data/hooks";
 import {
   CustomerMetrics,
@@ -18,7 +17,8 @@ import {
   Box,
   Center,
   Container,
-  SimpleGrid,
+  Grid,
+  GridItem,
   Spinner,
   Stack,
   Stat,
@@ -50,14 +50,21 @@ export const AnalyticsDashboard = () => {
   useSimulator(enabled);
 
   return (
-    <Container maxW="container.lg" mt={10} mb="30vh">
+    <Container maxW="75%" mt={10} mb="30vh">
       {!initialized ? (
         <LoadingIndicator />
       ) : enabled ? (
         <Stack gap={10}>
-          <StatGrid />
+          <Grid templateColumns="repeat(6, 1fr)" gap={5}>
+            <GridItem colSpan={2}>
+              <StatGrid />
+            </GridItem>
+            <GridItem colSpan={4}>
+              <ConversionMap />
+            </GridItem>
+          </Grid>
+
           <ConversionTable />
-          <ConversionMap />
         </Stack>
       ) : (
         <EnableSimulatorButton />
@@ -77,6 +84,32 @@ const LoadingIndicator = () => (
     />
   </Center>
 );
+
+const StatWrapper = (props: {
+  statLabel: string;
+  statNumber: string;
+  helpText?: string;
+  colSpan?: number;
+}) => {
+  return (
+    <GridItem
+      padding={"20px"}
+      background={useColorModeValue("#ECE8FD", "#2F206E")}
+      borderRadius={"15px"}
+      colSpan={props.colSpan || 1}
+    >
+      <Stat>
+        <StatLabel>{props.statLabel}</StatLabel>
+        <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
+          {props.statNumber}
+        </StatNumber>
+        {props.helpText ? (
+          <StatHelpText>{props.helpText}</StatHelpText>
+        ) : undefined}
+      </Stat>
+    </GridItem>
+  );
+};
 
 const StatGrid = () => {
   const config = useRecoilValue(connectionConfig);
@@ -108,34 +141,31 @@ const StatGrid = () => {
   }
 
   return (
-    <SimpleGrid spacing={2} minChildWidth="150px" flex={2}>
-      <Stat>
-        <StatLabel>Offers</StatLabel>
-        <StatNumber>{formatStat(tableCounts.data.offers)}</StatNumber>
-      </Stat>
-      <Stat>
-        <StatLabel>Subscribers</StatLabel>
-        <StatNumber>{formatStat(tableCounts.data.subscribers)}</StatNumber>
-      </Stat>
-      <Stat>
-        <StatLabel>Notifications</StatLabel>
-        <StatNumber>{formatStat(tableCounts.data.notifications)}</StatNumber>
-      </Stat>
-      <Stat>
-        <StatLabel>Conversion Rate</StatLabel>
-        <StatNumber>
-          {formatPct(overallRateRequests.data?.conversionRate || 0)}
-        </StatNumber>
-        <StatHelpText>Requests</StatHelpText>
-      </Stat>
-      <Stat>
-        <StatLabel>Conversion Rate</StatLabel>
-        <StatNumber>
-          {formatPct(overallRatePurchases.data?.conversionRate || 0)}
-        </StatNumber>
-        <StatHelpText>Purchases</StatHelpText>
-      </Stat>
-    </SimpleGrid>
+    <Grid gap={2} templateColumns="repeat(2, 1fr)">
+      <StatWrapper
+        statLabel="offers"
+        statNumber={formatStat(tableCounts.data.offers)}
+        colSpan={2}
+      />
+      <StatWrapper
+        statLabel="Subscribers"
+        statNumber={formatStat(tableCounts.data.subscribers)}
+      />
+      <StatWrapper
+        statLabel="Notifications"
+        statNumber={formatStat(tableCounts.data.notifications)}
+      />
+      <StatWrapper
+        statLabel="Conversion Rate"
+        statNumber={formatPct(overallRateRequests.data?.conversionRate || 0)}
+        helpText={"Requests"}
+      />
+      <StatWrapper
+        statLabel="Conversion Rate"
+        statNumber={formatPct(overallRatePurchases.data?.conversionRate || 0)}
+        helpText={"Purchases"}
+      />
+    </Grid>
   );
 };
 
@@ -154,8 +184,8 @@ const ConversionTable = () => {
 
   return (
     <Box overflowX="auto">
-      <Table size="sm" colorScheme="gray" variant="striped">
-        <Thead>
+      <Table size={"sm"} variant="striped">
+        <Thead background={useColorModeValue("#ECE8FD", "#2F206E")}>
           <Tr>
             <Th
               onClick={() => setSortColumn("customer")}
@@ -172,8 +202,8 @@ const ConversionTable = () => {
               color={
                 sortColumn === "totalNotifications" ? activeColor : undefined
               }
-              isNumeric
               cursor="pointer"
+              paddingLeft={"0px"}
             >
               Total Notifications
               {sortColumn === "totalNotifications" && <ChevronDownIcon />}
@@ -184,8 +214,8 @@ const ConversionTable = () => {
               color={
                 sortColumn === "totalConversions" ? activeColor : undefined
               }
-              isNumeric
               cursor="pointer"
+              paddingLeft={"0px"}
             >
               Total Conversions
               {sortColumn === "totalConversions" && <ChevronDownIcon />}
@@ -194,8 +224,8 @@ const ConversionTable = () => {
               onClick={() => setSortColumn("conversionRate")}
               _hover={{ color: activeColor }}
               color={sortColumn === "conversionRate" ? activeColor : undefined}
-              isNumeric
               cursor="pointer"
+              paddingLeft={"0px"}
             >
               Conversion Rate
               {sortColumn === "conversionRate" && <ChevronDownIcon />}
@@ -204,11 +234,25 @@ const ConversionTable = () => {
         </Thead>
         <Tbody>
           {metricsTableData.data?.map((c) => (
-            <Tr key={c.customer}>
+            <Tr key={c.customer} border={"px solid grey"}>
               <Td>{c.customer}</Td>
-              <Td isNumeric>{formatStat(c.totalNotifications)}</Td>
-              <Td isNumeric>{formatStat(c.totalConversions)}</Td>
-              <Td isNumeric>{formatPct(c.conversionRate)}</Td>
+              <Td paddingLeft={"10px"}>{formatStat(c.totalNotifications)}</Td>
+              <Td paddingLeft={"10px"}>{formatStat(c.totalConversions)}</Td>
+              <Td paddingLeft={"10px"}>
+                <Box
+                  display={"inline"}
+                  padding={"3px"}
+                  fontSize={"xs"}
+                  borderRadius={"5px"}
+                  background={useColorModeValue(
+                    "#EEEEEE",
+                    "rgba(230, 229, 234, 0.6)"
+                  )}
+                  color={useColorModeValue("white", "black")}
+                >
+                  {formatPct(c.conversionRate)}
+                </Box>
+              </Td>
             </Tr>
           ))}
         </Tbody>
@@ -234,29 +278,17 @@ const useConversionCells = (
 
 const ConversionMap = () => {
   return (
-    <Stack direction={["column", "row"]} alignItems="top">
-      <Box flex={1}>
-        <MarkdownText>
-          {`
-            ### Conversion Map
-
-            This map shows the total conversion rate for all offers in each
-            notification zone. Each polygon is colored based on the rate.
-          `}
-        </MarkdownText>
-      </Box>
-      <Box flex={2}>
-        <Heatmap
-          height={400}
-          defaultZoom={14}
-          useCells={useConversionCells}
-          colorInterpolater={interpolateBuPu}
-          getCellConfig={({ conversionRate, wktPolygon }: ZoneMetrics) => ({
-            value: conversionRate,
-            wktPolygon,
-          })}
-        />
-      </Box>
-    </Stack>
+    <Box flex={2}>
+      <Heatmap
+        height={400}
+        defaultZoom={14}
+        useCells={useConversionCells}
+        colorInterpolater={interpolateBuPu}
+        getCellConfig={({ conversionRate, wktPolygon }: ZoneMetrics) => ({
+          value: conversionRate,
+          wktPolygon,
+        })}
+      />
+    </Box>
   );
 };

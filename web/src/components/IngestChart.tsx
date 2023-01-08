@@ -120,12 +120,12 @@ export const IngestChart = <TableName extends string>({
       xScale={{ type: "time" }}
       yScale={{ type: "sqrt", nice: true, zero: false, clamp: true }}
       theme={colorMode === "light" ? lightTheme : darkTheme}
-      margin={{ left: 0, right: 50, top: 10, bottom: 40 }}
+      margin={{ left: 50, right: 0, top: 10, bottom: 40 }}
       {...props}
     >
       <Axis orientation="bottom" numTicks={5} label="time" labelOffset={10} />
       <Axis
-        orientation="right"
+        orientation="left"
         numTicks={props.height < 250 ? 3 : 5}
         tickFormat={yTickFormat}
         label={yAxisLabel}

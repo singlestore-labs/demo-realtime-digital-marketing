@@ -1,31 +1,29 @@
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
-import { PixiMap } from "@/components/shared/PixiMap";
+import { PixiMap } from "../../components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { useConnectionState } from "@/data/hooks";
-import {
-  connectionConfig,
-  simulatorEnabled,
-} from "@/data/recoil";
+import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { useSimulator } from "@/data/useSimulator";
 import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
 import { SettingsIcon } from "@chakra-ui/icons";
 import {
-  Box,
   Button,
   Flex,
   Heading,
   Icon,
-  Spacer,
+  SimpleGrid,
   Stack,
   Text,
+  Tooltip,
+  useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilValue } from "recoil";
 import { Stats } from "./stats";
-import { BsCircle, BsCircleFill, BsInfoCircleFill } from "react-icons/bs";
+import { BsInfoCircleFill } from "react-icons/bs";
 
 const StatsWrapper = () => {
   const config = useRecoilValue(connectionConfig);
@@ -42,8 +40,10 @@ const StatsWrapper = () => {
   return (
     <>
       <Stack spacing={3}>
-        <Heading as={"h4"} size={"md"}>Key Metrics</Heading>
-          <Text size="md">Serving ads real-time to sumulate Subscribers</Text>
+        <Heading as={"h4"} size={"md"}>
+          Key Metrics
+        </Heading>
+        <Text size="md">Serving ads real-time to sumulate Subscribers</Text>
         <Stats />
       </Stack>
       <Stack border="1px solid silver" borderRadius="10px" padding="15px">
@@ -51,11 +51,20 @@ const StatsWrapper = () => {
           <Text fontSize="sm" fontWeight="bold">
             INGESTED DATA
           </Text>
-          <Flex justifyContent={"space-between"} gap={2} fontSize={"xs"} alignItems={"center"} color={"#4F34C7"} >
-            <Icon as={BsInfoCircleFill} /> <Text>Hover over graph for schema details</Text>
+          <Flex
+            justifyContent={"space-between"}
+            gap={2}
+            fontSize={"xs"}
+            alignItems={"center"}
+            color={useColorModeValue("#553ACF", "#ECE8FD")}
+          >
+            <Icon as={BsInfoCircleFill} />{" "}
+            <Text>Hover over graph for schema details</Text>
           </Flex>
         </Flex>
-        <IngestChart data={ingestData} yAxisLabel="total rows" height={150} />
+        <SimpleGrid>
+          <IngestChart data={ingestData} yAxisLabel="total rows" height={200} />
+        </SimpleGrid>
       </Stack>
     </>
   );
@@ -73,7 +82,7 @@ export const NotificationsMap = () => {
     inner = (
       <Button
         size="sm"
-        onClick={() => window.open('/configure', "_self")}
+        onClick={() => window.open("/configure", "_self")}
         colorScheme="green"
       >
         <SettingsIcon />
@@ -102,18 +111,17 @@ export const NotificationsMap = () => {
       position={"relative"}
       height="100%"
     >
-       <Stack
-          spacing={4}
-          position={isSmallScreen ? 'relative' : 'absolute' }
-          boxShadow={"0px 3px 2px 0px #ddddde"}
-          background={"white"}
-          zIndex={4}
-          left={0}
-          top={0}
-          width={isSmallScreen ? "100%" : "30%"}
-          height={isSmallScreen ? "auto": "100%"}
-          borderBottomRightRadius={"10px"}
-          padding={"40px 30px"}
+      <Stack
+        spacing={4}
+        position={isSmallScreen ? "relative" : "absolute"}
+        boxShadow={"0px 3px 2px 0px #ddddde"}
+        background={useColorModeValue("white", "gray.800")}
+        left={0}
+        top={0}
+        width={isSmallScreen ? "100%" : "30%"}
+        height={isSmallScreen ? "auto" : "100%"}
+        borderBottomRightRadius={"10px"}
+        padding={"40px 30px"}
       >
         <MarkdownText>
           {`
@@ -127,10 +135,13 @@ export const NotificationsMap = () => {
         </MarkdownText>
         {inner}
       </Stack>
-      <Stack zIndex={1} spacing={2} width={"100%"} height="100%">
-        <PixiMap useRenderer={useNotificationsRenderer} options={{}} />
+      <Stack spacing={2} width={"100%"} height="100%">
+        <PixiMap
+          zIndex={-1}
+          useRenderer={useNotificationsRenderer}
+          options={{}}
+        />
       </Stack>
-     
     </Flex>
   );
 };

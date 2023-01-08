@@ -1,8 +1,7 @@
 import { useAnalytics } from "@/analytics";
-import { Admin } from "@/components/Admin";
-import { AnalyticsDashboard } from "@/components/pages/analytics/AnalyticsDashboard";
+import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { Nav } from "@/components/navBar/Nav";
-import { NotificationsMap } from "@/components/pages/dashboards/index";
+import { NotificationsMap } from "@/pages/dashboards/index";
 import { Overview } from "./pages/configure/Overview";
 import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
 import { Suspense } from "react";
@@ -29,7 +28,12 @@ function App() {
   return (
     <Suspense fallback={loadingFallback}>
       <Analytics />
-      <Flex height="100vh" direction="column">
+      <Flex
+        height="100vh"
+        width="100vw"
+        direction="column"
+        overflowY={"hidden"}
+      >
         <Nav />
         <Box flex="1" paddingTop={"6px"}>
           <Routes>

@@ -1,4 +1,4 @@
-import { extendTheme } from "@chakra-ui/react";
+import { extendTheme, useColorMode } from "@chakra-ui/react";
 import "@fontsource/inter/variable-full.css";
 import "@fontsource/source-code-pro/variable.css";
 
@@ -11,8 +11,8 @@ export const chakraTheme = extendTheme({
   components: {
     Link: {
       baseStyle: (props: { colorMode: "light" | "dark" }) => ({
-        color: props.colorMode === "light" ? "blue.600" : "blue.300",
+        color: props.colorMode === "light" ? "#553ACF" : "#CCC3F9",
       }),
     },
-  },
+  }
 });

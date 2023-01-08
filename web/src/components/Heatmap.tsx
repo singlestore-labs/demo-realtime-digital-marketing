@@ -1,4 +1,4 @@
-import { PixiMap, PixiMapProps, UsePixiRenderer } from "../components/shared/PixiMap";
+import { PixiMap, PixiMapProps, UsePixiRenderer } from "./PixiMap";
 import { useDebounce } from "@/data/hooks";
 import { Polygon, WKTPolygonToPolygon } from "@/geo";
 import { useConst } from "@chakra-ui/react";

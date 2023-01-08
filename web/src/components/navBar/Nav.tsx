@@ -2,12 +2,7 @@ import { useConnectionState } from "@/data/hooks";
 import { databaseDrawerIsOpen, simulatorEnabled } from "@/data/recoil";
 import { useSession } from "@/data/useSession";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.png";
-import {
-  CloseIcon,
-  HamburgerIcon,
-  MoonIcon,
-  SunIcon,
-} from "@chakra-ui/icons";
+import { CloseIcon, HamburgerIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
 import {
   Avatar,
   Box,
@@ -26,15 +21,19 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
-import React, { ReactNode } from "react";
-import { BsMap, BsGraphUp, BsGear, BsShare, BsShareFill, BsMapFill, BsGearFill } from "react-icons/bs";
+import React from "react";
 import {
-  NavLink as RouterLink,
-  useMatch,
-  useResolvedPath,
-} from "react-router-dom";
+  BsMap,
+  BsGraphUp,
+  BsGear,
+  BsShare,
+  BsShareFill,
+  BsMapFill,
+  BsGearFill,
+} from "react-icons/bs";
+import { NavLink as RouterLink } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { GithubStargazer } from "../shared/GithubButtons";
+import { GithubStargazer } from "../GithubButtons";
 import { ReactElement } from "react-markdown/lib/react-markdown";
 
 // const NavLink = ({
@@ -71,7 +70,8 @@ import { ReactElement } from "react-markdown/lib/react-markdown";
 // };
 
 export const Nav = () => {
-  const { colorMode, toggleColorMode } = useColorMode();
+  const { toggleColorMode } = useColorMode();
+  const { colorMode } = useColorMode();
   const navMenu = useDisclosure();
   const [databaseMenuIsOpen, setDatabaseMenu] =
     useRecoilState(databaseDrawerIsOpen);
@@ -81,34 +81,66 @@ export const Nav = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
   const { session } = useSession();
 
-  const NavLinkActiveButtonStyle = colorMode === "light"
-    ? { background: "#553ACF", color: "#ECE8FD" }
-    : { background: "#ECE8FD", color: "#553ACF" };
+  const NavLinkActiveButtonStyle = {
+    background: useColorModeValue("#4F34C7", "#CCC3F9"),
+    color: useColorModeValue("#FFFFFF", "#2F206E"),
+  };
 
-  const LinksIntenralComponent = (props: { NavLinkTitle: string, IconElement: ReactElement}) => {
-    return <Flex gap={3} alignItems={"center"}><b>{props.NavLinkTitle} </b>{props.IconElement}</Flex>
-  }
+  const LinksIntenralComponent = (props: {
+    NavLinkTitle: string;
+    IconElement: ReactElement;
+  }) => {
+    return (
+      <Flex gap={3} alignItems={"center"}>
+        <b>{props.NavLinkTitle} </b>
+        {props.IconElement}
+      </Flex>
+    );
+  };
 
-  const NavLinkComponent = (props: { NavLinkTitle: string, IconElement: ReactElement, to: string }) => {
-    return <Link padding={"4px 15px 4px 15px"} borderRadius="5px" as={RouterLink} color={colorMode === "dark" ? "#ECE8FD" : undefined} to={props.to} onClick={navMenu.onClose} _hover={NavLinkActiveButtonStyle} _activeLink={NavLinkActiveButtonStyle}>
-      <LinksIntenralComponent NavLinkTitle={props.NavLinkTitle} IconElement={props.IconElement} />
-    </Link>
-  }
+  const NavLinkComponent = (props: {
+    NavLinkTitle: string;
+    IconElement: ReactElement;
+    to: string;
+  }) => {
+    return (
+      <Link
+        padding={"4px 15px 4px 15px"}
+        borderRadius="5px"
+        as={RouterLink}
+        color={useColorModeValue("#553ACF", "#CCC3F9")}
+        to={props.to}
+        onClick={navMenu.onClose}
+        _hover={NavLinkActiveButtonStyle}
+        _activeLink={NavLinkActiveButtonStyle}
+      >
+        <LinksIntenralComponent
+          NavLinkTitle={props.NavLinkTitle}
+          IconElement={props.IconElement}
+        />
+      </Link>
+    );
+  };
 
   const links = (
     <>
-      
-        <NavLinkComponent to={"/"} NavLinkTitle={"Dashboard"} IconElement={<Icon as={colorMode === "light" ? BsMap : BsMapFill} />} />
-        <NavLinkComponent to={"/configure"} NavLinkTitle={"Configure"} IconElement={<Icon as={colorMode === "light" ? BsGear : BsGearFill} />} />
-        <NavLinkComponent to={"/analytics"} NavLinkTitle={"Analytics"} IconElement={<Icon as={BsGraphUp} />} />
+      <NavLinkComponent
+        to={"/"}
+        NavLinkTitle={"Dashboard"}
+        IconElement={<Icon as={colorMode === "light" ? BsMap : BsMapFill} />}
+      />
+      <NavLinkComponent
+        to={"/configure"}
+        NavLinkTitle={"Configure"}
+        IconElement={<Icon as={colorMode === "light" ? BsGear : BsGearFill} />}
+      />
+      <NavLinkComponent
+        to={"/analytics"}
+        NavLinkTitle={"Analytics"}
+        IconElement={<Icon as={BsGraphUp} />}
+      />
     </>
   );
-
-  const databaseMenuButtonColor = connected
-    ? initialized && isSimulatorEnabled && session.isController
-      ? "green"
-      : "yellow"
-    : "red";
 
   let databaseMenuButtonText;
   if (!isSmallScreen) {
@@ -123,8 +155,19 @@ export const Nav = () => {
 
   return (
     <>
-      <Box bg={ colorMode == "light" ? "#ECE8FD" : "#2F206E"} borderBottomRadius={"10px"} borderTop={0} boxShadow={"0 2px 2px #ddddde"} zIndex={5}>
-        <Container maxW="inherit" margin={0} paddingEnd="10" paddingStart="10">
+      <Box
+        bg={useColorModeValue("#ECE8FD", "#2F206E")}
+        borderBottomRadius={"10px"}
+        borderTop={0}
+        justifyContent={"center"}
+        alignItems={"center"}
+        alignContent={"center"}
+        boxShadow={colorMode === "light" ? "0 2px 2px #ddddde" : undefined}
+        zIndex={5}
+        paddingLeft={"1rem"}
+        paddingRight={"1rem"}
+      >
+        <Container maxW="inherit" padding="0 12.5% 0 12.5%">
           <Flex h={16} justifyContent={"space-between"}>
             <IconButton
               size={"md"}
@@ -133,14 +176,19 @@ export const Nav = () => {
               display={{ md: "none" }}
               onClick={navMenu.isOpen ? navMenu.onClose : navMenu.onOpen}
             />
-             <HStack
-                as={"nav"}
-                spacing={2}
-                display={{ base: "none", md: "flex" }}
-              >
-              <Wrap display={"inline-block"} >
+
+            <HStack
+              as={"nav"}
+              spacing={2}
+              display={{ base: "none", md: "flex" }}
+            >
+              <Wrap display={"inline-block"}>
                 <WrapItem>
-                  <Avatar size={"sm"} name='Dan Abrahmov' src={SinglestoreLogo} />
+                  <Avatar
+                    size={"sm"}
+                    name="Dan Abrahmov"
+                    src={SinglestoreLogo}
+                  />
                 </WrapItem>
               </Wrap>
               <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
@@ -149,9 +197,9 @@ export const Nav = () => {
             </HStack>
             <HStack
               as={"nav"}
-              spacing={5}
+              spacing={4}
               alignItems={"center"}
-              justifyContent={"center"}
+              justifyContent={"right"}
               display={{ base: "none", md: "flex" }}
             >
               {links}
@@ -160,7 +208,7 @@ export const Nav = () => {
             <Flex alignItems={"center"} justifyContent={"right"} gap={7}>
               <Icon
                 aria-label="Github Repo"
-                as={ colorMode === "light" ? BsShare : BsShareFill }
+                as={colorMode === "light" ? BsShare : BsShareFill}
                 cursor={"pointer"}
                 onClick={() =>
                   window.open(
@@ -168,10 +216,16 @@ export const Nav = () => {
                   )
                 }
               />
-              {
-                colorMode === "light" ? <SunIcon onClick={toggleColorMode} /> : <MoonIcon onClick={toggleColorMode}/>
-              }
-              <GithubStargazer color="black" owner={"singlestore-labs"} repo={"demo-realtime-digital-marketing"} />
+              {colorMode === "light" ? (
+                <SunIcon onClick={toggleColorMode} />
+              ) : (
+                <MoonIcon onClick={toggleColorMode} />
+              )}
+              <GithubStargazer
+                color="black"
+                owner={"singlestore-labs"}
+                repo={"demo-realtime-digital-marketing"}
+              />
             </Flex>
           </Flex>
 

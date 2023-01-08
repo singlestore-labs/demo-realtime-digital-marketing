@@ -1,4 +1,4 @@
-import App from "@/components/App";
+import App from "./App";
 import { ClientErrorBoundary, ErrorBoundary } from "@/components/ErrorHandler";
 import { chakraTheme } from "@/components/theme";
 import { resettingSchema } from "@/data/recoil";
