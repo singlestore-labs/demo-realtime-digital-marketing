@@ -17,8 +17,11 @@ import {
   Box,
   Center,
   Container,
+  Flex,
   Grid,
   GridItem,
+  Heading,
+  Progress,
   Spinner,
   Stack,
   Stat,
@@ -26,8 +29,10 @@ import {
   StatLabel,
   StatNumber,
   Table,
+  TableContainer,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
@@ -55,16 +60,69 @@ export const AnalyticsDashboard = () => {
         <LoadingIndicator />
       ) : enabled ? (
         <Stack gap={10}>
-          <Grid templateColumns="repeat(6, 1fr)" gap={5}>
-            <GridItem colSpan={2}>
-              <StatGrid />
-            </GridItem>
-            <GridItem colSpan={4}>
-              <ConversionMap />
-            </GridItem>
-          </Grid>
+          <Box>
+            <Heading fontSize={"md"}>Engagement</Heading>
+            <Text overflowWrap={"break-word"}>
+              Conversion rate with subscribers
+            </Text>
+            <br />
 
-          <ConversionTable />
+            <Grid templateColumns="repeat(6, 1fr)" gap={5}>
+              <GridItem colSpan={2}>
+                <StatGrid />
+              </GridItem>
+              <GridItem
+                colSpan={4}
+                padding={5}
+                borderRadius={10}
+                border={"1px solid grey"}
+              >
+                <Flex
+                  direction={"row"}
+                  justifyContent={"space-between"}
+                  width={"100%"}
+                  gap={10}
+                  alignItems={"center"}
+                >
+                  <Text
+                    fontWeight={"bold"}
+                    fontSize={"sm"}
+                    textTransform={"uppercase"}
+                  >
+                    Offer conversion rates by Notification zone
+                  </Text>
+                  <Flex width={"30%"} direction={"column"}>
+                    <Box width={"100%"}>
+                      <Progress
+                        colorScheme={"transparent"}
+                        height={2}
+                        bgGradient="linear(to-r, rgba(127, 17, 224, 1), white)"
+                        value={90}
+                      />
+                    </Box>
+                    <Flex width={"100%"} justifyContent={"space-between"}>
+                      <Text>
+                        <small>High</small>
+                      </Text>
+                      <Text>
+                        <small>Low</small>
+                      </Text>
+                    </Flex>
+                  </Flex>
+                </Flex>
+                <br />
+                <ConversionMap />
+              </GridItem>
+            </Grid>
+          </Box>
+          <Box>
+            <Heading fontSize={"md"}>Top Performing Customers</Heading>
+            <Text overflowWrap={"break-word"}>
+              Companies with the highest conversion rate
+            </Text>
+            <br />
+            <ConversionTable />
+          </Box>
         </Stack>
       ) : (
         <EnableSimulatorButton />
@@ -179,84 +237,97 @@ const ConversionTable = () => {
     () => customerMetrics(config, "purchases", sortColumn, 10),
     { refreshInterval: 1000 }
   );
-
-  const activeColor = useColorModeValue("blue.500", "blue.200");
+  const activeColor = useColorModeValue("#553ACF", "#CCC3F9");
 
   return (
     <Box overflowX="auto">
-      <Table size={"sm"} variant="striped">
-        <Thead background={useColorModeValue("#ECE8FD", "#2F206E")}>
-          <Tr>
-            <Th
-              onClick={() => setSortColumn("customer")}
-              _hover={{ color: activeColor }}
-              color={sortColumn === "customer" ? activeColor : undefined}
-              cursor="pointer"
-            >
-              Customer
-              {sortColumn === "customer" && <ChevronDownIcon />}
-            </Th>
-            <Th
-              onClick={() => setSortColumn("totalNotifications")}
-              _hover={{ color: activeColor }}
-              color={
-                sortColumn === "totalNotifications" ? activeColor : undefined
-              }
-              cursor="pointer"
-              paddingLeft={"0px"}
-            >
-              Total Notifications
-              {sortColumn === "totalNotifications" && <ChevronDownIcon />}
-            </Th>
-            <Th
-              onClick={() => setSortColumn("totalConversions")}
-              _hover={{ color: activeColor }}
-              color={
-                sortColumn === "totalConversions" ? activeColor : undefined
-              }
-              cursor="pointer"
-              paddingLeft={"0px"}
-            >
-              Total Conversions
-              {sortColumn === "totalConversions" && <ChevronDownIcon />}
-            </Th>
-            <Th
-              onClick={() => setSortColumn("conversionRate")}
-              _hover={{ color: activeColor }}
-              color={sortColumn === "conversionRate" ? activeColor : undefined}
-              cursor="pointer"
-              paddingLeft={"0px"}
-            >
-              Conversion Rate
-              {sortColumn === "conversionRate" && <ChevronDownIcon />}
-            </Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {metricsTableData.data?.map((c) => (
-            <Tr key={c.customer} border={"px solid grey"}>
-              <Td>{c.customer}</Td>
-              <Td paddingLeft={"10px"}>{formatStat(c.totalNotifications)}</Td>
-              <Td paddingLeft={"10px"}>{formatStat(c.totalConversions)}</Td>
-              <Td paddingLeft={"10px"}>
-                <Box
-                  display={"inline"}
-                  padding={"3px"}
-                  fontSize={"xs"}
-                  borderRadius={"5px"}
-                  background={useColorModeValue(
-                    "#EEEEEE",
-                    "rgba(230, 229, 234, 0.6)"
-                  )}
-                  color={useColorModeValue("white", "black")}
-                >
-                  {formatPct(c.conversionRate)}
-                </Box>
-              </Td>
+      <TableContainer>
+        <Table size={"sm"} variant="striped">
+          <Thead background={useColorModeValue("#ECE8FD", "#2F206E")}>
+            <Tr>
+              <Th
+                onClick={() => setSortColumn("customer")}
+                _hover={{ color: activeColor }}
+                color={sortColumn === "customer" ? activeColor : undefined}
+                cursor="pointer"
+              >
+                Customer
+                {sortColumn === "customer" && <ChevronDownIcon />}
+              </Th>
+              <Th
+                onClick={() => setSortColumn("totalNotifications")}
+                _hover={{ color: activeColor }}
+                color={
+                  sortColumn === "totalNotifications" ? activeColor : undefined
+                }
+                cursor="pointer"
+                paddingLeft={"0px"}
+              >
+                Total Notifications
+                {sortColumn === "totalNotifications" && <ChevronDownIcon />}
+              </Th>
+              <Th
+                onClick={() => setSortColumn("totalConversions")}
+                _hover={{ color: activeColor }}
+                color={
+                  sortColumn === "totalConversions" ? activeColor : undefined
+                }
+                cursor="pointer"
+                paddingLeft={"0px"}
+              >
+                Total Conversions
+                {sortColumn === "totalConversions" && <ChevronDownIcon />}
+              </Th>
+              <Th
+                onClick={() => setSortColumn("conversionRate")}
+                _hover={{ color: activeColor }}
+                color={
+                  sortColumn === "conversionRate" ? activeColor : undefined
+                }
+                cursor="pointer"
+                paddingLeft={"0px"}
+              >
+                Conversion Rate
+                {sortColumn === "conversionRate" && <ChevronDownIcon />}
+              </Th>
             </Tr>
-          ))}
-        </Tbody>
-      </Table>
+          </Thead>
+          <Tbody>
+            {metricsTableData.data?.map((c, index) => (
+              <Tr key={c.customer}>
+                <Td>{c.customer}</Td>
+                <Td paddingLeft={"10px"}>{formatStat(c.totalNotifications)}</Td>
+                <Td paddingLeft={"10px"}>{formatStat(c.totalConversions)}</Td>
+                <Td paddingLeft={"10px"}>
+                  <Box
+                    background={"white"}
+                    display={"inline-block"}
+                    borderRadius={"5px"}
+                    padding={0}
+                    margin={0}
+                  >
+                    <Box
+                      display={"inline-block"}
+                      borderRadius={"5px"}
+                      padding={"4px"}
+                      fontSize={"xs"}
+                      background={`rgba(127, 17, 224, ${
+                        (c.conversionRate * c.conversionRate +
+                          2 * c.conversionRate +
+                          1) /
+                        10
+                      })`}
+                      color={`rgba(0,0,0,1)`}
+                    >
+                      {formatPct(c.conversionRate)}
+                    </Box>
+                  </Box>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 };

@@ -1,12 +1,16 @@
-import { CodeBlock } from "@/components/CodeBlock";
-import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
-import { IngestChart, useIngestChartData } from "@/components/IngestChart";
-import { MarkdownText } from "@/components/MarkdownText";
-import { OfferMap } from "@/components/OfferMap";
+import { CodeBlock } from "../../components/CodeBlock";
+import { DatabaseConfigForm } from "../../components/DatabaseConfigForm";
+import { IngestChart, useIngestChartData } from "../../components/IngestChart";
+import { MarkdownText } from "../../components/MarkdownText";
+import { OfferMap } from "../../components/OfferMap";
 import { PixiMap } from "../../components/PixiMap";
-import { ResetSchemaButton } from "@/components/ResetSchemaButton";
-import { ConnectionConfig } from "@/data/client";
-import { useConnectionState, useSchemaObjects, useTimer } from "@/data/hooks";
+import { ResetSchemaButton } from "../../components/ResetSchemaButton";
+import { ConnectionConfig } from "../../data/client";
+import {
+  useConnectionState,
+  useSchemaObjects,
+  useTimer,
+} from "../../data/hooks";
 import {
   checkPlans,
   ensurePipelinesExist,
@@ -893,7 +897,7 @@ export const Overview = () => {
   ];
 
   const sections = [];
-  for (const { completed, component } of sectionDefinitions) {
+  for (const { component } of sectionDefinitions) {
     sections.push(component);
   }
 

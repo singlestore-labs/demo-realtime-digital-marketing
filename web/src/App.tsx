@@ -6,6 +6,7 @@ import { Overview } from "./pages/configure/Overview";
 import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
 import { Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { Footer } from "./components/Footer";
 
 function App() {
   const loadingFallback = (
@@ -28,12 +29,7 @@ function App() {
   return (
     <Suspense fallback={loadingFallback}>
       <Analytics />
-      <Flex
-        height="100vh"
-        width="100vw"
-        direction="column"
-        overflowY={"hidden"}
-      >
+      <Flex height="100vh" width="100vw" direction="column" overflowY={"auto"}>
         <Nav />
         <Box flex="1" paddingTop={"6px"}>
           <Routes>
@@ -43,6 +39,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>
+        <Footer />
       </Flex>
     </Suspense>
   );

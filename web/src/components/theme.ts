@@ -14,5 +14,11 @@ export const chakraTheme = extendTheme({
         color: props.colorMode === "light" ? "#553ACF" : "#CCC3F9",
       }),
     },
+    button: {
+      style: (props: { colorMode: "light" | "dark" }) => ({
+        background: props.colorMode === "light" ? "#4F34C7" : "#CCC3F9",
+        color: props.colorMode === "light" ? "#FFFFFF" : "#2F206E"
+      })
+    }
   }
 });
