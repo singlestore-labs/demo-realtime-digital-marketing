@@ -20,12 +20,9 @@ import {
 } from "@chakra-ui/react";
 import {
   BsBarChart,
-  BsBarChartFill,
   BsFillBarChartFill,
-  BsFillBarChartLineFill,
   BsGear,
   BsGearFill,
-  BsGraphUp,
   BsMap,
   BsMapFill,
   BsShare,

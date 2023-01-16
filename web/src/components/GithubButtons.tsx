@@ -1,6 +1,6 @@
+import { Flex, useColorMode } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { BsGithub } from "react-icons/bs";
-import { Flex, useColorMode } from "@chakra-ui/react";
 
 export interface IPropTypes {
   owner: string;

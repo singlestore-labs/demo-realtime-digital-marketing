@@ -13,6 +13,6 @@ export const chakraTheme = extendTheme({
       baseStyle: (props: { colorMode: "light" | "dark" }) => ({
         color: props.colorMode === "light" ? "#553ACF" : "#CCC3F9",
       }),
-    }
-  }
+    },
+  },
 });

@@ -179,7 +179,7 @@ export const PixiMap = <T,>({
   showCitySelectionDropDown = true,
   defaultCenter,
   useRenderer,
-  options
+  options,
 }: PixiMapProps<T>) => {
   const [center, setCenter] = useState(defaultCenter || DEFAULT_CENTER);
   const [zoom] = useState(DEFAULT_ZOOM);
@@ -246,7 +246,7 @@ export const PixiMap = <T,>({
             label={
               isUpdating
                 ? "Please wait while we fetch cities list"
-                : "<- Please select atleast 1 Location first"
+                : "Please select atleast 1 Location from Dashboard menu"
             }
           >
             <Box display={"inline"}>
@@ -268,7 +268,7 @@ export const PixiMap = <T,>({
                     ? setLastSelectedCityId(() => e.value.id)
                     : setLastSelectedCityId(() => -1)
                 }
-                isDisabled={isUpdating}
+                isDisabled={lastSelectedCityId === -1 || isUpdating}
                 styles={{
                   input: (props) => ({
                     ...props,
