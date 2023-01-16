@@ -1,4 +1,4 @@
-import { useConnectionState, useTick } from "@/data/hooks";
+import { useConnectionState, useTick } from "@/data/Hooks/hooks";
 import {
   checkPlans,
   ensurePipelinesAreRunning,

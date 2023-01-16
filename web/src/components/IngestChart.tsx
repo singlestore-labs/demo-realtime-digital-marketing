@@ -1,13 +1,7 @@
 import { ConnectionConfig } from "@/data/client";
 import { estimatedRowCountObj } from "@/data/queries";
 import { Timeseries, TimeseriesPoint } from "@/data/timeseries";
-import {
-  Center,
-  Spinner,
-  Text,
-  useColorMode,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { Center, Spinner, Text, useColorMode } from "@chakra-ui/react";
 import {
   AnimatedLineSeries,
   Axis,
@@ -56,7 +50,6 @@ export const useIngestChartData = <TableName extends string>(
     },
     { refreshInterval: 1000 }
   );
-
   return data ?? emptyCache;
 };
 
@@ -103,15 +96,10 @@ export const IngestChart = <TableName extends string>({
     []
   );
 
-  const SpinnerButtonStyle = {
-    background: useColorModeValue("#4F34C7", "#CCC3F9"),
-    color: useColorModeValue("#FFFFFF", "#2F206E"),
-  };
-
   if (tables.some((name) => data[name].length < 2)) {
     return (
       <Center height={props.height}>
-        <Spinner size="md" style={SpinnerButtonStyle} />
+        <Spinner size="md" />
       </Center>
     );
   }

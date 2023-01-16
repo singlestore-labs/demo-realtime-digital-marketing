@@ -1,4 +1,4 @@
-import { useConnectionState, useTick } from "@/data/hooks";
+import { useConnectionState, useTick } from "@/data/Hooks/hooks";
 import { runMatchingProcess, runUpdateSegments } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { useSession } from "@/data/useSession";

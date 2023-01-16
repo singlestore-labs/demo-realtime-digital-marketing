@@ -1,8 +1,8 @@
 import { trackAnalyticsEvent } from "@/analytics";
 import { ConnectionConfig } from "@/data/client";
 import { atom, AtomEffect, atomFamily, DefaultValue, selector } from "recoil";
-import { defaultScaleFactor, ScaleFactor, ScaleFactors } from "../scalefactors";
 import { v4 as uuidv4 } from "uuid";
+import { defaultScaleFactor, ScaleFactor, ScaleFactors } from "../scalefactors";
 
 type LocalStorageEffectConfig<T> = {
   encode: (v: T) => string;
@@ -44,6 +44,12 @@ export const userSessionID = atom({
   key: "userID",
   default: uuidv4(),
   effects: [localStorageEffect()],
+});
+
+export const selectedCity = atom({
+  key: "selectedCity",
+  default: -1,
+  effects: [],
 });
 
 export const connectionHost = atom({

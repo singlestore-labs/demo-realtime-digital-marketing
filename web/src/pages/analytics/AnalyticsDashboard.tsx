@@ -1,6 +1,6 @@
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/Heatmap";
-import { useConnectionState } from "@/data/hooks";
+import { useConnectionState } from "@/data/Hooks/hooks";
 import {
   CustomerMetrics,
   customerMetrics,
@@ -21,6 +21,7 @@ import {
   Grid,
   GridItem,
   Heading,
+  keyframes,
   Progress,
   Spinner,
   Stack,
@@ -37,6 +38,7 @@ import {
   Thead,
   Tr,
   useColorModeValue,
+  useMediaQuery,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
 import { interpolateBuPu } from "d3-scale-chromatic";
@@ -53,9 +55,10 @@ export const AnalyticsDashboard = () => {
   const enabled = useRecoilValue(simulatorEnabled);
   useSimulationMonitor(enabled);
   useSimulator(enabled);
+  const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   return (
-    <Container maxW="75%" mt={10} mb="30vh">
+    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30vh">
       {!initialized ? (
         <LoadingIndicator />
       ) : enabled ? (
@@ -67,15 +70,16 @@ export const AnalyticsDashboard = () => {
             </Text>
             <br />
 
-            <Grid templateColumns="repeat(6, 1fr)" gap={5}>
-              <GridItem colSpan={2}>
+            <Flex gap={5} direction={isSmallScreen ? "column" : "row"}>
+              <Stack flex={2}>
                 <StatGrid />
-              </GridItem>
-              <GridItem
-                colSpan={4}
-                padding={5}
+              </Stack>
+              <Stack
+                padding={"17px"}
+                flex={4}
                 borderRadius={10}
                 border={"1px solid grey"}
+                position={"relative"}
               >
                 <Flex
                   direction={"row"}
@@ -111,9 +115,21 @@ export const AnalyticsDashboard = () => {
                   </Flex>
                 </Flex>
                 <br />
-                <ConversionMap />
-              </GridItem>
-            </Grid>
+
+                <Heatmap
+                  height={400}
+                  useCells={useConversionCells}
+                  colorInterpolater={interpolateBuPu}
+                  getCellConfig={({
+                    conversionRate,
+                    wktPolygon,
+                  }: ZoneMetrics) => ({
+                    value: conversionRate,
+                    wktPolygon,
+                  })}
+                />
+              </Stack>
+            </Flex>
           </Box>
           <Box>
             <Heading fontSize={"md"}>Top Performing Customers</Heading>
@@ -293,7 +309,10 @@ const ConversionTable = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {metricsTableData.data?.map((c, index) => (
+            {metricsTableData.isValidating && !metricsTableData.data ? (
+              <Spinner size={"sm"} />
+            ) : undefined}
+            {metricsTableData.data?.map((c) => (
               <Tr key={c.customer}>
                 <Td>{c.customer}</Td>
                 <Td paddingLeft={"10px"}>{formatStat(c.totalNotifications)}</Td>
@@ -344,22 +363,5 @@ const useConversionCells = (
       refreshInterval: 1000,
       onSuccess: callback,
     }
-  );
-};
-
-const ConversionMap = () => {
-  return (
-    <Box flex={2}>
-      <Heatmap
-        height={400}
-        defaultZoom={14}
-        useCells={useConversionCells}
-        colorInterpolater={interpolateBuPu}
-        getCellConfig={({ conversionRate, wktPolygon }: ZoneMetrics) => ({
-          value: conversionRate,
-          wktPolygon,
-        })}
-      />
-    </Box>
   );
 };

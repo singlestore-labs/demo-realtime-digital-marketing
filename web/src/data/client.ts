@@ -63,8 +63,8 @@ export const QueryOne = async <T = Row>(
   sql: string,
   ...args: SQLValue[]
 ): Promise<T> => {
+  console.log(sql);
   const rows = await Query<T>(config, sql, ...args);
-
   if (rows.length !== 1) {
     throw new SQLError("Expected exactly one row", sql);
   }

@@ -10,8 +10,6 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
-import React from "react";
-import { ReactElement } from "react-markdown/lib/react-markdown";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 

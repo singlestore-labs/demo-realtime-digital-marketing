@@ -45,6 +45,11 @@ export const DatabaseConfigForm = ({
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
           label="Username"
+          helpText={
+            <MarkdownText>
+              {`Fill in the Security credentials set for the workspace group.`}
+            </MarkdownText>
+          }
           placeholder="admin"
           value={user}
           setValue={setUser}

@@ -1,13 +1,13 @@
 import { trackAnalyticsEvent } from "@/analytics";
 import { UsePixiRenderer } from "@/components/PixiMap";
-import { useConnectionState, useDebounce } from "@/data/hooks";
-import { queryNotificationsInBounds } from "@/data/queries";
+import { useConnectionState, useDebounce } from "@/data/Hooks/hooks";
+import { City, getCities, queryNotificationsInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { toISOStringNoTZ } from "@/datetime";
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
 import { Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -81,6 +81,15 @@ export const useNotificationsDataKey = () => {
     () => ["notifications", config, initialized],
     [config, initialized]
   );
+};
+
+export const useCities = (onSuccess: (cities: City[]) => void) => {
+  const config = useRecoilValue(connectionConfig);
+  const { initialized } = useConnectionState();
+  return useSWR(["cities", config, initialized], () => getCities(config), {
+    isPaused: () => !initialized,
+    onSuccess,
+  });
 };
 
 export const useNotificationsRenderer: UsePixiRenderer = ({

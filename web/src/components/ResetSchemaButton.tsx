@@ -2,7 +2,7 @@ import {
   useConnectionState,
   useMountedCallback,
   useResetSchema,
-} from "@/data/hooks";
+} from "@/data/Hooks/hooks";
 import { connectionDatabase } from "@/data/recoil";
 import {
   AlertDialog,
@@ -17,6 +17,7 @@ import {
   Spinner,
   ThemingProps,
   useBoolean,
+  useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
 import React, { useCallback } from "react";
@@ -52,7 +53,6 @@ export const ResetSchemaButton = (props: Props) => {
       <Button
         disabled={!connected || disabled}
         onClick={resetSchemaDialog.onOpen}
-        colorScheme={initialized ? "green" : "red"}
         {...restProps}
       />
 
@@ -74,6 +74,9 @@ export const ResetSchemaButton = (props: Props) => {
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button
+                background={"transparent"}
+                border={"0.5px solid"}
+                color={useColorModeValue("#553ACF", "#ECE8FD")}
                 ref={cancelResetSchemaBtn}
                 onClick={resetSchemaDialog.onClose}
                 disabled={resettingSchema}
@@ -82,7 +85,8 @@ export const ResetSchemaButton = (props: Props) => {
               </Button>
               <Button
                 disabled={resettingSchema}
-                colorScheme={initialized ? "red" : "green"}
+                background={useColorModeValue("#ECE8FD", "#2F206E")}
+                color={useColorModeValue("#553ACF", "#ECE8FD")}
                 onClick={onResetSchema}
                 ml={3}
               >

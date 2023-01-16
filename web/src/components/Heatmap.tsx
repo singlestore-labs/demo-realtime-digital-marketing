@@ -1,5 +1,4 @@
-import { PixiMap, PixiMapProps, UsePixiRenderer } from "./PixiMap";
-import { useDebounce } from "@/data/hooks";
+import { useDebounce } from "@/data/Hooks/hooks";
 import { Polygon, WKTPolygonToPolygon } from "@/geo";
 import { useConst } from "@chakra-ui/react";
 import * as d3color from "d3-color";
@@ -7,6 +6,7 @@ import { ScaleSequential, scaleSequential } from "d3-scale";
 import { Bounds, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import { useCallback, useMemo } from "react";
+import { PixiMap, PixiMapProps, UsePixiRenderer } from "./PixiMap";
 
 // convert number (range 0-1) to color (hex)
 export type ColorInterpolater = (t: number) => string;

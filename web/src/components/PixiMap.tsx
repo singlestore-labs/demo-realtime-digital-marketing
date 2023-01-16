@@ -1,9 +1,27 @@
+import { UserContext } from "@/App";
 import { DEFAULT_CITY } from "@/data/offers";
-import { Box, BoxProps, Link, useConst } from "@chakra-ui/react";
+import { City } from "@/data/queries";
+import { selectedCity } from "@/data/recoil";
+import {
+  Box,
+  BoxProps,
+  Center,
+  Divider,
+  Flex,
+  Link,
+  Spinner,
+  Stack,
+  Text,
+  Tooltip,
+  useColorMode,
+  useConst,
+} from "@chakra-ui/react";
 import "@pixi/graphics-extras";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import React, { useLayoutEffect, useState } from "react";
+import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
+import Select from "react-select";
+import { useRecoilState } from "recoil";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -147,38 +165,175 @@ const RequiresInitLayer = <T,>({
 export type PixiMapProps<T> = {
   useRenderer: UsePixiRenderer<T>;
   height?: number | string;
-  defaultCenter?: [number, number];
-  defaultZoom?: number;
+  optionBoxTopPosition?: number | string;
+  optionBoxLeftPosition?: number | string;
+  defaultCenter?: [number, number] | undefined;
+  showCitySelectionDropDown?: boolean;
   options: T;
 } & BoxProps;
 
 export const PixiMap = <T,>({
   height = "100%",
-  defaultCenter = DEFAULT_CENTER,
-  defaultZoom = DEFAULT_ZOOM,
+  optionBoxLeftPosition = "10px",
+  optionBoxTopPosition = "10px",
+  showCitySelectionDropDown = true,
+  defaultCenter,
   useRenderer,
-  options,
-  ...rest
+  options
 }: PixiMapProps<T>) => {
-  const [center, setCenter] = useState(defaultCenter);
-  const [zoom, setZoom] = useState(defaultZoom);
+  const [center, setCenter] = useState(defaultCenter || DEFAULT_CENTER);
+  const [zoom] = useState(DEFAULT_ZOOM);
+  const { colorMode } = useColorMode();
+  const [lastSelectedCityId, setLastSelectedCityId] =
+    useRecoilState(selectedCity);
+  const { selectedCities, isUpdating } = useContext(UserContext);
+  const [forceUpdateMap, setForceUpdateMap] = useState(false);
+
+  const [lastSelectedCityDetails, setLastSelectedCityDetails] = useState(
+    undefined as City | undefined
+  );
+
+  useEffect(() => {
+    setForceUpdateMap(true);
+    setLastSelectedCityDetails(
+      selectedCities.find((c) => c.id === lastSelectedCityId)
+    );
+  }, [lastSelectedCityId]);
+
+  useEffect(() => {
+    setForceUpdateMap(false);
+    lastSelectedCityDetails && !defaultCenter
+      ? setCenter([
+          lastSelectedCityDetails.centerLat,
+          lastSelectedCityDetails.centerLon,
+        ])
+      : undefined;
+  }, [lastSelectedCityDetails]);
 
   return (
-    <Box borderRadius="none" overflow="hidden" height={height} {...rest}>
-      <Map
-        dprs={[1, 2]}
-        provider={stamenProvider("toner-lite")}
-        attribution={stamenAttribution}
-        maxZoom={20}
-        center={center}
-        zoom={zoom}
-        onBoundsChanged={({ center, zoom }) => {
-          setCenter(center);
-          setZoom(zoom);
-        }}
-      >
-        <RequiresInitLayer useRenderer={useRenderer} options={options} />
-      </Map>
-    </Box>
+    <Stack spacing={0} position={"relative"} height={height}>
+      {showCitySelectionDropDown ? (
+        <Flex
+          position={"absolute"}
+          zIndex={5}
+          top={optionBoxTopPosition}
+          left={optionBoxLeftPosition}
+          background={colorMode === "light" ? "#553ACF" : "#CCC3F9"}
+          color={colorMode === "light" ? "white" : "black"}
+          boxShadow={"1px 6px 6px grey"}
+          width={"-webkit-fit-content"}
+          justifyContent={"space-between"}
+          gap={1}
+          padding={"0px 2px 0px 10px"}
+          borderRadius={"6px"}
+          alignItems={"center"}
+        >
+          <Box display={"inline"}>
+            <Text display={"inline"}>Map view</Text>
+          </Box>
+          <Center
+            height="25px"
+            margin={"2px 0px 2px 5px"}
+            background={colorMode === "light" ? "white" : "black"}
+          >
+            <Divider
+              color={colorMode === "light" ? "black" : "white"}
+              orientation="vertical"
+            />
+          </Center>
+          <Tooltip
+            isDisabled={!(lastSelectedCityId === -1 || isUpdating)}
+            label={
+              isUpdating
+                ? "Please wait while we fetch cities list"
+                : "<- Please select atleast 1 Location first"
+            }
+          >
+            <Box display={"inline"}>
+              <Select
+                options={selectedCities.map((c) => ({
+                  label: c.name,
+                  value: c,
+                }))}
+                value={
+                  lastSelectedCityDetails
+                    ? {
+                        label: lastSelectedCityDetails.name,
+                        value: lastSelectedCityDetails,
+                      }
+                    : { label: "Select city", value: { id: -1 } }
+                }
+                onChange={(e) =>
+                  e
+                    ? setLastSelectedCityId(() => e.value.id)
+                    : setLastSelectedCityId(() => -1)
+                }
+                isDisabled={isUpdating}
+                styles={{
+                  input: (props) => ({
+                    ...props,
+                    background: "transparent",
+                  }),
+                  placeholder: (props) => ({
+                    ...props,
+                    color: colorMode === "light" ? "white" : "black",
+                  }),
+                  option: (props) => ({
+                    ...props,
+                    background: "white",
+                    color: "#4C4A57",
+                  }),
+                  dropdownIndicator: (props) => ({
+                    ...props,
+                    color: colorMode === "light" ? "white" : "black",
+                  }),
+                  indicatorSeparator: (props) => ({
+                    ...props,
+                    display: "none",
+                  }),
+                  control: (props) => ({
+                    ...props,
+                    background: "transparent",
+                    border: "none",
+                  }),
+                  singleValue: (props) => ({
+                    ...props,
+                    color: colorMode === "light" ? "white" : "black",
+                  }),
+                }}
+              />
+            </Box>
+          </Tooltip>
+        </Flex>
+      ) : undefined}
+      {!forceUpdateMap ? (
+        <Box width={"inherit"} height={height}>
+          <Map
+            dprs={[1, 2]}
+            provider={stamenProvider("toner-lite")}
+            attribution={stamenAttribution}
+            maxZoom={20}
+            defaultCenter={
+              !lastSelectedCityDetails || defaultCenter ? center : undefined
+            }
+            center={
+              lastSelectedCityDetails && !defaultCenter
+                ? [
+                    lastSelectedCityDetails.centerLat,
+                    lastSelectedCityDetails.centerLon,
+                  ]
+                : defaultCenter
+                ? [defaultCenter[1], defaultCenter[0]]
+                : undefined
+            }
+            zoom={zoom}
+          >
+            <RequiresInitLayer useRenderer={useRenderer} options={options} />
+          </Map>
+        </Box>
+      ) : (
+        <Spinner size={"sm"} />
+      )}
+    </Stack>
   );
 };

@@ -1,4 +1,4 @@
-import { useConnectionState } from "@/data/hooks";
+import { useConnectionState } from "@/data/Hooks/hooks";
 import { updateSessions } from "@/data/queries";
 import { connectionConfig, resettingSchema } from "@/data/recoil";
 import { useRecoilValue } from "recoil";

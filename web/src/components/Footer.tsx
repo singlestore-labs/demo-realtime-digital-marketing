@@ -19,11 +19,13 @@ export const Footer = () => {
         justifyContent={"center"}
         alignItems={"center"}
         zIndex={5}
+        fontSize={"0.85em"}
         padding={"10px"}
       >
         <Flex
           direction={"column"}
           justifyContent={"center"}
+          gap={1}
           alignItems={"center"}
         >
           <MarkdownText>
@@ -31,7 +33,12 @@ export const Footer = () => {
             [**SingleStoreDB**](https://singlestore.com).
           </MarkdownText>
 
-          <Flex direction={"row"} gap={8} fontWeight={"bold"} fontSize={"sm"}>
+          <Flex
+            direction={"row"}
+            gap={8}
+            fontWeight={"bold"}
+            fontSize={"0.85em"}
+          >
             <Flex
               direction={"row"}
               gap={1}

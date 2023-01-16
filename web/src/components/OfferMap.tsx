@@ -1,12 +1,12 @@
 import { Heatmap } from "@/components/Heatmap";
-import { PixiMapProps } from "./PixiMap";
-import { useConnectionState } from "@/data/hooks";
+import { useConnectionState } from "@/data/Hooks/hooks";
 import { Offer, queryOffersInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { Omit } from "framer-motion/types/types";
 import { Bounds } from "pigeon-maps";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
+import { PixiMapProps } from "./PixiMap";
 
 const MAX_OFFERS = 1000;
 

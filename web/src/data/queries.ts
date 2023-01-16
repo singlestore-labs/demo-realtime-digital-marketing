@@ -141,7 +141,10 @@ export const resetSchema = async (
   }
 
   if (resetDataOnly) {
-    progress("Resetting data", "info");
+    progress(
+      "Resetting data. This might take a while. Thanks for you patients",
+      "info"
+    );
     await dropPipelines(config);
     await truncateData(config);
   }
@@ -689,7 +692,7 @@ export const customerMetrics = (
           GROUP BY metrics.customer
         )
         ORDER BY ${sortColumn} DESC
-        ${limit !== undefined ? `LIMIT ${limit}` : ''}
+        ${limit !== undefined ? `LIMIT ${limit}` : ""}
       `,
     }).sql
   );

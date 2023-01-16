@@ -1,12 +1,20 @@
 import { useAnalytics } from "@/analytics";
-import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { Nav } from "@/components/navBar/Nav";
+import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { NotificationsMap } from "@/pages/dashboards/index";
-import { Overview } from "./pages/configure/Overview";
 import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
-import { Suspense } from "react";
+import { createContext, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { useRecoilValue } from "recoil";
 import { Footer } from "./components/Footer";
+import {
+  CityListHookReturnType,
+  useUpdateCityList,
+} from "./data/Hooks/selectCityHook";
+import { connectionConfig } from "./data/recoil";
+import { Overview } from "./pages/configure/Overview";
+
+export let UserContext: React.Context<CityListHookReturnType>;
 
 function App() {
   const loadingFallback = (
@@ -21,28 +29,53 @@ function App() {
     </Center>
   );
 
+  return (
+    <Suspense fallback={loadingFallback}>
+      <RoutesContainer />
+    </Suspense>
+  );
+}
+
+const RoutesContainer = () => {
+  const config = useRecoilValue(connectionConfig);
+  const CityListHook = useUpdateCityList(config);
+  UserContext = createContext(CityListHook);
+
   const Analytics = () => {
     useAnalytics();
     return <></>;
   };
-
   return (
-    <Suspense fallback={loadingFallback}>
+    <>
       <Analytics />
       <Flex height="100vh" width="100vw" direction="column" overflowY={"auto"}>
         <Nav />
         <Box flex="1" paddingTop={"6px"}>
           <Routes>
-            <Route path="/" element={<NotificationsMap />} />
+            <Route
+              path="/"
+              element={
+                <UserContext.Provider value={CityListHook}>
+                  <NotificationsMap />
+                </UserContext.Provider>
+              }
+            />
             <Route path="/configure" element={<Overview />} />
-            <Route path="/analytics" element={<AnalyticsDashboard />} />
+            <Route
+              path="/analytics"
+              element={
+                <UserContext.Provider value={CityListHook}>
+                  <AnalyticsDashboard />
+                </UserContext.Provider>
+              }
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>
         <Footer />
       </Flex>
-    </Suspense>
+    </>
   );
-}
+};
 
 export default App;

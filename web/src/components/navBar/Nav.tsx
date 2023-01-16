@@ -1,6 +1,3 @@
-import { useConnectionState } from "@/data/hooks";
-import { databaseDrawerIsOpen, simulatorEnabled } from "@/data/recoil";
-import { useSession } from "@/data/useSession";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.png";
 import { CloseIcon, HamburgerIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
 import {
@@ -21,65 +18,28 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
-import React from "react";
 import {
-  BsMap,
-  BsGraphUp,
+  BsBarChart,
+  BsBarChartFill,
+  BsFillBarChartFill,
+  BsFillBarChartLineFill,
   BsGear,
+  BsGearFill,
+  BsGraphUp,
+  BsMap,
+  BsMapFill,
   BsShare,
   BsShareFill,
-  BsMapFill,
-  BsGearFill,
 } from "react-icons/bs";
-import { NavLink as RouterLink } from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { GithubStargazer } from "../GithubButtons";
 import { ReactElement } from "react-markdown/lib/react-markdown";
-
-// const NavLink = ({
-//   to,
-//   children,
-//   onClick,
-// }: {
-//   to: string;
-//   children: ReactNode;
-//   onClick: () => void;
-// }) => {
-//   const resolved = useResolvedPath(to);
-//   const match = useMatch({ path: resolved.pathname, end: true });
-
-//   return (
-//     <Link
-//       as={RouterLink}
-//       to={to}
-//       px={2}
-//       py={1}
-//       onClick={onClick}
-//       rounded={"md"}
-//       _hover={{
-//         textDecoration: "none",
-//         bg: useColorModeValue("gray.300", "gray.600"),
-//       }}
-//       fontWeight={match ? "bold" : "normal"}
-//       href={"#"}
-//       color={useColorModeValue("gray.700", "gray.200")}
-//     >
-//       {children}
-//     </Link>
-//   );
-// };
+import { NavLink as RouterLink } from "react-router-dom";
+import { GithubStargazer } from "../GithubButtons";
 
 export const Nav = () => {
   const { toggleColorMode } = useColorMode();
   const { colorMode } = useColorMode();
   const navMenu = useDisclosure();
-  const [databaseMenuIsOpen, setDatabaseMenu] =
-    useRecoilState(databaseDrawerIsOpen);
-  const databaseBtnRef = React.useRef<HTMLButtonElement>(null);
-  const { connected, initialized } = useConnectionState();
-  const isSimulatorEnabled = useRecoilValue(simulatorEnabled);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
-  const { session } = useSession();
 
   const NavLinkActiveButtonStyle = {
     background: useColorModeValue("#4F34C7", "#CCC3F9"),
@@ -91,9 +51,11 @@ export const Nav = () => {
     IconElement: ReactElement;
   }) => {
     return (
-      <Flex gap={3} alignItems={"center"}>
+      <Flex gap={2} alignItems={"center"}>
         <b>{props.NavLinkTitle} </b>
-        {props.IconElement}
+        <Stack fontSize={"0.8em"} alignItems={"center"}>
+          {props.IconElement}
+        </Stack>
       </Flex>
     );
   };
@@ -130,28 +92,19 @@ export const Nav = () => {
         IconElement={<Icon as={colorMode === "light" ? BsMap : BsMapFill} />}
       />
       <NavLinkComponent
+        to={"/analytics"}
+        NavLinkTitle={"Analytics"}
+        IconElement={
+          <Icon as={colorMode === "light" ? BsBarChart : BsFillBarChartFill} />
+        }
+      />
+      <NavLinkComponent
         to={"/configure"}
         NavLinkTitle={"Configure"}
         IconElement={<Icon as={colorMode === "light" ? BsGear : BsGearFill} />}
       />
-      <NavLinkComponent
-        to={"/analytics"}
-        NavLinkTitle={"Analytics"}
-        IconElement={<Icon as={BsGraphUp} />}
-      />
     </>
   );
-
-  let databaseMenuButtonText;
-  if (!isSmallScreen) {
-    databaseMenuButtonText = connected
-      ? initialized
-        ? isSimulatorEnabled && session.isController
-          ? "connected"
-          : "simulator disabled"
-        : "needs schema"
-      : "disconnected";
-  }
 
   return (
     <>
@@ -167,8 +120,16 @@ export const Nav = () => {
         paddingLeft={"1rem"}
         paddingRight={"1rem"}
       >
-        <Container maxW="inherit" padding="0 12.5% 0 12.5%">
-          <Flex h={16} justifyContent={"space-between"}>
+        <Container
+          maxW="inherit"
+          padding={!isSmallScreen ? " 0 12.5% 0 12.5%" : undefined}
+        >
+          <Flex
+            h={16}
+            justifyContent={"space-between"}
+            alignItems={"center"}
+            padding={0}
+          >
             <IconButton
               size={"md"}
               icon={navMenu.isOpen ? <CloseIcon /> : <HamburgerIcon />}

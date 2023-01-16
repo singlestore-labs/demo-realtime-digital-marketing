@@ -1,5 +1,5 @@
 import { trackAnalyticsEvent } from "@/analytics";
-import { useConnectionState, useMountedCallback } from "@/data/hooks";
+import { useConnectionState, useMountedCallback } from "@/data/Hooks/hooks";
 import { setSessionController } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { useSession } from "@/data/useSession";

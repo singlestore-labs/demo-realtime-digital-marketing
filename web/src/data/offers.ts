@@ -15,7 +15,7 @@ import stringHash from "string-hash";
 
 export const DEFAULT_CITY = {
   id: 120658,
-  name: "New York",
+  name: "New York City",
   lonlat: [-73.993562, 40.727063] as Point,
   diameter: 0.04,
 };

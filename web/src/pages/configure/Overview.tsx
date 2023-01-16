@@ -1,16 +1,3 @@
-import { CodeBlock } from "../../components/CodeBlock";
-import { DatabaseConfigForm } from "../../components/DatabaseConfigForm";
-import { IngestChart, useIngestChartData } from "../../components/IngestChart";
-import { MarkdownText } from "../../components/MarkdownText";
-import { OfferMap } from "../../components/OfferMap";
-import { PixiMap } from "../../components/PixiMap";
-import { ResetSchemaButton } from "../../components/ResetSchemaButton";
-import { ConnectionConfig } from "../../data/client";
-import {
-  useConnectionState,
-  useSchemaObjects,
-  useTimer,
-} from "../../data/hooks";
 import {
   checkPlans,
   ensurePipelinesExist,
@@ -39,6 +26,7 @@ import {
   useNotificationsRenderer,
 } from "@/render/useNotificationsRenderer";
 import { ScaleFactor } from "@/scalefactors";
+import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertIcon,
@@ -66,9 +54,8 @@ import {
   Spinner,
   Text,
   useBoolean,
-  useColorModeValue,
+  useColorMode,
   useMediaQuery,
-  VStack,
 } from "@chakra-ui/react";
 import {
   ReactElement,
@@ -78,22 +65,22 @@ import {
   useRef,
   useState,
 } from "react";
+import { BsCheckCircleFill, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
+import { CodeBlock } from "../../components/CodeBlock";
+import { DatabaseConfigForm } from "../../components/DatabaseConfigForm";
+import { IngestChart, useIngestChartData } from "../../components/IngestChart";
+import { MarkdownText } from "../../components/MarkdownText";
+import { OfferMap } from "../../components/OfferMap";
+import { DEFAULT_CENTER, PixiMap } from "../../components/PixiMap";
+import { ResetSchemaButton } from "../../components/ResetSchemaButton";
+import { ConnectionConfig } from "../../data/client";
 import {
-  BsCheck2Circle,
-  BsCheckCircleFill,
-  BsGearFill,
-  BsInfoCircleFill,
-} from "react-icons/bs";
-import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
-
-const primaryColorSchema = () => {
-  return {
-    primaryBackground: useColorModeValue("#ECE8FD", "#2F206E"),
-    primaryFont: useColorModeValue("#553ACF", "#ECE8FD"),
-  };
-};
+  useConnectionState,
+  useSchemaObjects,
+  useTimer,
+} from "../../data/Hooks/hooks";
 
 const CollapsibleSection = (props: {
   title: string | ReactElement;
@@ -136,6 +123,7 @@ const Section = (props: {
   right: ReactNode;
 }) => {
   const { title, left, right } = props;
+  const { colorMode } = useColorMode();
 
   return (
     <CollapsibleSection
@@ -159,13 +147,14 @@ const Section = (props: {
       buttonStyle={{
         border:
           !props.completed && !props.previousStepCompleted
-            ? `1px solid ${useColorModeValue(
-                "#ECE8FD",
-                "rgba(85, 58, 207, 0.5)"
-              )}`
+            ? `1px solid ${
+                colorMode === "light" ? "#ECE8FD" : "rgba(85, 58, 207, 0.5)"
+              }`
             : undefined,
         background: props.completed
-          ? useColorModeValue("#ECE8FD", "#CCC3F9")
+          ? colorMode === "light"
+            ? "#ECE8FD"
+            : "#CCC3F9"
           : props.previousStepCompleted
           ? "#2F206E"
           : "transparent",
@@ -198,7 +187,7 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
         left={
           <MarkdownText>
             {`
-            Fill the fields with your database’s username, password and endpoint.
+            Please enter the host and port number for the specific Workspace you want to connect to. Then enter the Workspace Group username and password credentials.
             
             [Know more](https://docs.singlestore.com/managed-service/en/reference/data-api.html)
           `}
@@ -241,20 +230,19 @@ const SchemaObjectModal = ({
 
 const SchemaItem = ({
   name,
-  status,
   onClick,
 }: {
   name: string;
-  status?: boolean;
   onClick: () => void;
 }) => {
-  const { primaryBackground, primaryFont } = primaryColorSchema();
+  const { colorMode } = useColorMode();
+
   return (
     <GridItem
       key={name}
-      bg={primaryBackground}
+      bg={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
       fontSize="xs"
-      color={primaryFont}
+      color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
       textOverflow="ellipsis"
       whiteSpace="nowrap"
       overflow="hidden"
@@ -283,7 +271,7 @@ const SchemaSection = ({
   const [database, setDatabase] = useRecoilState(connectionDatabase);
   const schemaObjs = useSchemaObjects();
   const [selectedSchemaObj, setSelectedSchemaObj] = useState<null | string>();
-  const { primaryBackground, primaryFont } = primaryColorSchema();
+  const { colorMode } = useColorMode();
 
   return (
     <>
@@ -323,8 +311,8 @@ const SchemaSection = ({
                 </FormControl>
                 <Box flex={1}>
                   <ResetSchemaButton
-                    background={primaryBackground}
-                    color={primaryFont}
+                    background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
+                    color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
                     size="sm"
                     skipSeedData
                   >
@@ -345,7 +333,6 @@ const SchemaSection = ({
                   <SchemaItem
                     key={name}
                     name={name}
-                    status={schemaObjs.data?.[name]}
                     onClick={() => setSelectedSchemaObj(name)}
                   />
                 ))}
@@ -409,12 +396,8 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { pipelines, completed } = usePipelineStatus(config, scaleFactor);
   const isResettingSchema = useRecoilValue(resettingSchema);
+  const { colorMode } = useColorMode();
   useSimulationMonitor(completed && !isResettingSchema);
-
-  const getPipelineStatus = (name: PipelineName) => {
-    const pipeline = pipelines.data?.find((p) => p.pipelineName === name);
-    return pipeline ? !pipeline.needsUpdate : false;
-  };
 
   const [selectedPipeline, setSelectedPipeline] =
     useState<null | PipelineName>();
@@ -437,7 +420,8 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
 
   const ensurePipelinesButton = (
     <Button
-      colorScheme="blue"
+      background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
+      color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
       size="sm"
       onClick={onEnsurePipelines}
       disabled={completed}
@@ -479,7 +463,6 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
                 <SchemaItem
                   key={name}
                   name={name}
-                  status={getPipelineStatus(name)}
                   onClick={() => setSelectedPipeline(name)}
                 />
               ))}
@@ -490,7 +473,16 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
           emptyChart || !completed ? (
             <Center h={220}>{ensurePipelinesButton}</Center>
           ) : (
-            <IngestChart data={data} yAxisLabel="total rows" height={200} />
+            <Flex
+              direction={"column"}
+              gap={4}
+              padding={"15px"}
+              border={"1px solid"}
+              borderRadius={"15px"}
+              borderColor={"#777582"}
+            >
+              <IngestChart data={data} yAxisLabel="total rows" height={200} />
+            </Flex>
           )
         }
       />
@@ -520,7 +512,6 @@ const OffersSection = (props: { previousStepCompleted: boolean }) => {
   const config = useRecoilValue(connectionConfig);
   const [working, workingCtrl] = useBoolean();
   const tableCounts = useTableCounts(config);
-  const { primaryBackground, primaryFont } = primaryColorSchema();
 
   const onSeedData = useCallback(async () => {
     workingCtrl.on();
@@ -530,6 +521,7 @@ const OffersSection = (props: { previousStepCompleted: boolean }) => {
   }, [config, tableCounts, workingCtrl]);
 
   const done = !!tableCounts.data?.offers;
+  const { colorMode } = useColorMode();
 
   return (
     <Section
@@ -559,8 +551,8 @@ const OffersSection = (props: { previousStepCompleted: boolean }) => {
           </MarkdownText>
           {!done ? (
             <Button
-              background={primaryBackground}
-              color={primaryFont}
+              background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
+              color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
               onClick={onSeedData}
               disabled={working}
             >
@@ -577,10 +569,14 @@ const OffersSection = (props: { previousStepCompleted: boolean }) => {
           padding={"15px"}
           border={"1px solid"}
           borderRadius={"15px"}
-          borderColor={"#553ACF"}
+          borderColor={"#777582"}
         >
           <Heading size={"xs"}>NOTIFICATION ZONE FOR NEW YORK</Heading>
-          <OfferMap height={300} defaultZoom={13} />
+          <OfferMap
+            defaultCenter={DEFAULT_CENTER}
+            showCitySelectionDropDown={false}
+            height={300}
+          />
         </Flex>
       }
     />
@@ -593,7 +589,7 @@ const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
   const [warmingUp, setWarmingUp] = useState(false);
   const timestampCursor = useRef(toISOStringNoTZ(new Date()));
-  const { primaryBackground, primaryFont } = primaryColorSchema();
+  const { colorMode } = useColorMode();
 
   const done = !!tableCounts.data?.subscriber_segments;
 
@@ -648,8 +644,8 @@ const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
           </MarkdownText>
 
           <Button
-            background={primaryBackground}
-            color={primaryFont}
+            background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
+            color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
             disabled={isRunning}
             onClick={onClick}
           >
@@ -682,7 +678,7 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
   const tableCounts = useTableCounts(config);
   const notificationsDataKey = useNotificationsDataKey();
   const { mutate: swrMutate } = useSWRConfig();
-  const { primaryBackground, primaryFont } = primaryColorSchema();
+  const { colorMode } = useColorMode();
 
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
   const [sentNotifications, setSentNotifications] = useState(0);
@@ -757,8 +753,8 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
           </MarkdownText>
           <br />
           <Button
-            background={primaryBackground}
-            color={primaryFont}
+            background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
+            color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
             disabled={isRunning}
             onClick={onClick}
           >
@@ -770,14 +766,22 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
       right={
         <Flex direction={"column"} gap={4} padding={"10px"}>
           <MarkdownText>{`    select * from match_offers_to_subscribers("second");`}</MarkdownText>
-          <Box width="100%">
+          <Flex
+            direction={"column"}
+            gap={4}
+            padding={"15px"}
+            border={"1px solid"}
+            borderRadius={"15px"}
+            borderColor={"#777582"}
+          >
             <PixiMap
               height={250}
-              defaultZoom={12}
+              defaultCenter={DEFAULT_CENTER}
+              showCitySelectionDropDown={false}
               useRenderer={useNotificationsRenderer}
               options={{}}
             />
-          </Box>
+          </Flex>
           {workEstimate}
           {warmingUp && (
             <Alert status="warning">
