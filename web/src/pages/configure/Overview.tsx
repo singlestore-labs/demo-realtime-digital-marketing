@@ -26,7 +26,11 @@ import {
   useNotificationsRenderer,
 } from "@/render/useNotificationsRenderer";
 import { ScaleFactor } from "@/scalefactors";
-import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import {
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from "@chakra-ui/icons";
 import {
   Alert,
   AlertIcon,
@@ -68,6 +72,7 @@ import {
 import { BsCheckCircleFill, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
+import GraphicalBackground from "../../assets/graphical-background.svg";
 import { CodeBlock } from "../../components/CodeBlock";
 import { DatabaseConfigForm } from "../../components/DatabaseConfigForm";
 import { IngestChart, useIngestChartData } from "../../components/IngestChart";
@@ -796,37 +801,11 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
   );
 };
 
-const SummarySection = (props: { previousStepCompleted: boolean }) => {
-  const database = useRecoilValue(connectionDatabase);
-  return (
-    <Section
-      completed={props.previousStepCompleted}
-      previousStepCompleted={props.previousStepCompleted}
-      title="Putting it all together"
-      left={
-        <MarkdownText>
-          {`
-            Nice job! At this point you are ready to step into the shoes of a
-            data engineer. Here are some recommendations on what to do next:
-
-            * Visit the [live demo dashboard][1]
-            * Visit the [analytics page][2]
-            * Explore the ${database} database in SingleStore Studio
-
-            [1]: /
-            [2]: analytics
-          `}
-        </MarkdownText>
-      }
-      right={null}
-    />
-  );
-};
-
 export const Overview = () => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { connected, initialized } = useConnectionState();
+  const database = useRecoilValue(connectionDatabase);
   const { completed: pipelinesCompleted } = usePipelineStatus(
     config,
     scaleFactor,
@@ -887,17 +866,6 @@ export const Overview = () => {
         />
       ),
     },
-    {
-      completed: tableCounts ? tableCounts.notifications > 0 : false,
-      component: (
-        <SummarySection
-          key="summary"
-          previousStepCompleted={
-            tableCounts ? tableCounts.notifications > 0 : false
-          }
-        />
-      ),
-    },
   ];
 
   const sections = [];
@@ -906,7 +874,13 @@ export const Overview = () => {
   }
 
   return (
-    <Container maxW="75%" mt={10} mb="30vh">
+    <Container
+      maxW="75%"
+      mt={10}
+      mb="30vh"
+      paddingBottom={0}
+      marginBottom={"50px"}
+    >
       <Flex gap={5} justifyContent={"space-between"} marginBottom={"50px"}>
         <Box>
           <Heading fontSize={"md"}>Application set up</Heading>
@@ -929,6 +903,86 @@ export const Overview = () => {
         </Box>
       </Flex>
       {sections}
+
+      <Flex
+        width={"100%"}
+        alignItems={"center"}
+        justifyContent={"center"}
+        backgroundImage={GraphicalBackground}
+        backgroundSize={"110% 110%"}
+        backgroundPosition={"center"}
+        backgroundRepeat={"no-repeat"}
+        minHeight="300px"
+      >
+        {tableCounts ? (
+          <Flex
+            maxWidth={"50%"}
+            direction={"row"}
+            justifyContent={"center"}
+            alignItems={"center"}
+            margin={"50px"}
+            padding={"20px 25px 10px 10px"}
+            gap={5}
+            borderRadius={"10px"}
+            background={"#4F34C7"}
+            color={"white"}
+          >
+            <CheckCircleIcon margin={"15px"} fontSize={"lg"} />
+            <Box
+              color={"white"}
+              style={{ lineHeight: "28px", fontWeight: 400, fontSize: "16px" }}
+            >
+              <Heading size={"sm"}>Great Job!</Heading>
+
+              <p>
+                The applications is up and running. Explore it further by:
+                <ul style={{ listStylePosition: "inside" }}>
+                  <li>
+                    Adding or removing location from{" "}
+                    <a
+                      href="/"
+                      color="white"
+                      style={{
+                        fontWeight: "bold",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Dashboard
+                    </a>
+                  </li>
+                  <li>
+                    Inspect engagement under{" "}
+                    <a
+                      href="/analytics"
+                      color="white"
+                      style={{
+                        fontWeight: "bold",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Analytics
+                    </a>
+                  </li>
+                  <li>
+                    Explore the{" "}
+                    <a
+                      href="/https://portal.singlestore.com"
+                      color="white"
+                      style={{
+                        fontWeight: "bold",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      {database}
+                    </a>{" "}
+                    database in SingleStore Studio
+                  </li>
+                </ul>
+              </p>
+            </Box>
+          </Flex>
+        ) : undefined}
+      </Flex>
     </Container>
   );
 };

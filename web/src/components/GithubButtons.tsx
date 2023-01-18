@@ -40,6 +40,11 @@ export const GithubStargazer: React.FC<IPropTypes> = (props) => {
           border={"1px solid"}
           borderRight={"none"}
           borderColor={colorMode === "light" ? "#ddddde" : "#444b5b"}
+          bgGradient={
+            colorMode === "dark"
+              ? "linear(to-b, #5A5A5A 0%, #000000 100%)"
+              : undefined
+          }
           borderLeftRadius={"5px"}
           padding={"3px 8px 3px 8px"}
           color={colorMode == "light" ? "black" : "white"}

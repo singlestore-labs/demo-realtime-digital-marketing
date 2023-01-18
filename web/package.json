@@ -19,7 +19,6 @@
     "@fontsource/source-code-pro": "^4.5.1",
     "@pixi/graphics-extras": "^6.2.2",
     "@visx/xychart": "^2.9.0",
-    "chakra-react-select": "^4.4.3",
     "chakra-ui-markdown-renderer": "^4.0.0",
     "d3-color": "^3.1.0",
     "d3-ease": "^3.0.1",

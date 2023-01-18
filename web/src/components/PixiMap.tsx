@@ -198,7 +198,7 @@ export const PixiMap = <T,>({
     setLastSelectedCityDetails(
       selectedCities.find((c) => c.id === lastSelectedCityId)
     );
-  }, [lastSelectedCityId]);
+  }, [selectedCities, lastSelectedCityId]);
 
   useEffect(() => {
     setForceUpdateMap(false);
@@ -208,7 +208,7 @@ export const PixiMap = <T,>({
           lastSelectedCityDetails.centerLon,
         ])
       : undefined;
-  }, [lastSelectedCityDetails]);
+  }, [defaultCenter, lastSelectedCityDetails]);
 
   return (
     <Stack spacing={0} position={"relative"} height={height}>

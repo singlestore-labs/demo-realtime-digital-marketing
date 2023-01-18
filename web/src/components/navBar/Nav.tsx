@@ -10,6 +10,10 @@ import {
   Icon,
   IconButton,
   Link,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Stack,
   useColorMode,
   useColorModeValue,
@@ -23,11 +27,13 @@ import {
   BsFillBarChartFill,
   BsGear,
   BsGearFill,
+  BsLinkedin,
   BsMap,
   BsMapFill,
   BsShare,
   BsShareFill,
 } from "react-icons/bs";
+import { VscTwitter } from "react-icons/vsc";
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { NavLink as RouterLink } from "react-router-dom";
 import { GithubStargazer } from "../GithubButtons";
@@ -92,7 +98,12 @@ export const Nav = () => {
         to={"/analytics"}
         NavLinkTitle={"Analytics"}
         IconElement={
-          <Icon as={colorMode === "light" ? BsBarChart : BsFillBarChartFill} />
+          <Icon
+            border={"1px"}
+            padding={"1px"}
+            borderRadius={"2px"}
+            as={colorMode === "light" ? BsBarChart : BsFillBarChartFill}
+          />
         }
       />
       <NavLinkComponent
@@ -164,16 +175,52 @@ export const Nav = () => {
             </HStack>
 
             <Flex alignItems={"center"} justifyContent={"right"} gap={7}>
-              <Icon
-                aria-label="Github Repo"
-                as={colorMode === "light" ? BsShare : BsShareFill}
-                cursor={"pointer"}
-                onClick={() =>
-                  window.open(
-                    "https://github.com/singlestore-labs/demo-realtime-digital-marketing"
-                  )
-                }
-              />
+              <Menu>
+                <MenuButton as={"button"}>
+                  <Icon
+                    aria-label="Github Repo"
+                    as={colorMode === "light" ? BsShare : BsShareFill}
+                    cursor={"pointer"}
+                    onClick={() =>
+                      window.open(
+                        "https://github.com/singlestore-labs/demo-realtime-digital-marketing"
+                      )
+                    }
+                  />
+                </MenuButton>
+                <MenuList p={0} minW="0">
+                  <MenuItem
+                    onClick={() =>
+                      window.open(
+                        "https://twitter.com/intent/tweet?text=Exciting%20MarTech%20demo%20application%20from%20SingleStoreDB%20showcasing%20its%20unique%20capabilities!%20As%20a%20demo%20app%2C%20it%20gives%20you%20a%20taste%20of%20what%27s%20possible%20when%20using%20SingleStoreDB%20for%20your%20own%20projects%2C%20https%3A%2F%2Fdigital-marketing.labs.singlestore.com.%20%0A%0A%23SingleStoreDB%20%23database%20%23digitalmarketing%20%23appdevelopment%20",
+                        "_blank"
+                      )
+                    }
+                  >
+                    <IconButton
+                      aria-label="Github Repo"
+                      size="sm"
+                      background={colorMode === "light" ? undefined : "black"}
+                      icon={<VscTwitter size="1em" />}
+                    />
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() =>
+                      window.open(
+                        "https://www.linkedin.com/sharing/share-offsite/?url=https://www.figma.com/file/zLZinfGmhUmnA6fWJedQVc/RealTime-Digital-Marketing-App?node-id=887%3A18691&t=x2neHA3Rtfjx7ooc-4",
+                        "_blank"
+                      )
+                    }
+                  >
+                    <IconButton
+                      aria-label="Github Repo"
+                      size="sm"
+                      background={colorMode === "light" ? undefined : "black"}
+                      icon={<BsLinkedin size="1em" />}
+                    />
+                  </MenuItem>
+                </MenuList>
+              </Menu>
               {colorMode === "light" ? (
                 <SunIcon onClick={toggleColorMode} />
               ) : (

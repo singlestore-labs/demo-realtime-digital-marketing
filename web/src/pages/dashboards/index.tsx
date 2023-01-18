@@ -69,7 +69,7 @@ const StatsWrapper = () => {
     if (lastSelectedCityId === -1 && selectedCities.length) {
       setLastSelectedCityId(selectedCities[0].id);
     }
-  }, [selectedCities]);
+  }, [selectedCities, lastSelectedCityId, setLastSelectedCityId]);
 
   const setCheckItem = (city: City, checkStatus: boolean) => {
     if (checkStatus) {
@@ -93,7 +93,7 @@ const StatsWrapper = () => {
   return (
     <>
       <Stack spacing={4}>
-        <Stack spacing={2}>
+        <Stack spacing={1}>
           <Heading fontSize={"md"}>Locations</Heading>
           <Text overflowWrap={"break-word"}>
             Select cities to add to the dataset
@@ -106,7 +106,7 @@ const StatsWrapper = () => {
           placement="top"
           zIndex={5}
         >
-          <SimpleGrid minChildWidth={"25%"} spacing={[1, 5]}>
+          <SimpleGrid minChildWidth={"25%"} spacing={[1, 3]}>
             {totalSelectableCities.map((city) => (
               <Checkbox
                 size="md"
@@ -145,7 +145,7 @@ const StatsWrapper = () => {
         <br />
       </Stack>
       <Stack spacing={4}>
-        <Stack spacing={2}>
+        <Stack spacing={1}>
           <Heading size={"md"}>Key Metrics</Heading>
           <Text>Serving ads real-time to sumulate Subscribers</Text>
         </Stack>
@@ -168,7 +168,7 @@ const StatsWrapper = () => {
           </Flex>
         </Flex>
         <SimpleGrid>
-          <IngestChart data={ingestData} yAxisLabel="total rows" height={175} />
+          <IngestChart data={ingestData} yAxisLabel="total rows" height={170} />
         </SimpleGrid>
       </Stack>
     </>

@@ -329,12 +329,7 @@ const ConversionTable = () => {
                       borderRadius={"5px"}
                       padding={"4px"}
                       fontSize={"xs"}
-                      background={`rgba(127, 17, 224, ${
-                        (c.conversionRate * c.conversionRate +
-                          2 * c.conversionRate +
-                          1) /
-                        10
-                      })`}
+                      background={`rgba(0, 0, 0, ${c.conversionRate + 0.01})`}
                       color={`rgba(0,0,0,1)`}
                     >
                       {formatPct(c.conversionRate)}
