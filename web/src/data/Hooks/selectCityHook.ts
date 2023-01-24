@@ -34,6 +34,9 @@ const addCityToDatabase = async (
   setCities: React.Dispatch<React.SetStateAction<City[]>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
+  // The addCityToDatabase will add city with city details in cities table from martech database.
+  // This is will also set new list after the update in selectedCities state
+
   setIsUpdating(true);
   const city = await lookupClosestCity(config, point[1], point[0]);
   const cityConfig = {
@@ -58,16 +61,19 @@ const removeCityFromDatabase = async (
   config: ConnectionConfig,
   cityId: number,
   setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>,
-  setCities: React.Dispatch<React.SetStateAction<City[]>>,
+  setSelectedCities: React.Dispatch<React.SetStateAction<City[]>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
+  // The removeCityFromDatabase will remove city matching cityID from cities table in martech database.
+  // This is will also set new list after the update in selectedCities state
+
   setIsUpdating(true);
   await removeCity(config, cityId);
   trackAnalyticsEvent("remove-city");
   await getSelectedCitiesFromDatabase(
     config,
     setIsUpdating,
-    setCities,
+    setSelectedCities,
     setError
   );
   setIsUpdating(false);
@@ -84,6 +90,8 @@ export interface CityListHookReturnType {
 export const useUpdateCityList = (
   config: ConnectionConfig
 ): CityListHookReturnType => {
+  // The useUpdateCityList hook provides functionality to add or remove cities from cities database.
+  // The RTDM will fetch data that will be related to only this cities after update
   const [selectedCities, setSelectedCities] = useState([] as City[]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState(undefined as Error | undefined);

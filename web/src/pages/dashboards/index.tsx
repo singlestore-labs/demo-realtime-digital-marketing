@@ -243,8 +243,8 @@ export const NotificationsMap = () => {
     >
       <Stack spacing={0} width={"100%"} height="100%" minHeight={"60vh"}>
         <PixiMap
-          optionBoxLeftPosition={isSmallScreen ? undefined : "31.5%"}
-          optionBoxTopPosition={isSmallScreen ? undefined : "1vw"}
+          selectionDropdownLeft={isSmallScreen ? undefined : "31.5%"}
+          selectionDropdownTop={isSmallScreen ? undefined : "1vw"}
           useRenderer={useNotificationsRenderer}
           options={{}}
         />

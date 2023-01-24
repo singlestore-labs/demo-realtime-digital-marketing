@@ -674,7 +674,7 @@ export const customerMetrics = (
   config: ConnectionConfig,
   eventTable: ConversionEventTable,
   sortColumn: keyof CustomerMetrics,
-  limit?: number
+  limit: number
 ) =>
   Query<CustomerMetrics>(
     config,
@@ -692,8 +692,7 @@ export const customerMetrics = (
           GROUP BY metrics.customer
         )
         ORDER BY ${sortColumn} DESC
-        ${limit !== undefined ? `LIMIT ${limit}` : ""}
-      `,
+        LIMIT ${limit}`,
     }).sql
   );
 

@@ -80,7 +80,7 @@ export const Footer = () => {
                 icon={<VscTwitter size="1em" />}
                 onClick={() =>
                   window.open(
-                    "https://twitter.com/intent/tweet?text=Exciting%20MarTech%20demo%20application%20from%20SingleStoreDB%20showcasing%20its%20unique%20capabilities!%20As%20a%20demo%20app%2C%20it%20gives%20you%20a%20taste%20of%20what%27s%20possible%20when%20using%20SingleStoreDB%20for%20your%20own%20projects%2C%20https%3A%2F%2Fdigital-marketing.labs.singlestore.com.%20%0A%0A%23SingleStoreDB%20%23database%20%23digitalmarketing%20%23appdevelopment%20",
+                    "https://twitter.com/intent/tweet?url=https%3A%2F%2Fdigital-marketing.labs.singlestore.com%2F&text=Exciting%20MarTech%20demo%20application%20from%20SingleStoreDB%20showcasing%20its%20unique%20capabilities!%20As%20a%20demo%20app%2C%20it%20gives%20you%20a%20taste%20of%20what%27s%20possible%20when%20using%20SingleStoreDB%20for%20your%20own%20projects%2C%20.%20%0A%0A%23SingleStoreDB%20%23database%20%23digitalmarketing%20%23appdevelopment%20",
                     "_blank"
                   )
                 }
@@ -92,7 +92,7 @@ export const Footer = () => {
                 icon={<BsLinkedin size="1em" />}
                 onClick={() =>
                   window.open(
-                    "https://www.linkedin.com/sharing/share-offsite/?url=https://www.figma.com/file/zLZinfGmhUmnA6fWJedQVc/RealTime-Digital-Marketing-App?node-id=887%3A18691&t=x2neHA3Rtfjx7ooc-4",
+                    `https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fdigital-marketing.labs.singlestore.com%2F`,
                     "_blank"
                   )
                 }

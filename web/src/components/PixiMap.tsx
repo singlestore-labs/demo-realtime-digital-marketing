@@ -19,7 +19,13 @@ import {
 import "@pixi/graphics-extras";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
+import React, {
+  CSSProperties,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 import Select from "react-select";
 import { useRecoilState } from "recoil";
 
@@ -165,8 +171,8 @@ const RequiresInitLayer = <T,>({
 export type PixiMapProps<T> = {
   useRenderer: UsePixiRenderer<T>;
   height?: number | string;
-  optionBoxTopPosition?: number | string;
-  optionBoxLeftPosition?: number | string;
+  selectionDropdownTop?: CSSProperties["top"];
+  selectionDropdownLeft?: CSSProperties["left"];
   defaultCenter?: [number, number] | undefined;
   showCitySelectionDropDown?: boolean;
   options: T;
@@ -174,8 +180,8 @@ export type PixiMapProps<T> = {
 
 export const PixiMap = <T,>({
   height = "100%",
-  optionBoxLeftPosition = "10px",
-  optionBoxTopPosition = "10px",
+  selectionDropdownLeft = "10px",
+  selectionDropdownTop = "10px",
   showCitySelectionDropDown = true,
   defaultCenter,
   useRenderer,
@@ -216,8 +222,8 @@ export const PixiMap = <T,>({
         <Flex
           position={"absolute"}
           zIndex={5}
-          top={optionBoxTopPosition}
-          left={optionBoxLeftPosition}
+          top={selectionDropdownTop}
+          left={selectionDropdownLeft}
           background={colorMode === "light" ? "#553ACF" : "#CCC3F9"}
           color={colorMode === "light" ? "white" : "black"}
           boxShadow={"1px 6px 6px grey"}
