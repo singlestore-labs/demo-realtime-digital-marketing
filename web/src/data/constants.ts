@@ -1,5 +1,7 @@
 import { City } from "./queries";
 
+// The selectableCities variable hardcodes cities details that user can slecte.
+// Make sure the values here matches the values stored in worldcities database in marteq.
 export const selectableCitiesData: City[] = [
   {
     id: 14,
