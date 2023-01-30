@@ -18,8 +18,20 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": ["react", "@typescript-eslint", "simple-import-sort"],
+  "plugins": ["react", "@typescript-eslint", "simple-import-sort", "check-file"],
   "rules": {
+    "check-file/folder-naming-convention":[
+      "error",
+      {
+        "src/**/":"CAMEL_CASE"
+      }
+    ],
+    "check-file/filename-naming-convention":[
+      "error",
+      {
+        "src/**/":"SNAKE_CASE"
+      }
+    ],
     "semi": ["error", "always"],
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",

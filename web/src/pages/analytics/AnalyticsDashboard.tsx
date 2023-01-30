@@ -33,7 +33,7 @@ import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
-import { Heatmap } from "@/components/Heatmap";
+import { Heatmap } from "@/components/HeatMap";
 import { useConnectionState } from "@/data/hooks/hooks";
 import {
   CustomerMetrics,
