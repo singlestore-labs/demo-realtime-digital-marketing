@@ -254,7 +254,7 @@ export const PixiMap = <T,>({
             label={
               isUpdating
                 ? "Please wait while we fetch cities list"
-                : "Please select atleast 1 Location from Dashboard menu"
+                : "Please select at least 1 Location from the Dashboard menu"
             }
           >
             <Box display="inline">
