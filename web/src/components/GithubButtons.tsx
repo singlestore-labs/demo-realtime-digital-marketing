@@ -10,6 +10,13 @@ export interface IPropTypes {
 
 export const GithubStargazer: React.FC<IPropTypes> = ({owner, repo}) => {
   const [stargazersCount, setStargazersCount] = React.useState(0);
+  const handleFlexRedirects = () => {
+    window.open(
+      `https://github.com/${owner}/${repo}`,
+      "_blank"
+    );
+  };
+  
 
   React.useEffect(() => {
     const getCount = async () => {
@@ -27,9 +34,7 @@ export const GithubStargazer: React.FC<IPropTypes> = ({owner, repo}) => {
       gap={0}
       margin={0}
       padding={0}
-      onClick={() =>
-        window.open(`https://github.com/${owner}/${repo}`, "_blank")
-      }
+      onClick={handleFlexRedirects}
     >
       <Flex gap={0} justifyContent="center" margin={0} padding={0}>
         <Flex
