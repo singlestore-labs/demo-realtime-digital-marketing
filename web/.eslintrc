@@ -18,7 +18,7 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": ["react", "@typescript-eslint", "simple-import-sort", "check-file"],
+  "plugins": ["react", "@typescript-eslint", "simple-import-sort", "check-file", "unused-imports"],
   "rules": {
     "check-file/folder-naming-convention":[
       "error",
@@ -49,7 +49,8 @@
       {
         "forbid": [">", "}", "\""]
       }
-    ]
+    ],
+    "unused-imports/no-unused-imports-ts" : "error"
   },
   "settings": {
     "react": {
