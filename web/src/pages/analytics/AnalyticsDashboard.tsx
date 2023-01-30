@@ -34,7 +34,6 @@ import useSWR from "swr";
 
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/HeatMap";
-import { useConnectionState } from "@/data/hooks/hooks";
 import {
   CustomerMetrics,
   customerMetrics,
@@ -44,8 +43,9 @@ import {
   zoneMetrics,
 } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
-import { useSimulationMonitor } from "@/data/useSimulationMonitor";
-import { useSimulator } from "@/data/useSimulator";
+import { useConnectionState } from "@/view/hooks/hooks";
+import { useSimulationMonitor } from "@/view/hooks/useSimulationMonitor";
+import { useSimulator } from "@/view/hooks/useSimulator";
 
 const formatPct = format(",.2%");
 const formatStat = format(".4~s");

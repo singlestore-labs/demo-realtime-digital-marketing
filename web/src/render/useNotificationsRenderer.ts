@@ -7,10 +7,10 @@ import useSWR from "swr";
 
 import { trackAnalyticsEvent } from "@/analytics";
 import { UsePixiRenderer } from "@/components/PixiMap";
-import { useConnectionState, useDebounce } from "@/data/hooks/hooks";
 import { City, getCities, queryNotificationsInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { toISOStringNoTZ } from "@/datetime";
+import { useConnectionState, useDebounce } from "@/view/hooks/hooks";
 
 const MAX_NOTIFICATIONS = 100;
 const REFRESH_INTERVAL = 1000;

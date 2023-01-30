@@ -24,16 +24,16 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { selectableCitiesData } from "@/data/constants";
-import { useConnectionState } from "@/data/hooks/hooks";
 import { City } from "@/data/queries";
 import {
   connectionConfig,
   selectedCity,
   simulatorEnabled,
 } from "@/data/recoil";
-import { useSimulationMonitor } from "@/data/useSimulationMonitor";
-import { useSimulator } from "@/data/useSimulator";
 import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
+import { useConnectionState } from "@/view/hooks/hooks";
+import { useSimulationMonitor } from "@/view/hooks/useSimulationMonitor";
+import { useSimulator } from "@/view/hooks/useSimulator";
 
 import { PixiMap } from "../../components/PixiMap";
 import { Stats } from "./stats";

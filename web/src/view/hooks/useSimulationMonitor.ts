@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 
-import { useConnectionState, useTick } from "@/data/hooks/hooks";
 import {
   checkPlans,
   ensurePipelinesAreRunning,
@@ -9,7 +8,8 @@ import {
   truncateTimeseriesTables,
 } from "@/data/queries";
 import { configScaleFactor, connectionConfig } from "@/data/recoil";
-import { useSession } from "@/data/useSession";
+import { useConnectionState, useTick } from "@/view/hooks/hooks";
+import { useSession } from "@/view/hooks/useSession";
 
 const TICK_INTERVAL_MONITOR = 10 * 1000;
 

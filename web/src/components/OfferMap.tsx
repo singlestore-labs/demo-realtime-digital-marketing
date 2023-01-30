@@ -4,9 +4,9 @@ import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
 import { Heatmap } from "@/components/HeatMap";
-import { useConnectionState } from "@/data/hooks/hooks";
 import { Offer, queryOffersInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
+import { useConnectionState } from "@/view/hooks/hooks";
 
 import { PixiMapProps } from "./PixiMap";
 
