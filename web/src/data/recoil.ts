@@ -1,8 +1,10 @@
-import { trackAnalyticsEvent } from "@/analytics";
-import { ConnectionConfig } from "@/data/client";
 import { atom, AtomEffect, atomFamily, DefaultValue, selector } from "recoil";
 import { v4 as uuidv4 } from "uuid";
-import { defaultScaleFactor, ScaleFactor, ScaleFactors } from "../scalefactors";
+
+import { trackAnalyticsEvent } from "@/analytics";
+import { ConnectionConfig } from "@/data/client";
+
+import { defaultScaleFactor,ScaleFactor, ScaleFactors } from "../scalefactors";
 
 type LocalStorageEffectConfig<T> = {
   encode: (v: T) => string;

@@ -1,5 +1,5 @@
-import { Flex, useColorMode } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import { Flex, useColorModeValue } from "@chakra-ui/react";
+import React from "react";
 import { BsGithub } from "react-icons/bs";
 
 export interface IPropTypes {
@@ -8,12 +8,10 @@ export interface IPropTypes {
   color?: string;
 }
 
-export const GithubStargazer: React.FC<IPropTypes> = (props) => {
-  const { owner, repo } = props;
-  const { colorMode } = useColorMode();
-  const [stargazersCount, setStargazersCount] = useState(0);
+export const GithubStargazer: React.FC<IPropTypes> = ({owner, repo}) => {
+  const [stargazersCount, setStargazersCount] = React.useState(0);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const getCount = async () => {
       const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
       const resJson = await res.json();
@@ -24,8 +22,8 @@ export const GithubStargazer: React.FC<IPropTypes> = (props) => {
 
   return (
     <Flex
-      alignItems={"center"}
-      justifyContent={"right"}
+      alignItems="center"
+      justifyContent="right"
       gap={0}
       margin={0}
       padding={0}
@@ -33,36 +31,34 @@ export const GithubStargazer: React.FC<IPropTypes> = (props) => {
         window.open(`https://github.com/${owner}/${repo}`, "_blank")
       }
     >
-      <Flex gap={0} justifyContent={"center"} margin={0} padding={0}>
+      <Flex gap={0} justifyContent="center" margin={0} padding={0}>
         <Flex
-          alignItems={"center"}
+          alignItems="center"
           gap={1}
-          border={"1px solid"}
-          borderRight={"none"}
-          borderColor={colorMode === "light" ? "#ddddde" : "#444b5b"}
+          border="1px solid"
+          borderRight="none"
+          borderColor={useColorModeValue("#ddddde", "#444b5b")}
           bgGradient={
-            colorMode === "dark"
-              ? "linear(to-b, #5A5A5A 0%, #000000 100%)"
-              : undefined
+            useColorModeValue(undefined, "linear(to-b, #5A5A5A 0%, #000000 100%)")
           }
-          borderLeftRadius={"5px"}
-          padding={"3px 8px 3px 8px"}
-          color={colorMode == "light" ? "black" : "white"}
-          backgroundColor={colorMode == "light" ? "#f1f6f7" : "black"}
+          borderLeftRadius="5px"
+          padding="3px 8px 3px 8px"
+          color={useColorModeValue("black", "white")}
+          backgroundColor={useColorModeValue("#f1f6f7", "black")}
         >
           <BsGithub />
           star
         </Flex>
         <Flex
-          alignItems={"center"}
+          alignItems="center"
           gap={1}
-          border={"1px solid"}
-          borderColor={colorMode === "light" ? "#ddddde" : "#444b5b"}
-          borderRightRadius={"5px"}
+          border="1px solid"
+          borderColor={useColorModeValue("#ddddde", "#444b5b")}
+          borderRightRadius="5px"
           paddingLeft={2}
           paddingRight={2}
-          color={colorMode == "light" ? "black" : "white"}
-          backgroundColor={colorMode == "light" ? "white" : "black"}
+          color={useColorModeValue("black", "white")}
+          backgroundColor={useColorModeValue("white", "black")}
         >
           {stargazersCount}
         </Flex>

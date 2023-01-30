@@ -1,3 +1,5 @@
+import { Bounds } from "pigeon-maps";
+
 import {
   ConnectionConfig,
   ConnectionConfigOptionalDatabase,
@@ -27,7 +29,6 @@ import { compileWithStatement } from "@/data/sqlgen";
 import { toISOStringNoTZ } from "@/datetime";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
-import { Bounds } from "pigeon-maps";
 
 export const isConnected = async (config: ConnectionConfigOptionalDatabase) => {
   try {

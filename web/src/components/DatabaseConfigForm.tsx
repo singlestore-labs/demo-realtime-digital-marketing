@@ -1,3 +1,6 @@
+import { SimpleGrid, Stack } from "@chakra-ui/react";
+import { useRecoilState } from "recoil";
+
 import { ConfigInput } from "@/components/ConfigInput";
 import { MarkdownText } from "@/components/MarkdownText";
 import { ScaleFactorSelector } from "@/components/ScaleFactorSelector";
@@ -7,8 +10,6 @@ import {
   connectionPassword,
   connectionUser,
 } from "@/data/recoil";
-import { SimpleGrid, Stack } from "@chakra-ui/react";
-import { useRecoilState } from "recoil";
 
 type Props = {
   showDatabase?: boolean;
@@ -47,7 +48,7 @@ export const DatabaseConfigForm = ({
           label="Username"
           helpText={
             <MarkdownText>
-              {`Fill in the Security credentials set for the workspace group.`}
+              Fill in the Security credentials set for the workspace group.
             </MarkdownText>
           }
           placeholder="admin"

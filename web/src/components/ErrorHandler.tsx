@@ -1,6 +1,5 @@
-import { CodeBlock } from "@/components/CodeBlock";
-import { SQLError } from "@/data/client";
-import { resettingSchema } from "@/data/recoil";
+
+
 import { RepeatIcon, WarningTwoIcon } from "@chakra-ui/icons";
 import {
   Button,
@@ -15,6 +14,10 @@ import React from "react";
 import { ReactNode } from "react-markdown/lib/react-markdown";
 import { useRecoilValue } from "recoil";
 import dedent from "ts-dedent";
+
+import { CodeBlock } from "@/components/CodeBlock";
+import { SQLError } from "@/data/client";
+import { resettingSchema } from "@/data/recoil";
 
 type Props = {
   isResettingSchema?: boolean;

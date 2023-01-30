@@ -1,13 +1,3 @@
-import { SQLError } from "@/data/client";
-import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
-import {
-  connectionConfig,
-  portalConnectionConfig,
-  resettingSchema,
-  simulatorEnabled,
-  tickDurationMs,
-} from "@/data/recoil";
-import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 import { useToast } from "@chakra-ui/react";
 import React, {
   useCallback,
@@ -18,6 +8,17 @@ import React, {
 } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
+
+import { SQLError } from "@/data/client";
+import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
+import {
+  connectionConfig,
+  portalConnectionConfig,
+  resettingSchema,
+  simulatorEnabled,
+  tickDurationMs,
+} from "@/data/recoil";
+import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 
 const defaultSchemaObjects: { [key: string]: boolean } = Object.fromEntries(
   [

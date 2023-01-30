@@ -1,19 +1,3 @@
-import { UserContext } from "@/App";
-import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
-import { IngestChart, useIngestChartData } from "@/components/IngestChart";
-import { MarkdownText } from "@/components/MarkdownText";
-import { ResetSchemaButton } from "@/components/ResetSchemaButton";
-import { selectableCitiesData } from "@/data/constants";
-import { useConnectionState } from "@/data/Hooks/hooks";
-import { City } from "@/data/queries";
-import {
-  connectionConfig,
-  selectedCity,
-  simulatorEnabled,
-} from "@/data/recoil";
-import { useSimulationMonitor } from "@/data/useSimulationMonitor";
-import { useSimulator } from "@/data/useSimulator";
-import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
 import { SettingsIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -33,6 +17,24 @@ import {
 import { useContext, useEffect, useState } from "react";
 import { BsEye, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
+
+import { UserContext } from "@/App";
+import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
+import { IngestChart, useIngestChartData } from "@/components/IngestChart";
+import { MarkdownText } from "@/components/MarkdownText";
+import { ResetSchemaButton } from "@/components/ResetSchemaButton";
+import { selectableCitiesData } from "@/data/constants";
+import { useConnectionState } from "@/data/Hooks/hooks";
+import { City } from "@/data/queries";
+import {
+  connectionConfig,
+  selectedCity,
+  simulatorEnabled,
+} from "@/data/recoil";
+import { useSimulationMonitor } from "@/data/useSimulationMonitor";
+import { useSimulator } from "@/data/useSimulator";
+import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
+
 import { PixiMap } from "../../components/PixiMap";
 import { Stats } from "./stats";
 
@@ -94,26 +96,26 @@ const StatsWrapper = () => {
     <>
       <Stack spacing={4}>
         <Stack spacing={1}>
-          <Heading fontSize={"md"}>Locations</Heading>
-          <Text overflowWrap={"break-word"}>
+          <Heading fontSize="md">Locations</Heading>
+          <Text overflowWrap="break-word">
             Select cities to add to the dataset
           </Text>
         </Stack>
         <Tooltip
           isDisabled={isUpdating ? false : true}
-          label={"Updating city list"}
+          label="Updating city list"
           hasArrow
           placement="top"
           zIndex={5}
         >
-          <SimpleGrid minChildWidth={"25%"} spacing={[1, 3]}>
+          <SimpleGrid minChildWidth="25%" spacing={[1, 3]}>
             {totalSelectableCities.map((city) => (
               <Checkbox
                 size="md"
                 disabled={isUpdating}
                 key={city.id}
                 zIndex={10}
-                colorScheme={"purple"}
+                colorScheme="purple"
                 isChecked={
                   selectedCities.map((c) => c.id).includes(city.id)
                     ? true
@@ -122,8 +124,8 @@ const StatsWrapper = () => {
                 onChange={(e) => setCheckItem(city, e.target.checked)}
               >
                 <Flex
-                  justifyContent={"left"}
-                  alignItems={"center"}
+                  justifyContent="left"
+                  alignItems="center"
                   gap={1}
                   color={
                     selectedCities.map((c) => c.id).includes(city.id)
@@ -135,7 +137,7 @@ const StatsWrapper = () => {
                 >
                   <Text>{city.name}</Text>
                   {lastSelectedCityId === city.id ? (
-                    <BsEye size={"1.2em"} />
+                    <BsEye size="1.2em" />
                   ) : undefined}
                 </Flex>
               </Checkbox>
@@ -146,21 +148,21 @@ const StatsWrapper = () => {
       </Stack>
       <Stack spacing={4}>
         <Stack spacing={1}>
-          <Heading size={"md"}>Key Metrics</Heading>
+          <Heading size="md">Key Metrics</Heading>
           <Text>Serving ads real-time to sumulate Subscribers</Text>
         </Stack>
         <Stats />
       </Stack>
       <Stack border="1px solid silver" borderRadius="10px" padding="15px">
-        <Flex justifyContent={"space-between"} alignItems={"center"}>
+        <Flex justifyContent="space-between" alignItems="center">
           <Text fontSize="sm" fontWeight="bold">
             INGESTED DATA
           </Text>
           <Flex
-            justifyContent={"space-between"}
+            justifyContent="space-between"
             gap={2}
-            fontSize={"xs"}
-            alignItems={"center"}
+            fontSize="xs"
+            alignItems="center"
             color={useColorModeValue("#553ACF", "#ECE8FD")}
           >
             <Icon as={BsInfoCircleFill} />{" "}
@@ -238,10 +240,10 @@ export const NotificationsMap = () => {
       direction={["column", "column", "row"]}
       margin={0}
       padding={0}
-      position={"relative"}
+      position="relative"
       height="100%"
     >
-      <Stack spacing={0} width={"100%"} height="100%" minHeight={"60vh"}>
+      <Stack spacing={0} width="100%" height="100%" minHeight="60%">
         <PixiMap
           selectionDropdownLeft={isSmallScreen ? undefined : "31.5%"}
           selectionDropdownTop={isSmallScreen ? undefined : "1vw"}
@@ -252,14 +254,14 @@ export const NotificationsMap = () => {
       <Stack
         spacing={4}
         position={isSmallScreen ? "relative" : "absolute"}
-        boxShadow={"0px 3px 2px 0px #ddddde"}
+        boxShadow="0px 3px 2px 0px #ddddde"
         background={useColorModeValue("white", "gray.800")}
         left={0}
         top={0}
         overflow={isSmallScreen ? undefined : "auto"}
         width={isSmallScreen ? "100%" : "30%"}
         height={isSmallScreen ? "auto" : "100%"}
-        borderBottomRightRadius={"10px"}
+        borderBottomRightRadius="10px"
         padding="36px 48px 36px 48px"
       >
         {inner}

@@ -1,8 +1,3 @@
-import { trackAnalyticsEvent } from "@/analytics";
-import { useConnectionState, useMountedCallback } from "@/data/Hooks/hooks";
-import { setSessionController } from "@/data/queries";
-import { connectionConfig, simulatorEnabled } from "@/data/recoil";
-import { useSession } from "@/data/useSession";
 import {
   Alert,
   AlertIcon,
@@ -12,6 +7,12 @@ import {
 } from "@chakra-ui/react";
 import { useCallback } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
+
+import { trackAnalyticsEvent } from "@/analytics";
+import { useConnectionState, useMountedCallback } from "@/data/Hooks/hooks";
+import { setSessionController } from "@/data/queries";
+import { connectionConfig, simulatorEnabled } from "@/data/recoil";
+import { useSession } from "@/data/useSession";
 
 export const EnableSimulatorButton = () => {
   const setEnabled = useSetRecoilState(simulatorEnabled);

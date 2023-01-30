@@ -1,32 +1,4 @@
 import {
-  checkPlans,
-  ensurePipelinesExist,
-  estimatedRowCountObj,
-  getPipelineSQL,
-  insertSeedData,
-  PipelineName,
-  pipelineNames,
-  pipelineStatus,
-  runMatchingProcess,
-  runUpdateSegments,
-} from "@/data/queries";
-import {
-  configScaleFactor,
-  connectionConfig,
-  connectionDatabase,
-  resettingSchema,
-} from "@/data/recoil";
-import { findSchemaObjectByName } from "@/data/sql";
-import { timeseriesIsEmpty } from "@/data/timeseries";
-import { useSimulationMonitor } from "@/data/useSimulationMonitor";
-import { toISOStringNoTZ } from "@/datetime";
-import { formatMs, formatNumber } from "@/format";
-import {
-  useNotificationsDataKey,
-  useNotificationsRenderer,
-} from "@/render/useNotificationsRenderer";
-import { ScaleFactor } from "@/scalefactors";
-import {
   CheckCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -72,6 +44,36 @@ import {
 import { BsCheckCircleFill, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
+
+import {
+  checkPlans,
+  ensurePipelinesExist,
+  estimatedRowCountObj,
+  getPipelineSQL,
+  insertSeedData,
+  PipelineName,
+  pipelineNames,
+  pipelineStatus,
+  runMatchingProcess,
+  runUpdateSegments,
+} from "@/data/queries";
+import {
+  configScaleFactor,
+  connectionConfig,
+  connectionDatabase,
+  resettingSchema,
+} from "@/data/recoil";
+import { findSchemaObjectByName } from "@/data/sql";
+import { timeseriesIsEmpty } from "@/data/timeseries";
+import { useSimulationMonitor } from "@/data/useSimulationMonitor";
+import { toISOStringNoTZ } from "@/datetime";
+import { formatMs, formatNumber } from "@/format";
+import {
+  useNotificationsDataKey,
+  useNotificationsRenderer,
+} from "@/render/useNotificationsRenderer";
+import { ScaleFactor } from "@/scalefactors";
+
 import GraphicalBackground from "../../assets/graphical-background.svg";
 import { CodeBlock } from "../../components/CodeBlock";
 import { DatabaseConfigForm } from "../../components/DatabaseConfigForm";
@@ -104,9 +106,9 @@ const CollapsibleSection = (props: {
   return (
     <div style={props.containerStyle}>
       <Button
-        justifyContent={"space-between"}
-        size={"sm"}
-        width={"100%"}
+        justifyContent="space-between"
+        size="sm"
+        width="100%"
         style={props.buttonStyle}
         onClick={() => setSectionOpen(!sectionOpen)}
       >
@@ -134,7 +136,7 @@ const Section = (props: {
     <CollapsibleSection
       disabled={!props.completed && !props.previousStepCompleted}
       title={
-        <Flex width={"100%"} alignItems={"center"} gap={1.5}>
+        <Flex width="100%" alignItems="center" gap={1.5}>
           {props.completed ? (
             <Icon as={BsCheckCircleFill} />
           ) : (
@@ -329,8 +331,8 @@ const SchemaSection = ({
           </>
         }
         right={
-          <Flex direction={"column"} gap={3}>
-            <Heading size={"sm"}>Tags</Heading>
+          <Flex direction="column" gap={3}>
+            <Heading size="sm">Tags</Heading>
             <SimpleGrid columns={[1, 3, 3]} gap={1}>
               {Object.keys(schemaObjs.data || {})
                 .sort()
@@ -479,12 +481,12 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
             <Center h={220}>{ensurePipelinesButton}</Center>
           ) : (
             <Flex
-              direction={"column"}
+              direction="column"
               gap={4}
-              padding={"15px"}
-              border={"1px solid"}
-              borderRadius={"15px"}
-              borderColor={"#777582"}
+              padding="15px"
+              border="1px solid"
+              borderRadius="15px"
+              borderColor="#777582"
             >
               <IngestChart data={data} yAxisLabel="total rows" height={200} />
             </Flex>
@@ -569,14 +571,14 @@ const OffersSection = (props: { previousStepCompleted: boolean }) => {
       }
       right={
         <Flex
-          direction={"column"}
+          direction="column"
           gap={4}
-          padding={"15px"}
-          border={"1px solid"}
-          borderRadius={"15px"}
-          borderColor={"#777582"}
+          padding="15px"
+          border="1px solid"
+          borderRadius="15px"
+          borderColor="#777582"
         >
-          <Heading size={"xs"}>NOTIFICATION ZONE FOR NEW YORK</Heading>
+          <Heading size="xs">NOTIFICATION ZONE FOR NEW YORK</Heading>
           <OfferMap
             defaultCenter={DEFAULT_CENTER}
             showCitySelectionDropDown={false}
@@ -668,7 +670,7 @@ const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
         </>
       }
       right={
-        <Flex direction={"column"} gap={4} padding={"10px"}>
+        <Flex direction="column" gap={4} padding="10px">
           <MarkdownText>
             {`    select count(*) from dynamic_subscriber_segments(date_sub_dynamic(now(), "minute"), now());`}
           </MarkdownText>
@@ -769,15 +771,15 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
         </>
       }
       right={
-        <Flex direction={"column"} gap={4} padding={"10px"}>
+        <Flex direction="column" gap={4} padding="10px">
           <MarkdownText>{`    select * from match_offers_to_subscribers("second");`}</MarkdownText>
           <Flex
-            direction={"column"}
+            direction="column"
             gap={4}
-            padding={"15px"}
-            border={"1px solid"}
-            borderRadius={"15px"}
-            borderColor={"#777582"}
+            padding="15px"
+            border="1px solid"
+            borderRadius="15px"
+            borderColor="#777582"
           >
             <PixiMap
               height={250}
@@ -879,12 +881,12 @@ export const Overview = () => {
       mt={10}
       mb="30vh"
       paddingBottom={0}
-      marginBottom={"50px"}
+      marginBottom="50px"
     >
-      <Flex gap={5} justifyContent={"space-between"} marginBottom={"50px"}>
+      <Flex gap={5} justifyContent="space-between" marginBottom="50px">
         <Box>
-          <Heading fontSize={"md"}>Application set up</Heading>
-          <Text size="xs" overflowWrap={"break-word"}>
+          <Heading fontSize="md">Application set up</Heading>
+          <Text size="xs" overflowWrap="break-word">
             Connect to a SingleStoreDB workspace to see how SingleStoreDB can
             power the Realtime Digital Marketing applications. If you have any
             questions or issues, please file an issue on the GitHub repo or on
@@ -905,34 +907,34 @@ export const Overview = () => {
       {sections}
 
       <Flex
-        width={"100%"}
-        alignItems={"center"}
-        justifyContent={"center"}
+        width="100%"
+        alignItems="center"
+        justifyContent="center"
         backgroundImage={GraphicalBackground}
-        backgroundSize={"110% 110%"}
-        backgroundPosition={"center"}
-        backgroundRepeat={"no-repeat"}
+        backgroundSize="110% 110%"
+        backgroundPosition="center"
+        backgroundRepeat="no-repeat"
         minHeight="300px"
       >
         {tableCounts ? (
           <Flex
-            maxWidth={"50%"}
-            direction={"row"}
-            justifyContent={"center"}
-            alignItems={"center"}
-            margin={"50px"}
-            padding={"20px 25px 10px 10px"}
+            maxWidth="50%"
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            margin="50px"
+            padding="20px 25px 10px 10px"
             gap={5}
-            borderRadius={"10px"}
-            background={"#4F34C7"}
-            color={"white"}
+            borderRadius="10px"
+            background="#4F34C7"
+            color="white"
           >
-            <CheckCircleIcon margin={"15px"} fontSize={"lg"} />
+            <CheckCircleIcon margin="15px" fontSize="lg" />
             <Box
-              color={"white"}
+              color="white"
               style={{ lineHeight: "28px", fontWeight: 400, fontSize: "16px" }}
             >
-              <Heading size={"sm"}>Great Job!</Heading>
+              <Heading size="sm">Great Job!</Heading>
 
               <p>
                 The applications is up and running. Explore it further by:

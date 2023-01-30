@@ -1,6 +1,3 @@
-import { estimatedRowCountObj } from "@/data/queries";
-import { connectionConfig, tickDurationMs } from "@/data/recoil";
-import { formatMs } from "@/format";
 import {
   SimpleGrid,
   Stat,
@@ -12,6 +9,10 @@ import {
 import { format } from "d3-format";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
+
+import { estimatedRowCountObj } from "@/data/queries";
+import { connectionConfig, tickDurationMs } from "@/data/recoil";
+import { formatMs } from "@/format";
 
 export const Stats = () => {
   const config = useRecoilValue(connectionConfig);
@@ -37,9 +38,9 @@ export const Stats = () => {
   const StatWrapper = (props: { statLabel: string; statNumber: string }) => {
     return (
       <Stat
-        padding={"20px"}
+        padding="20px"
         background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-        borderRadius={"15px"}
+        borderRadius="15px"
       >
         <StatLabel>{props.statLabel}</StatLabel>
         <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>

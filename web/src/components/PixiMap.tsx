@@ -1,7 +1,5 @@
-import { UserContext } from "@/App";
-import { DEFAULT_CITY } from "@/data/offers";
-import { City } from "@/data/queries";
-import { selectedCity } from "@/data/recoil";
+import "@pixi/graphics-extras";
+
 import {
   Box,
   BoxProps,
@@ -16,7 +14,6 @@ import {
   useColorMode,
   useConst,
 } from "@chakra-ui/react";
-import "@pixi/graphics-extras";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import React, {
@@ -28,6 +25,11 @@ import React, {
 } from "react";
 import Select from "react-select";
 import { useRecoilState } from "recoil";
+
+import { UserContext } from "@/App";
+import { DEFAULT_CITY } from "@/data/offers";
+import { City } from "@/data/queries";
+import { selectedCity } from "@/data/recoil";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -45,10 +47,10 @@ const stamenAttribution = (
   </>
 );
 
-export const DEFAULT_CENTER = [
+export const DEFAULT_CENTER: [number, number] = [
   DEFAULT_CITY.lonlat[1],
   DEFAULT_CITY.lonlat[0],
-] as [number, number];
+];
 export const DEFAULT_ZOOM = 12;
 
 type RendererConfig<T> = {
@@ -217,29 +219,29 @@ export const PixiMap = <T,>({
   }, [defaultCenter, lastSelectedCityDetails]);
 
   return (
-    <Stack spacing={0} position={"relative"} height={height}>
+    <Stack spacing={0} position="relative" height={height}>
       {showCitySelectionDropDown ? (
         <Flex
-          position={"absolute"}
+          position="absolute"
           zIndex={5}
           top={selectionDropdownTop}
           left={selectionDropdownLeft}
           background={colorMode === "light" ? "#553ACF" : "#CCC3F9"}
           color={colorMode === "light" ? "white" : "black"}
-          boxShadow={"1px 6px 6px grey"}
-          width={"-webkit-fit-content"}
-          justifyContent={"space-between"}
+          boxShadow="1px 6px 6px grey"
+          width="-webkit-fit-content"
+          justifyContent="space-between"
           gap={1}
-          padding={"0px 2px 0px 10px"}
-          borderRadius={"6px"}
-          alignItems={"center"}
+          padding="0px 2px 0px 10px"
+          borderRadius="6px"
+          alignItems="center"
         >
-          <Box display={"inline"}>
-            <Text display={"inline"}>Map view</Text>
+          <Box display="inline">
+            <Text display="inline">Map view</Text>
           </Box>
           <Center
             height="25px"
-            margin={"2px 0px 2px 5px"}
+            margin="2px 0px 2px 5px"
             background={colorMode === "light" ? "white" : "black"}
           >
             <Divider
@@ -255,7 +257,7 @@ export const PixiMap = <T,>({
                 : "Please select atleast 1 Location from Dashboard menu"
             }
           >
-            <Box display={"inline"}>
+            <Box display="inline">
               <Select
                 options={selectedCities.map((c) => ({
                   label: c.name,
@@ -313,7 +315,7 @@ export const PixiMap = <T,>({
         </Flex>
       ) : undefined}
       {!forceUpdateMap ? (
-        <Box width={"inherit"} height={height}>
+        <Box width="inherit" height={height}>
           <Map
             dprs={[1, 2]}
             provider={stamenProvider("toner-lite")}
@@ -338,7 +340,7 @@ export const PixiMap = <T,>({
           </Map>
         </Box>
       ) : (
-        <Spinner size={"sm"} />
+        <Spinner size="sm" />
       )}
     </Stack>
   );

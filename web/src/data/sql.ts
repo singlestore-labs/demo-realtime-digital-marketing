@@ -5,7 +5,7 @@ import PROCEDURES from "@/sql/procedures.sql";
 import TABLES from "@/sql/schema.sql";
 import SEED from "@/sql/seed.sql";
 
-export { FUNCTIONS, PROCEDURES, TABLES, PIPELINES, SEED };
+export { FUNCTIONS, PIPELINES, PROCEDURES, SEED,TABLES };
 
 export const S3_BUCKET_NAME = "singlestore-realtime-digital-marketing";
 

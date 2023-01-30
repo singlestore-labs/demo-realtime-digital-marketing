@@ -1,10 +1,11 @@
+import { useCallback, useRef } from "react";
+import { useRecoilValue } from "recoil";
+
 import { useConnectionState, useTick } from "@/data/Hooks/hooks";
 import { runMatchingProcess, runUpdateSegments } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { useSession } from "@/data/useSession";
 import { toISOStringNoTZ } from "@/datetime";
-import { useCallback, useRef } from "react";
-import { useRecoilValue } from "recoil";
 
 const TICK_INTERVAL_MATCH = 1 * 1000;
 const TICK_INTERVAL_SEGMENTS = 1 * 1000;

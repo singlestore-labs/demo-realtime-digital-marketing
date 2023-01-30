@@ -1,5 +1,9 @@
+import OpenLocationCode from "open-location-code-typescript";
+import { Bounds, Point } from "pigeon-maps";
+import stringHash from "string-hash";
+
 import { ConnectionConfig, Exec } from "@/data/client";
-import { compileInsert, InsertStatement } from "@/data/sqlgen";
+import { compileInsert,InsertStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
 import {
   randomChoice,
@@ -9,9 +13,6 @@ import {
   Vendor,
 } from "@/rand";
 import VENDORS from "@/static-data/vendors.json";
-import OpenLocationCode from "open-location-code-typescript";
-import { Bounds, Point } from "pigeon-maps";
-import stringHash from "string-hash";
 
 export const DEFAULT_CITY = {
   id: 120658,

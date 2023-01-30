@@ -1,6 +1,3 @@
-import { ConnectionConfig } from "@/data/client";
-import { estimatedRowCountObj } from "@/data/queries";
-import { Timeseries, TimeseriesPoint } from "@/data/timeseries";
 import { Center, Spinner, Text, useColorMode } from "@chakra-ui/react";
 import {
   AnimatedLineSeries,
@@ -14,6 +11,10 @@ import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 import { format } from "d3-format";
 import { useCallback, useMemo, useRef } from "react";
 import useSWR from "swr";
+
+import { ConnectionConfig } from "@/data/client";
+import { estimatedRowCountObj } from "@/data/queries";
+import { Timeseries, TimeseriesPoint } from "@/data/timeseries";
 
 const SI_FORMAT = format("~s");
 

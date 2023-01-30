@@ -1,17 +1,3 @@
-import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
-import { Heatmap } from "@/components/Heatmap";
-import { useConnectionState } from "@/data/Hooks/hooks";
-import {
-  CustomerMetrics,
-  customerMetrics,
-  estimatedRowCountObj,
-  overallConversionRate,
-  ZoneMetrics,
-  zoneMetrics,
-} from "@/data/queries";
-import { connectionConfig, simulatorEnabled } from "@/data/recoil";
-import { useSimulationMonitor } from "@/data/useSimulationMonitor";
-import { useSimulator } from "@/data/useSimulator";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -46,6 +32,21 @@ import { useState } from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
+import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
+import { Heatmap } from "@/components/Heatmap";
+import { useConnectionState } from "@/data/Hooks/hooks";
+import {
+  CustomerMetrics,
+  customerMetrics,
+  estimatedRowCountObj,
+  overallConversionRate,
+  ZoneMetrics,
+  zoneMetrics,
+} from "@/data/queries";
+import { connectionConfig, simulatorEnabled } from "@/data/recoil";
+import { useSimulationMonitor } from "@/data/useSimulationMonitor";
+import { useSimulator } from "@/data/useSimulator";
+
 const formatPct = format(",.2%");
 const formatStat = format(".4~s");
 
@@ -57,14 +58,14 @@ export const AnalyticsDashboard = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   return (
-    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30vh">
+    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
       {!initialized ? (
         <LoadingIndicator />
       ) : enabled ? (
         <Stack gap={10}>
           <Box>
-            <Heading fontSize={"md"}>Engagement</Heading>
-            <Text overflowWrap={"break-word"}>
+            <Heading fontSize="md">Engagement</Heading>
+            <Text overflowWrap="break-word">
               Conversion rate with subscribers
             </Text>
             <br />
@@ -74,36 +75,36 @@ export const AnalyticsDashboard = () => {
                 <StatGrid />
               </Stack>
               <Stack
-                padding={"17px"}
+                padding="17px"
                 flex={4}
                 borderRadius={10}
-                border={"1px solid grey"}
-                position={"relative"}
+                border="1px solid grey"
+                position="relative"
               >
                 <Flex
-                  direction={"row"}
-                  justifyContent={"space-between"}
-                  width={"100%"}
+                  direction="row"
+                  justifyContent="space-between"
+                  width="100%"
                   gap={10}
-                  alignItems={"center"}
+                  alignItems="center"
                 >
                   <Text
-                    fontWeight={"bold"}
-                    fontSize={"sm"}
-                    textTransform={"uppercase"}
+                    fontWeight="bold"
+                    fontSize="sm"
+                    textTransform="uppercase"
                   >
                     Offer conversion rates by Notification zone
                   </Text>
-                  <Flex width={"30%"} direction={"column"}>
-                    <Box width={"100%"}>
+                  <Flex width="30%" direction="column">
+                    <Box width="100%">
                       <Progress
-                        colorScheme={"transparent"}
+                        colorScheme="transparent"
                         height={2}
                         bgGradient="linear(to-r, rgba(127, 17, 224, 1), white)"
                         value={90}
                       />
                     </Box>
-                    <Flex width={"100%"} justifyContent={"space-between"}>
+                    <Flex width="100%" justifyContent="space-between">
                       <Text>
                         <small>High</small>
                       </Text>
@@ -131,8 +132,8 @@ export const AnalyticsDashboard = () => {
             </Flex>
           </Box>
           <Box>
-            <Heading fontSize={"md"}>Top Performing Customers</Heading>
-            <Text overflowWrap={"break-word"}>
+            <Heading fontSize="md">Top Performing Customers</Heading>
+            <Text overflowWrap="break-word">
               Companies with the highest conversion rate
             </Text>
             <br />
@@ -166,9 +167,9 @@ const StatWrapper = (props: {
 }) => {
   return (
     <GridItem
-      padding={"20px"}
+      padding="20px"
       background={useColorModeValue("#ECE8FD", "#2F206E")}
-      borderRadius={"15px"}
+      borderRadius="15px"
       colSpan={props.colSpan || 1}
     >
       <Stat>
@@ -231,12 +232,12 @@ const StatGrid = () => {
       <StatWrapper
         statLabel="Conversion Rate"
         statNumber={formatPct(overallRateRequests.data?.conversionRate || 0)}
-        helpText={"Requests"}
+        helpText="Requests"
       />
       <StatWrapper
         statLabel="Conversion Rate"
         statNumber={formatPct(overallRatePurchases.data?.conversionRate || 0)}
-        helpText={"Purchases"}
+        helpText="Purchases"
       />
     </Grid>
   );
@@ -257,7 +258,7 @@ const ConversionTable = () => {
   return (
     <Box overflowX="auto">
       <TableContainer>
-        <Table size={"sm"} variant="striped">
+        <Table size="sm" variant="striped">
           <Thead background={useColorModeValue("#ECE8FD", "#2F206E")}>
             <Tr>
               <Th
@@ -276,7 +277,7 @@ const ConversionTable = () => {
                   sortColumn === "totalNotifications" ? activeColor : undefined
                 }
                 cursor="pointer"
-                paddingLeft={"0px"}
+                paddingLeft="0px"
               >
                 Total Notifications
                 {sortColumn === "totalNotifications" && <ChevronDownIcon />}
@@ -288,7 +289,7 @@ const ConversionTable = () => {
                   sortColumn === "totalConversions" ? activeColor : undefined
                 }
                 cursor="pointer"
-                paddingLeft={"0px"}
+                paddingLeft="0px"
               >
                 Total Conversions
                 {sortColumn === "totalConversions" && <ChevronDownIcon />}
@@ -300,7 +301,7 @@ const ConversionTable = () => {
                   sortColumn === "conversionRate" ? activeColor : undefined
                 }
                 cursor="pointer"
-                paddingLeft={"0px"}
+                paddingLeft="0px"
               >
                 Conversion Rate
                 {sortColumn === "conversionRate" && <ChevronDownIcon />}
@@ -309,28 +310,28 @@ const ConversionTable = () => {
           </Thead>
           <Tbody>
             {metricsTableData.isValidating && !metricsTableData.data ? (
-              <Spinner size={"sm"} />
+              <Spinner size="sm" />
             ) : undefined}
             {metricsTableData.data?.map((c) => (
               <Tr key={c.customer}>
                 <Td>{c.customer}</Td>
-                <Td paddingLeft={"10px"}>{formatStat(c.totalNotifications)}</Td>
-                <Td paddingLeft={"10px"}>{formatStat(c.totalConversions)}</Td>
-                <Td paddingLeft={"10px"}>
+                <Td paddingLeft="10px">{formatStat(c.totalNotifications)}</Td>
+                <Td paddingLeft="10px">{formatStat(c.totalConversions)}</Td>
+                <Td paddingLeft="10px">
                   <Box
-                    background={"white"}
-                    display={"inline-block"}
-                    borderRadius={"5px"}
+                    background="white"
+                    display="inline-block"
+                    borderRadius="5px"
                     padding={0}
                     margin={0}
                   >
                     <Box
-                      display={"inline-block"}
-                      borderRadius={"5px"}
-                      padding={"4px"}
-                      fontSize={"xs"}
+                      display="inline-block"
+                      borderRadius="5px"
+                      padding="4px"
+                      fontSize="xs"
                       background={`rgba(0, 0, 0, ${c.conversionRate + 0.01})`}
-                      color={`rgba(0,0,0,1)`}
+                      color="rgba(0,0,0,1)"
                     >
                       {formatPct(c.conversionRate)}
                     </Box>

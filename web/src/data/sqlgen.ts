@@ -1,5 +1,6 @@
-import { SQLValue } from "@/data/client";
 import dedent from "ts-dedent";
+
+import { SQLValue } from "@/data/client";
 
 export interface CompiledQuery {
   sql: string;

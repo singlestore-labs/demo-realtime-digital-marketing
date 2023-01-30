@@ -1,11 +1,13 @@
+import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
+import { createContext,Suspense } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useRecoilValue } from "recoil";
+
 import { useAnalytics } from "@/analytics";
 import { Nav } from "@/components/navBar/Nav";
 import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { NotificationsMap } from "@/pages/dashboards/index";
-import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
-import { createContext, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+
 import { Footer } from "./components/Footer";
 import {
   CityListHookReturnType,
@@ -48,9 +50,9 @@ const RoutesContainer = () => {
   return (
     <>
       <Analytics />
-      <Flex height="100vh" width="100vw" direction="column" overflowY={"auto"}>
+      <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
         <Nav />
-        <Box flex="1" paddingTop={"6px"}>
+        <Box flex="1" paddingTop="6px">
           <Routes>
             <Route
               path="/"

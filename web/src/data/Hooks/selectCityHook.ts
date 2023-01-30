@@ -1,7 +1,9 @@
-import { trackAnalyticsEvent } from "@/analytics";
-import { ScaleFactors } from "@/scalefactors";
 import { Point } from "pigeon-maps";
 import React, { useEffect, useState } from "react";
+
+import { trackAnalyticsEvent } from "@/analytics";
+import { ScaleFactors } from "@/scalefactors";
+
 import { ConnectionConfig } from "../client";
 import { createCity, removeCity } from "../offers";
 import {

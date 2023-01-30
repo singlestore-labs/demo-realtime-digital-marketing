@@ -1,10 +1,4 @@
 import {
-  useConnectionState,
-  useMountedCallback,
-  useResetSchema,
-} from "@/data/Hooks/hooks";
-import { connectionDatabase } from "@/data/recoil";
-import {
   AlertDialog,
   AlertDialogBody,
   AlertDialogContent,
@@ -22,6 +16,13 @@ import {
 } from "@chakra-ui/react";
 import React, { useCallback } from "react";
 import { useRecoilValue } from "recoil";
+
+import {
+  useConnectionState,
+  useMountedCallback,
+  useResetSchema,
+} from "@/data/Hooks/hooks";
+import { connectionDatabase } from "@/data/recoil";
 
 export type Props = HTMLChakraProps<"button"> &
   ButtonOptions &
@@ -74,8 +75,8 @@ export const ResetSchemaButton = (props: Props) => {
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button
-                background={"transparent"}
-                border={"0.5px solid"}
+                background="transparent"
+                border="0.5px solid"
                 color={useColorModeValue("#553ACF", "#ECE8FD")}
                 ref={cancelResetSchemaBtn}
                 onClick={resetSchemaDialog.onClose}

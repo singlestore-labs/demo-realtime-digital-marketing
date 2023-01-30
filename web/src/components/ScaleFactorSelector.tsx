@@ -1,7 +1,8 @@
-import { configScaleFactor } from "@/data/recoil";
-import { getScaleFactor, ScaleFactors } from "@/scalefactors";
 import { FormControl, FormLabel, Select } from "@chakra-ui/react";
 import { useRecoilState } from "recoil";
+
+import { configScaleFactor } from "@/data/recoil";
+import { getScaleFactor,ScaleFactors } from "@/scalefactors";
 
 export const ScaleFactorSelector = () => {
   const [scaleFactor, setScaleFactor] = useRecoilState(configScaleFactor);

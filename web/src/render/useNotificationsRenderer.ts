@@ -1,15 +1,16 @@
-import { trackAnalyticsEvent } from "@/analytics";
-import { UsePixiRenderer } from "@/components/PixiMap";
-import { useConnectionState, useDebounce } from "@/data/Hooks/hooks";
-import { City, getCities, queryNotificationsInBounds } from "@/data/queries";
-import { connectionConfig } from "@/data/recoil";
-import { toISOStringNoTZ } from "@/datetime";
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
 import { Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import { useCallback, useMemo, useRef } from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
+
+import { trackAnalyticsEvent } from "@/analytics";
+import { UsePixiRenderer } from "@/components/PixiMap";
+import { useConnectionState, useDebounce } from "@/data/Hooks/hooks";
+import { City, getCities, queryNotificationsInBounds } from "@/data/queries";
+import { connectionConfig } from "@/data/recoil";
+import { toISOStringNoTZ } from "@/datetime";
 
 const MAX_NOTIFICATIONS = 100;
 const REFRESH_INTERVAL = 1000;

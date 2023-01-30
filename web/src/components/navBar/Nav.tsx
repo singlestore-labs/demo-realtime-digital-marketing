@@ -1,4 +1,3 @@
-import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.png";
 import { CloseIcon, HamburgerIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
 import {
   Avatar,
@@ -36,6 +35,9 @@ import {
 import { VscTwitter } from "react-icons/vsc";
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { NavLink as RouterLink } from "react-router-dom";
+
+import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.png";
+
 import { GithubStargazer } from "../GithubButtons";
 
 export const Nav = () => {
@@ -54,9 +56,9 @@ export const Nav = () => {
     IconElement: ReactElement;
   }) => {
     return (
-      <Flex gap={2} alignItems={"center"}>
+      <Flex gap={2} alignItems="center">
         <b>{props.NavLinkTitle} </b>
-        <Stack fontSize={"0.8em"} alignItems={"center"}>
+        <Stack fontSize="0.8em" alignItems="center">
           {props.IconElement}
         </Stack>
       </Flex>
@@ -70,7 +72,7 @@ export const Nav = () => {
   }) => {
     return (
       <Link
-        padding={"4px 15px 4px 15px"}
+        padding="4px 15px 4px 15px"
         borderRadius="5px"
         as={RouterLink}
         color={useColorModeValue("#553ACF", "#CCC3F9")}
@@ -90,25 +92,25 @@ export const Nav = () => {
   const links = (
     <>
       <NavLinkComponent
-        to={"/"}
-        NavLinkTitle={"Dashboard"}
+        to="/"
+        NavLinkTitle="Dashboard"
         IconElement={<Icon as={colorMode === "light" ? BsMap : BsMapFill} />}
       />
       <NavLinkComponent
-        to={"/analytics"}
-        NavLinkTitle={"Analytics"}
+        to="/analytics"
+        NavLinkTitle="Analytics"
         IconElement={
           <Icon
-            border={"1px"}
-            padding={"1px"}
-            borderRadius={"2px"}
+            border="1px"
+            padding="1px"
+            borderRadius="2px"
             as={colorMode === "light" ? BsBarChart : BsFillBarChartFill}
           />
         }
       />
       <NavLinkComponent
-        to={"/configure"}
-        NavLinkTitle={"Configure"}
+        to="/configure"
+        NavLinkTitle="Configure"
         IconElement={<Icon as={colorMode === "light" ? BsGear : BsGearFill} />}
       />
     </>
@@ -118,15 +120,15 @@ export const Nav = () => {
     <>
       <Box
         bg={useColorModeValue("#ECE8FD", "#2F206E")}
-        borderBottomRadius={"10px"}
+        borderBottomRadius="10px"
         borderTop={0}
-        justifyContent={"center"}
-        alignItems={"center"}
-        alignContent={"center"}
+        justifyContent="center"
+        alignItems="center"
+        alignContent="center"
         boxShadow={colorMode === "light" ? "0 2px 2px #ddddde" : undefined}
         zIndex={5}
-        paddingLeft={"1rem"}
-        paddingRight={"1rem"}
+        paddingLeft="1rem"
+        paddingRight="1rem"
       >
         <Container
           maxW="inherit"
@@ -134,27 +136,27 @@ export const Nav = () => {
         >
           <Flex
             h={16}
-            justifyContent={"space-between"}
-            alignItems={"center"}
+            justifyContent="space-between"
+            alignItems="center"
             padding={0}
           >
             <IconButton
-              size={"md"}
+              size="md"
               icon={navMenu.isOpen ? <CloseIcon /> : <HamburgerIcon />}
-              aria-label={"Open Menu"}
+              aria-label="Open Menu"
               display={{ md: "none" }}
               onClick={navMenu.isOpen ? navMenu.onClose : navMenu.onOpen}
             />
 
             <HStack
-              as={"nav"}
+              as="nav"
               spacing={2}
               display={{ base: "none", md: "flex" }}
             >
-              <Wrap display={"inline-block"}>
+              <Wrap display="inline-block">
                 <WrapItem>
                   <Avatar
-                    size={"sm"}
+                    size="sm"
                     name="Dan Abrahmov"
                     src={SinglestoreLogo}
                   />
@@ -165,22 +167,22 @@ export const Nav = () => {
               </Heading>
             </HStack>
             <HStack
-              as={"nav"}
+              as="nav"
               spacing={4}
-              alignItems={"center"}
-              justifyContent={"right"}
+              alignItems="center"
+              justifyContent="right"
               display={{ base: "none", md: "flex" }}
             >
               {links}
             </HStack>
 
-            <Flex alignItems={"center"} justifyContent={"right"} gap={7}>
+            <Flex alignItems="center" justifyContent="right" gap={7}>
               <Menu>
-                <MenuButton as={"button"}>
+                <MenuButton as="button">
                   <Icon
                     aria-label="Github Repo"
                     as={colorMode === "light" ? BsShare : BsShareFill}
-                    cursor={"pointer"}
+                    cursor="pointer"
                     onClick={() =>
                       window.open(
                         "https://github.com/singlestore-labs/demo-realtime-digital-marketing"
@@ -228,15 +230,15 @@ export const Nav = () => {
               )}
               <GithubStargazer
                 color="black"
-                owner={"singlestore-labs"}
-                repo={"demo-realtime-digital-marketing"}
+                owner="singlestore-labs"
+                repo="demo-realtime-digital-marketing"
               />
             </Flex>
           </Flex>
 
           {navMenu.isOpen ? (
             <Box pb={4} display={{ md: "none" }}>
-              <Stack as={"nav"} spacing={4}>
+              <Stack as="nav" spacing={4}>
                 {links}
               </Stack>
             </Box>

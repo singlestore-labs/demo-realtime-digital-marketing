@@ -1,5 +1,6 @@
-import VENDORS from "@/static-data/vendors.json";
 import { least } from "d3-array";
+
+import VENDORS from "@/static-data/vendors.json";
 
 export type Vendor = typeof VENDORS[number];
 
