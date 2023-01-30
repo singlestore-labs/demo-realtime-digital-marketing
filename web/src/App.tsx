@@ -12,7 +12,7 @@ import { Footer } from "./components/Footer";
 import {
   CityListHookReturnType,
   useUpdateCityList,
-} from "./data/Hooks/selectCityHook";
+} from "./data/hooks/selectCityHook";
 import { connectionConfig } from "./data/recoil";
 import { Overview } from "./pages/configure/Overview";
 

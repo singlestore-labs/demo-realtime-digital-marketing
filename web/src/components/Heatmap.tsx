@@ -5,7 +5,7 @@ import { Bounds, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import { useCallback, useMemo } from "react";
 
-import { useDebounce } from "@/data/Hooks/hooks";
+import { useDebounce } from "@/data/hooks/hooks";
 import { Polygon, WKTPolygonToPolygon } from "@/geo";
 
 import { PixiMap, PixiMapProps, UsePixiRenderer } from "./PixiMap";

@@ -24,7 +24,7 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { selectableCitiesData } from "@/data/constants";
-import { useConnectionState } from "@/data/Hooks/hooks";
+import { useConnectionState } from "@/data/hooks/hooks";
 import { City } from "@/data/queries";
 import {
   connectionConfig,

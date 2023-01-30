@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import { useRecoilValue } from "recoil";
 
-import { useConnectionState, useTick } from "@/data/Hooks/hooks";
+import { useConnectionState, useTick } from "@/data/hooks/hooks";
 import { runMatchingProcess, runUpdateSegments } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { useSession } from "@/data/useSession";

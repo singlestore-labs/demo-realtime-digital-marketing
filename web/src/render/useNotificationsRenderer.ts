@@ -7,7 +7,7 @@ import useSWR from "swr";
 
 import { trackAnalyticsEvent } from "@/analytics";
 import { UsePixiRenderer } from "@/components/PixiMap";
-import { useConnectionState, useDebounce } from "@/data/Hooks/hooks";
+import { useConnectionState, useDebounce } from "@/data/hooks/hooks";
 import { City, getCities, queryNotificationsInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { toISOStringNoTZ } from "@/datetime";

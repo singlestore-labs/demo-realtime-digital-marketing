@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 
-import { useConnectionState, useTick } from "@/data/Hooks/hooks";
+import { useConnectionState, useTick } from "@/data/hooks/hooks";
 import {
   checkPlans,
   ensurePipelinesAreRunning,

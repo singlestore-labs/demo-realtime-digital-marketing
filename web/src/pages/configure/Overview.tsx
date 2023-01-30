@@ -87,7 +87,7 @@ import {
   useConnectionState,
   useSchemaObjects,
   useTimer,
-} from "../../data/Hooks/hooks";
+} from "../../data/hooks/hooks";
 
 const CollapsibleSection = (props: {
   title: string | ReactElement;

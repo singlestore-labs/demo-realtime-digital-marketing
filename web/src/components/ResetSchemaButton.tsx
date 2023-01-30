@@ -21,7 +21,7 @@ import {
   useConnectionState,
   useMountedCallback,
   useResetSchema,
-} from "@/data/Hooks/hooks";
+} from "@/data/hooks/hooks";
 import { connectionDatabase } from "@/data/recoil";
 
 export type Props = HTMLChakraProps<"button"> &

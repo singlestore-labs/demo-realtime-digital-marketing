@@ -4,7 +4,7 @@ import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
 import { Heatmap } from "@/components/Heatmap";
-import { useConnectionState } from "@/data/Hooks/hooks";
+import { useConnectionState } from "@/data/hooks/hooks";
 import { Offer, queryOffersInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 

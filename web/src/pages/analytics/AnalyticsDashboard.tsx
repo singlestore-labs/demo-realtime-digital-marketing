@@ -34,7 +34,7 @@ import useSWR from "swr";
 
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/Heatmap";
-import { useConnectionState } from "@/data/Hooks/hooks";
+import { useConnectionState } from "@/data/hooks/hooks";
 import {
   CustomerMetrics,
   customerMetrics,

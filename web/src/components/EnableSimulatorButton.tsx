@@ -9,7 +9,7 @@ import { useCallback } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 
 import { trackAnalyticsEvent } from "@/analytics";
-import { useConnectionState, useMountedCallback } from "@/data/Hooks/hooks";
+import { useConnectionState, useMountedCallback } from "@/data/hooks/hooks";
 import { setSessionController } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { useSession } from "@/data/useSession";
