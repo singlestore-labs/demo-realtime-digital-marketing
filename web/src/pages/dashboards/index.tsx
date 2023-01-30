@@ -185,6 +185,13 @@ export const NotificationsMap = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
   const { colorMode } = useColorMode();
 
+  const handleLinkRedirects = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    window.open(
+      e.currentTarget.value,
+      "_self"
+    );
+  };
+
   let inner;
   if (!connected) {
     inner = (
@@ -201,7 +208,8 @@ export const NotificationsMap = () => {
         </MarkdownText>
         <Button
           size="sm"
-          onClick={() => window.open("/configure", "_self")}
+          value="/configure"
+          onClick={handleLinkRedirects}
           background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
           color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
         >
