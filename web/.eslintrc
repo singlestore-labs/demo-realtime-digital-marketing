@@ -29,7 +29,8 @@
     "check-file/filename-naming-convention":[
       "error",
       {
-        "src/**/":"SNAKE_CASE"
+        "**/*.{jsx, tsx}":"PASCAL_CASE",
+        "**/*.{js, ts}":"CAMEL_CASE"
       }
     ],
     "semi": ["error", "always"],

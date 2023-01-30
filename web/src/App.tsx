@@ -1,5 +1,5 @@
 import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
-import { createContext,Suspense } from "react";
+import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 
@@ -32,16 +32,16 @@ function App() {
   );
 
   return (
-    <Suspense fallback={loadingFallback}>
+    <React.Suspense fallback={loadingFallback}>
       <RoutesContainer />
-    </Suspense>
+    </React.Suspense>
   );
 }
 
 const RoutesContainer = () => {
   const config = useRecoilValue(connectionConfig);
   const CityListHook = useUpdateCityList(config);
-  UserContext = createContext(CityListHook);
+  UserContext = React.createContext(CityListHook);
 
   const Analytics = () => {
     useAnalytics();

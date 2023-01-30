@@ -159,7 +159,7 @@ const LoadingIndicator = () => (
   </Center>
 );
 
-const StatWrapper = (props: {
+const StatWrapper = ({statLabel, statNumber, helpText, colSpan}: {
   statLabel: string;
   statNumber: string;
   helpText?: string;
@@ -170,15 +170,15 @@ const StatWrapper = (props: {
       padding="20px"
       background={useColorModeValue("#ECE8FD", "#2F206E")}
       borderRadius="15px"
-      colSpan={props.colSpan || 1}
+      colSpan={colSpan || 1}
     >
       <Stat>
-        <StatLabel>{props.statLabel}</StatLabel>
+        <StatLabel>{statLabel}</StatLabel>
         <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
-          {props.statNumber}
+          {statNumber}
         </StatNumber>
-        {props.helpText ? (
-          <StatHelpText>{props.helpText}</StatHelpText>
+        {helpText ? (
+          <StatHelpText>{helpText}</StatHelpText>
         ) : undefined}
       </Stat>
     </GridItem>
