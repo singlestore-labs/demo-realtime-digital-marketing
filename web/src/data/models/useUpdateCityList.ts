@@ -1,5 +1,5 @@
 import { Point } from "pigeon-maps";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 import { trackAnalyticsEvent } from "@/analytics";
 import { ScaleFactors } from "@/scalefactors";
@@ -12,6 +12,12 @@ import {
   lookupClosestCity,
   seedCityWithOffers,
 } from "../queries";
+import { useRecoilState } from "recoil";
+import {
+  selectedCities as selectedCitiesFromRecoil,
+  isUpdating as isUpdatingFromRecoil,
+  error as errorFromRecoil
+} from "@/data/recoil";
 
 const getSelectedCitiesFromDatabase = async (
   config: ConnectionConfig,
@@ -82,7 +88,6 @@ const removeCityFromDatabase = async (
 };
 
 export interface CityListHookReturnType {
-  selectedCities: City[];
   onCreateCity: (lat: number, lon: number) => void;
   onRemoveCity: (cityId: number) => void;
   isUpdating: boolean;
@@ -94,9 +99,10 @@ export const useUpdateCityList = (
 ): CityListHookReturnType => {
   // The useUpdateCityList hook provides functionality to add or remove cities from cities database.
   // The RTDM will fetch data that will be related to only this cities after update
-  const [selectedCities, setSelectedCities] = useState([] as City[]);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [error, setError] = useState(undefined as Error | undefined);
+  const [_selectedCities, setSelectedCities] = useRecoilState(selectedCitiesFromRecoil);
+  const [isUpdating, setIsUpdating] = useRecoilState(isUpdatingFromRecoil);
+  const [error, setError] = useRecoilState(errorFromRecoil);
+
   const onCreateCity = async (lat: number, lon: number) => {
     await addCityToDatabase(
       config,
@@ -123,10 +129,9 @@ export const useUpdateCityList = (
       setSelectedCities,
       setError
     );
-  }, [config]);
+  }, [config, setError, setIsUpdating, setSelectedCities]);
 
   return {
-    selectedCities,
     onCreateCity,
     onRemoveCity,
     isUpdating,

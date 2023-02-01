@@ -14,11 +14,10 @@ import {
   useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BsEye, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 
-import { UserContext } from "@/App";
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
@@ -27,6 +26,7 @@ import { selectableCitiesData } from "@/data/constants";
 import { City } from "@/data/queries";
 import {
   connectionConfig,
+  selectedCities as selectedCitiesFromRecoil,
   selectedCity,
   simulatorEnabled,
 } from "@/data/recoil";
@@ -37,6 +37,7 @@ import { useSimulator } from "@/view/hooks/useSimulator";
 
 import { PixiMap } from "../../components/PixiMap";
 import { Stats } from "./stats";
+import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 
 const StatsWrapper = () => {
   const config = useRecoilValue(connectionConfig);
@@ -49,11 +50,11 @@ const StatsWrapper = () => {
     "notifications",
     "subscriber_segments"
   );
-
-  const { selectedCities, isUpdating, onCreateCity, onRemoveCity } =
-    useContext(UserContext);
+  const { isUpdating, onCreateCity, onRemoveCity } =
+    useUpdateCityList(config);
   const [lastSelectedCityId, setLastSelectedCityId] =
     useRecoilState(selectedCity);
+  const selectedCities = useRecoilValue(selectedCitiesFromRecoil)
   const { colorMode } = useColorMode();
 
   const [totalSelectableCities, setTotalSelectableCities] =

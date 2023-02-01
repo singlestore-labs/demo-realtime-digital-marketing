@@ -18,18 +18,16 @@ import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import React, {
   CSSProperties,
-  useContext,
   useEffect,
   useLayoutEffect,
   useState,
 } from "react";
 import Select from "react-select";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 
-import { UserContext } from "@/App";
 import { DEFAULT_CITY } from "@/data/offers";
 import { City } from "@/data/queries";
-import { selectedCity } from "@/data/recoil";
+import { selectedCity, selectedCities as selectedCitiesFromRecoil, isUpdating as isUpdatingFromRecoil } from "@/data/recoil";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -194,7 +192,8 @@ export const PixiMap = <T,>({
   const { colorMode } = useColorMode();
   const [lastSelectedCityId, setLastSelectedCityId] =
     useRecoilState(selectedCity);
-  const { selectedCities, isUpdating } = useContext(UserContext);
+  const selectedCities = useRecoilValue(selectedCitiesFromRecoil)
+  const isUpdating = useRecoilValue(isUpdatingFromRecoil)
   const [forceUpdateMap, setForceUpdateMap] = useState(false);
 
   const [lastSelectedCityDetails, setLastSelectedCityDetails] = useState(

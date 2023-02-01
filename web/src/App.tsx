@@ -1,7 +1,6 @@
 import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useRecoilValue } from "recoil";
 
 import { useAnalytics } from "@/analytics";
 import { Nav } from "@/components/navBar/Nav";
@@ -9,14 +8,7 @@ import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
 import { NotificationsMap } from "@/pages/dashboards/index";
 
 import { Footer } from "./components/Footer";
-import {
-  CityListHookReturnType,
-  useUpdateCityList,
-} from "./data/models/useUpdateCityList";
-import { connectionConfig } from "./data/recoil";
 import { Overview } from "./pages/configure/Overview";
-
-export let UserContext: React.Context<CityListHookReturnType>;
 
 function App() {
   const loadingFallback = (
@@ -39,10 +31,6 @@ function App() {
 }
 
 const RoutesContainer = () => {
-  const config = useRecoilValue(connectionConfig);
-  const CityListHook = useUpdateCityList(config);
-  UserContext = React.createContext(CityListHook);
-
   const Analytics = () => {
     useAnalytics();
     return <></>;
@@ -57,18 +45,14 @@ const RoutesContainer = () => {
             <Route
               path="/"
               element={
-                <UserContext.Provider value={CityListHook}>
-                  <NotificationsMap />
-                </UserContext.Provider>
+                <NotificationsMap />
               }
             />
             <Route path="/configure" element={<Overview />} />
             <Route
               path="/analytics"
               element={
-                <UserContext.Provider value={CityListHook}>
-                  <AnalyticsDashboard />
-                </UserContext.Provider>
+                <AnalyticsDashboard />
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />
