@@ -91,7 +91,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
         <Container maxW="container.md" my={10}>
           <Stack gap={4}>
             <Center>
-              <WarningTwoIcon boxSize={20} color="red" />
+              <WarningTwoIcon boxSize={20} color="#C53030" />
             </Center>
             <Heading size="xl" textAlign="center">
               {error.message}
@@ -107,7 +107,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               <Button
                 onClick={() => window.location.reload()}
                 size="sm"
-                colorScheme="blue"
+                colorScheme="purple"
                 leftIcon={<RepeatIcon />}
               >
                 Reload

@@ -16,20 +16,13 @@ import {
 } from "@chakra-ui/react";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import React, {
-  CSSProperties,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from "react";
+import React from "react";
 import Select from "react-select";
 import { useRecoilState } from "recoil";
 
-import { UserContext } from "@/App";
 import { DEFAULT_CITY } from "@/data/offers";
 import { City } from "@/data/queries";
-import { selectedCity } from "@/data/recoil";
+import { isUpdatingCities,selectedCities as selectedCitiesFromRecoil, selectedCity } from "@/data/recoil";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -94,7 +87,7 @@ const PixiMapLayer = <T,>({
     options,
   });
 
-  useLayoutEffect(() => {
+  React.useLayoutEffect(() => {
     if (!canvasRef.current) {
       // We expect canvasRef to always be set here because we are using
       // useLayoutEffect which fires syncronously after the component mounts.
@@ -173,8 +166,8 @@ const RequiresInitLayer = <T,>({
 export type PixiMapProps<T> = {
   useRenderer: UsePixiRenderer<T>;
   height?: number | string;
-  selectionDropdownTop?: CSSProperties["top"];
-  selectionDropdownLeft?: CSSProperties["left"];
+  selectionDropdownTop?: React.CSSProperties["top"];
+  selectionDropdownLeft?: React.CSSProperties["left"];
   defaultCenter?: [number, number] | undefined;
   showCitySelectionDropDown?: boolean;
   options: T;
@@ -189,26 +182,27 @@ export const PixiMap = <T,>({
   useRenderer,
   options,
 }: PixiMapProps<T>) => {
-  const [center, setCenter] = useState(defaultCenter || DEFAULT_CENTER);
-  const [zoom] = useState(DEFAULT_ZOOM);
+  const [center, setCenter] = React.useState(defaultCenter || DEFAULT_CENTER);
+  const [zoom] = React.useState(DEFAULT_ZOOM);
   const { colorMode } = useColorMode();
   const [lastSelectedCityId, setLastSelectedCityId] =
     useRecoilState(selectedCity);
-  const { selectedCities, isUpdating } = useContext(UserContext);
-  const [forceUpdateMap, setForceUpdateMap] = useState(false);
+  const [ selectedCities ] = useRecoilState(selectedCitiesFromRecoil);
+  const [ isUpdating ] = useRecoilState(isUpdatingCities);
+  const [forceUpdateMap, setForceUpdateMap] = React.useState(false);
 
-  const [lastSelectedCityDetails, setLastSelectedCityDetails] = useState(
+  const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState(
     undefined as City | undefined
   );
 
-  useEffect(() => {
+  React.useEffect(() => {
     setForceUpdateMap(true);
     setLastSelectedCityDetails(
       selectedCities.find((c) => c.id === lastSelectedCityId)
     );
   }, [selectedCities, lastSelectedCityId]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setForceUpdateMap(false);
     lastSelectedCityDetails && !defaultCenter
       ? setCenter([
@@ -281,6 +275,7 @@ export const PixiMap = <T,>({
                   input: (props) => ({
                     ...props,
                     background: "transparent",
+                    cursor: "pointer"
                   }),
                   placeholder: (props) => ({
                     ...props,
@@ -289,6 +284,7 @@ export const PixiMap = <T,>({
                   option: (props) => ({
                     ...props,
                     background: "white",
+                    cursor: "pointer",
                     color: "#4C4A57",
                   }),
                   dropdownIndicator: (props) => ({

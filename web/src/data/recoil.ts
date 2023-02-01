@@ -5,6 +5,7 @@ import { trackAnalyticsEvent } from "@/analytics";
 import { ConnectionConfig } from "@/data/client";
 
 import { defaultScaleFactor,ScaleFactor, ScaleFactors } from "../scalefactors";
+import { City } from "./queries";
 
 type LocalStorageEffectConfig<T> = {
   encode: (v: T) => string;
@@ -52,6 +53,21 @@ export const selectedCity = atom({
   key: "selectedCity",
   default: -1,
   effects: [],
+});
+
+export const selectedCities = atom<Array<City>>({
+  key: "selectedCities",
+  default: []
+});
+
+export const isUpdatingCities = atom({
+  key: "isUpdatingCities",
+  default: false
+});
+
+export const errorUpdatingCities = atom<Error | undefined>({
+  key: "errorUpdatingCities",
+  default: undefined
 });
 
 export const connectionHost = atom({

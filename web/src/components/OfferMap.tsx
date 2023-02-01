@@ -4,11 +4,10 @@ import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
 import { Heatmap } from "@/components/HeatMap";
+import { PixiMapProps } from "@/components/PixiMap";
 import { Offer, queryOffersInBounds } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { useConnectionState } from "@/view/hooks/hooks";
-
-import { PixiMapProps } from "./PixiMap";
 
 const MAX_OFFERS = 1000;
 

@@ -154,7 +154,7 @@ const LoadingIndicator = () => (
       speed="0.85s"
       thickness="3px"
       emptyColor="gray.200"
-      color="blue.500"
+      colorScheme="purple"
     />
   </Center>
 );

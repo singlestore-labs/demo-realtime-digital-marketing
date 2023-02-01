@@ -5,10 +5,9 @@ import { Bounds, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import { useCallback, useMemo } from "react";
 
+import { PixiMap, PixiMapProps, UsePixiRenderer } from "@/components/PixiMap";
 import { Polygon, WKTPolygonToPolygon } from "@/geo";
 import { useDebounce } from "@/view/hooks/hooks";
-
-import { PixiMap, PixiMapProps, UsePixiRenderer } from "./PixiMap";
 
 // convert number (range 0-1) to color (hex)
 export type ColorInterpolater = (t: number) => string;

@@ -48,7 +48,7 @@ export const DatabaseConfigForm = ({
           label="Username"
           helpText={
             <MarkdownText>
-              Fill in the Security credentials set for the workspace group.
+              Fill in the Security credentials of workspace group.
             </MarkdownText>
           }
           placeholder="admin"
@@ -61,8 +61,9 @@ export const DatabaseConfigForm = ({
           value={password}
           setValue={setPassword}
           type="password"
-        />
-        {showDatabase && (
+        />      
+      </SimpleGrid>
+      {showDatabase && (
           <ConfigInput
             label="Database"
             placeholder="martech"
@@ -71,7 +72,6 @@ export const DatabaseConfigForm = ({
           />
         )}
         {showScaleFactor && <ScaleFactorSelector />}
-      </SimpleGrid>
     </Stack>
   );
 };

@@ -5,11 +5,10 @@ import { BrowserRouter } from "react-router-dom";
 import { RecoilRoot, useRecoilValue } from "recoil";
 import { SWRConfig } from "swr";
 
+import App from "@/App";
 import { ClientErrorBoundary, ErrorBoundary } from "@/components/ErrorHandler";
 import { chakraTheme } from "@/components/theme";
 import { resettingSchema } from "@/data/recoil";
-
-import App from "./App";
 
 const SWRWrapper = ({ children }: { children: ReactNode }) => {
   const isResettingSchema = useRecoilValue(resettingSchema);

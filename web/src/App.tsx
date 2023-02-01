@@ -1,22 +1,19 @@
-import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
-import React from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Box, Center, Flex, Spinner, useColorModeValue } from "@chakra-ui/react";
+import React, { useState } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 
 import { useAnalytics } from "@/analytics";
+import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/navBar/Nav";
-import { AnalyticsDashboard } from "@/pages/analytics/AnalyticsDashboard";
-import { NotificationsMap } from "@/pages/dashboards/index";
+import { AnalyticsDashboard } from "@/pages/Analytics";
+import { Overview } from "@/pages/Configure";
+import { NotificationsMap } from "@/pages/Dashboard";
 
-import { Footer } from "./components/Footer";
-import {
-  CityListHookReturnType,
-  useUpdateCityList,
-} from "./data/models/useUpdateCityList";
+import { useUpdateCityList } from "./data/models/useUpdateCityList";
 import { connectionConfig } from "./data/recoil";
-import { Overview } from "./pages/configure/Overview";
-
-export let UserContext: React.Context<CityListHookReturnType>;
+import { HomePage } from "./pages/HomePage";
+import { useConnectionState } from "./view/hooks/hooks";
 
 function App() {
   const loadingFallback = (
@@ -26,7 +23,7 @@ function App() {
         speed="0.85s"
         thickness="3px"
         emptyColor="gray.200"
-        color="blue.500"
+        color={useColorModeValue("purple.600", "purple.300")}
       />
     </Center>
   );
@@ -40,41 +37,61 @@ function App() {
 
 const RoutesContainer = () => {
   const config = useRecoilValue(connectionConfig);
-  const CityListHook = useUpdateCityList(config);
-  UserContext = React.createContext(CityListHook);
+  const {connected} = useConnectionState();
+  const { updateCityList } = useUpdateCityList(config);
+  const [redirectToHomePage, setRedirectToHomaePage] = useState(true); // This allow user to modify connection settings in configuration page without redirecting to Home page
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    // We will redirect to Home page '/' if user loaded the website for first time in browser and configuration is not set.
+    // Once connection is successful to singlestore it will autoredirect to appropriate page.
+    if (location.pathname !== "/" && !connected && redirectToHomePage) {
+        navigate({
+          pathname: "/",
+          search: `?redirect=${location.pathname}`
+        });
+    }
+    if (connected) {
+      setRedirectToHomaePage(false);
+    }
+  }, [connected, location.pathname, navigate, redirectToHomePage]);
 
   const Analytics = () => {
     useAnalytics();
     return <></>;
   };
+  
   return (
     <>
       <Analytics />
       <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
-        <Nav />
-        <Box flex="1" paddingTop="6px">
+        { !redirectToHomePage && <Nav /> }
+        <Box flex="1" paddingTop="3px">
           <Routes>
             <Route
               path="/"
               element={
-                <UserContext.Provider value={CityListHook}>
+                <HomePage updateCityList={updateCityList} redirectToHomePage={redirectToHomePage} setRedirectToHomaePage={setRedirectToHomaePage} />
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
                   <NotificationsMap />
-                </UserContext.Provider>
               }
             />
             <Route path="/configure" element={<Overview />} />
             <Route
               path="/analytics"
               element={
-                <UserContext.Provider value={CityListHook}>
                   <AnalyticsDashboard />
-                </UserContext.Provider>
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>
-        <Footer />
+        { !redirectToHomePage && <Footer /> }
       </Flex>
     </>
   );

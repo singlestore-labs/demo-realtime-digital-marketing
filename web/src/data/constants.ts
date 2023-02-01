@@ -1,4 +1,4 @@
-import { City } from "./queries";
+import { City } from "@/data/queries";
 
 // The selectableCities variable hardcodes cities details that user can slecte.
 // Make sure the values here matches the values stored in worldcities database in marteq.

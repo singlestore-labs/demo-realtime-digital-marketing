@@ -9,10 +9,10 @@ import { useCallback } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 
 import { trackAnalyticsEvent } from "@/analytics";
-import { useConnectionState, useMountedCallback } from "@/data/hooks/hooks";
 import { setSessionController } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
-import { useSession } from "@/data/useSession";
+import { useConnectionState, useMountedCallback } from "@/view/hooks/hooks";
+import { useSession } from "@/view/hooks/useSession";
 
 export const EnableSimulatorButton = () => {
   const setEnabled = useSetRecoilState(simulatorEnabled);
@@ -56,7 +56,7 @@ export const EnableSimulatorButton = () => {
         right={4}
         top={3}
         size="xs"
-        colorScheme="blue"
+        colorScheme="purple"
         disabled={enabling}
         onClick={onEnableSimulator}
       >

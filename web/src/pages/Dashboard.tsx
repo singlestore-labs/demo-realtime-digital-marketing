@@ -14,19 +14,23 @@ import {
   useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BsEye, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 
-import { UserContext } from "@/App";
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { MarkdownText } from "@/components/MarkdownText";
+import { PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
+import { Stats } from "@/components/Stats";
 import { selectableCitiesData } from "@/data/constants";
+import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 import { City } from "@/data/queries";
 import {
   connectionConfig,
+  isUpdatingCities,
+  selectedCities as selectedCitiesFromRecoil,
   selectedCity,
   simulatorEnabled,
 } from "@/data/recoil";
@@ -34,9 +38,6 @@ import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
 import { useConnectionState } from "@/view/hooks/hooks";
 import { useSimulationMonitor } from "@/view/hooks/useSimulationMonitor";
 import { useSimulator } from "@/view/hooks/useSimulator";
-
-import { PixiMap } from "../../components/PixiMap";
-import { Stats } from "./stats";
 
 const StatsWrapper = () => {
   const config = useRecoilValue(connectionConfig);
@@ -50,8 +51,9 @@ const StatsWrapper = () => {
     "subscriber_segments"
   );
 
-  const { selectedCities, isUpdating, onCreateCity, onRemoveCity } =
-    useContext(UserContext);
+  const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
+  const [isUpdating] = useRecoilState(isUpdatingCities);
+  const { onCreateCity, onRemoveCity } = useUpdateCityList(config);
   const [lastSelectedCityId, setLastSelectedCityId] =
     useRecoilState(selectedCity);
   const { colorMode } = useColorMode();
@@ -208,7 +210,7 @@ export const NotificationsMap = () => {
         </MarkdownText>
         <Button
           size="sm"
-          value="/configure"
+          value="/"
           onClick={handleLinkRedirects}
           background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
           color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}

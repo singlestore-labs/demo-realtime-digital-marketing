@@ -1,17 +1,19 @@
 import { Point } from "pigeon-maps";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useRecoilState } from "recoil";
 
 import { trackAnalyticsEvent } from "@/analytics";
-import { ScaleFactors } from "@/scalefactors";
-
-import { ConnectionConfig } from "../client";
-import { createCity, removeCity } from "../offers";
+import { ConnectionConfig } from "@/data/client";
+import { createCity, removeCity } from "@/data/offers";
 import {
   City,
   getCities,
   lookupClosestCity,
   seedCityWithOffers,
-} from "../queries";
+} from "@/data/queries";
+import { ScaleFactors } from "@/scalefactors";
+
+import { errorUpdatingCities, isUpdatingCities, selectedCities } from "../recoil";
 
 const getSelectedCitiesFromDatabase = async (
   config: ConnectionConfig,
@@ -63,7 +65,7 @@ const removeCityFromDatabase = async (
   config: ConnectionConfig,
   cityId: number,
   setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>,
-  setSelectedCities: React.Dispatch<React.SetStateAction<City[]>>,
+  setCities: React.Dispatch<React.SetStateAction<City[]>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
   // The removeCityFromDatabase will remove city matching cityID from cities table in martech database.
@@ -75,18 +77,16 @@ const removeCityFromDatabase = async (
   await getSelectedCitiesFromDatabase(
     config,
     setIsUpdating,
-    setSelectedCities,
+    setCities,
     setError
   );
   setIsUpdating(false);
 };
 
 export interface CityListHookReturnType {
-  selectedCities: City[];
   onCreateCity: (lat: number, lon: number) => void;
   onRemoveCity: (cityId: number) => void;
-  isUpdating: boolean;
-  error: Error | undefined;
+  updateCityList: () => void
 }
 
 export const useUpdateCityList = (
@@ -94,9 +94,10 @@ export const useUpdateCityList = (
 ): CityListHookReturnType => {
   // The useUpdateCityList hook provides functionality to add or remove cities from cities database.
   // The RTDM will fetch data that will be related to only this cities after update
-  const [selectedCities, setSelectedCities] = useState([] as City[]);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [error, setError] = useState(undefined as Error | undefined);
+  const [, setSelectedCities] = useRecoilState(selectedCities);
+  const [, setError] = useRecoilState(errorUpdatingCities);
+  const [, setIsUpdating] = useRecoilState(isUpdatingCities);
+  
   const onCreateCity = async (lat: number, lon: number) => {
     await addCityToDatabase(
       config,
@@ -116,20 +117,13 @@ export const useUpdateCityList = (
     );
   };
 
-  useEffect(() => {
-    getSelectedCitiesFromDatabase(
-      config,
-      setIsUpdating,
-      setSelectedCities,
-      setError
-    );
-  }, [config]);
+  const updateCityList = async () => {
+    await getSelectedCitiesFromDatabase(config, setIsUpdating, setSelectedCities, setError);
+  };
 
   return {
-    selectedCities,
     onCreateCity,
     onRemoveCity,
-    isUpdating,
-    error,
+    updateCityList
   };
 };

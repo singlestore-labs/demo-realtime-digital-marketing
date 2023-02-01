@@ -36,20 +36,18 @@ export const GithubStargazer: React.FC<IPropTypes> = ({owner, repo}) => {
       padding={0}
       onClick={handleFlexRedirects}
     >
-      <Flex gap={0} justifyContent="center" margin={0} padding={0}>
+      <Flex gap={0} justifyContent="center" margin={0} padding={0} cursor="pointer">
         <Flex
           alignItems="center"
           gap={1}
-          border="1px solid"
+          fontSize="0.9em"
+          border="1.5px solid"
           borderRight="none"
-          borderColor={useColorModeValue("#ddddde", "#444b5b")}
-          bgGradient={
-            useColorModeValue(undefined, "linear(to-b, #5A5A5A 0%, #000000 100%)")
-          }
+          borderColor={useColorModeValue("#DCD5FB", "#3A249E")}
           borderLeftRadius="5px"
-          padding="3px 8px 3px 8px"
+          padding="3px 10px 3px 10px"
           color={useColorModeValue("black", "white")}
-          backgroundColor={useColorModeValue("#f1f6f7", "black")}
+          backgroundColor={useColorModeValue("#DCD5FB", "#3A249E")}
         >
           <BsGithub />
           star
@@ -57,13 +55,14 @@ export const GithubStargazer: React.FC<IPropTypes> = ({owner, repo}) => {
         <Flex
           alignItems="center"
           gap={1}
-          border="1px solid"
-          borderColor={useColorModeValue("#ddddde", "#444b5b")}
+          border="0.12em solid"
+          borderColor={useColorModeValue("#DCD5FB", "#3A249E")}
           borderRightRadius="5px"
-          paddingLeft={2}
-          paddingRight={2}
+          paddingLeft={3}
+          paddingRight={3}
           color={useColorModeValue("black", "white")}
-          backgroundColor={useColorModeValue("white", "black")}
+          backgroundColor="transparent"
+          fontSize="0.9em"
         >
           {stargazersCount}
         </Flex>

@@ -34,7 +34,7 @@ export const Footer = () => {
         <Flex
           direction="column"
           justifyContent="center"
-          gap={1}
+          gap={0}
           alignItems="center"
         >
           <MarkdownText>

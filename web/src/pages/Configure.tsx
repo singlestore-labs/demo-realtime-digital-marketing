@@ -31,6 +31,7 @@ import {
   Text,
   useBoolean,
   useColorMode,
+  useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
 import {
@@ -42,9 +43,19 @@ import {
   useState,
 } from "react";
 import { BsCheckCircleFill, BsInfoCircleFill } from "react-icons/bs";
+import { useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
 
+import GraphicalBackground from "@/assets/graphical-background.svg";
+import { CodeBlock } from "@/components/CodeBlock";
+import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
+import { IngestChart, useIngestChartData } from "@/components/IngestChart";
+import { MarkdownText } from "@/components/MarkdownText";
+import { OfferMap } from "@/components/OfferMap";
+import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
+import { ResetSchemaButton } from "@/components/ResetSchemaButton";
+import { ConnectionConfig } from "@/data/client";
 import {
   checkPlans,
   ensurePipelinesExist,
@@ -65,7 +76,6 @@ import {
 } from "@/data/recoil";
 import { findSchemaObjectByName } from "@/data/sql";
 import { timeseriesIsEmpty } from "@/data/timeseries";
-import { useSimulationMonitor } from "@/data/useSimulationMonitor";
 import { toISOStringNoTZ } from "@/datetime";
 import { formatMs, formatNumber } from "@/format";
 import {
@@ -73,21 +83,12 @@ import {
   useNotificationsRenderer,
 } from "@/render/useNotificationsRenderer";
 import { ScaleFactor } from "@/scalefactors";
-
-import GraphicalBackground from "../../assets/graphical-background.svg";
-import { CodeBlock } from "../../components/CodeBlock";
-import { DatabaseConfigForm } from "../../components/DatabaseConfigForm";
-import { IngestChart, useIngestChartData } from "../../components/IngestChart";
-import { MarkdownText } from "../../components/MarkdownText";
-import { OfferMap } from "../../components/OfferMap";
-import { DEFAULT_CENTER, PixiMap } from "../../components/PixiMap";
-import { ResetSchemaButton } from "../../components/ResetSchemaButton";
-import { ConnectionConfig } from "../../data/client";
 import {
   useConnectionState,
   useSchemaObjects,
   useTimer,
-} from "../../view/hooks/hooks";
+} from "@/view/hooks/hooks";
+import { useSimulationMonitor } from "@/view/hooks/useSimulationMonitor";
 
 const CollapsibleSection = (props: {
   title: string | ReactElement;
@@ -152,24 +153,20 @@ const Section = (props: {
         </Grid>
       }
       buttonStyle={{
-        border:
-          !props.completed && !props.previousStepCompleted
-            ? `1px solid ${
-                colorMode === "light" ? "#ECE8FD" : "rgba(85, 58, 207, 0.5)"
-              }`
-            : undefined,
+        opacity: !props.completed && !props.previousStepCompleted ? 0.4 :1,
+        border: `1px solid ${colorMode === "light" ? "#ECE8FD" : "#553ACF"}`,
         background: props.completed
           ? colorMode === "light"
-            ? "#ECE8FD"
+            ? "#F7F6FE"
             : "#CCC3F9"
           : props.previousStepCompleted
-          ? "#2F206E"
+          ? colorMode === "light" ? "#553ACF" : "#2F206E"
           : "transparent",
         color: props.completed
-          ? "#553ACF"
+          ? colorMode === "light" ? "#553ACF" : "#2F206E"
           : props.previousStepCompleted
-          ? "#ECE8FD"
-          : "rgba(119, 117, 130, 0.8)",
+          ? colorMode === "light" ? "white" : "#CCC3F9"
+          : colorMode === "light" ? "#777582" :" #E6E5EA",
       }}
       containerStyle={{
         marginTop: "30px",
@@ -808,6 +805,7 @@ export const Overview = () => {
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { connected, initialized } = useConnectionState();
   const database = useRecoilValue(connectionDatabase);
+  const navigate = useNavigate();
   const { completed: pipelinesCompleted } = usePipelineStatus(
     config,
     scaleFactor,
@@ -895,7 +893,8 @@ export const Overview = () => {
         </Box>
         <Box>
           <ResetSchemaButton
-            colorScheme="red"
+            background={useColorModeValue("#C53030", "#C41337")}
+            color="white"
             size="sm"
             skipSeedData
             resetDataOnly
@@ -911,12 +910,13 @@ export const Overview = () => {
         alignItems="center"
         justifyContent="center"
         backgroundImage={GraphicalBackground}
-        backgroundSize="110% 110%"
+        backgroundSize="100% 100%"
         backgroundPosition="center"
         backgroundRepeat="no-repeat"
-        minHeight="300px"
+        minHeight="250px"
       >
-        {tableCounts ? (
+        {
+        tableCounts && !!tableCounts.notifications ? (
           <Flex
             maxWidth="50%"
             direction="row"
@@ -936,16 +936,17 @@ export const Overview = () => {
             >
               <Heading size="sm">Great Job!</Heading>
 
-              <p>
+              <Text>
                 The applications is up and running. Explore it further by:
                 <ul style={{ listStylePosition: "inside" }}>
                   <li>
                     Adding or removing location from{" "}
                     <a
-                      href="/"
+                      onClick={() => navigate('/dashboard')}
                       color="white"
                       style={{
                         fontWeight: "bold",
+                        cursor: "pointer",
                         textDecoration: "underline",
                       }}
                     >
@@ -955,10 +956,11 @@ export const Overview = () => {
                   <li>
                     Inspect engagement under{" "}
                     <a
-                      href="/analytics"
+                      onClick={() => navigate('/analytics')}
                       color="white"
                       style={{
                         fontWeight: "bold",
+                        cursor: "pointer",
                         textDecoration: "underline",
                       }}
                     >
@@ -968,7 +970,9 @@ export const Overview = () => {
                   <li>
                     Explore the{" "}
                     <a
-                      href="/https://portal.singlestore.com"
+                      href="https://portal.singlestore.com"
+                      target="_blank"
+                      rel="noreferrer"
                       color="white"
                       style={{
                         fontWeight: "bold",
@@ -980,7 +984,7 @@ export const Overview = () => {
                     database in SingleStore Studio
                   </li>
                 </ul>
-              </p>
+              </Text>
             </Box>
           </Flex>
         ) : undefined}

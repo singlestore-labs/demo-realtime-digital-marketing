@@ -1,7 +1,7 @@
 import "@fontsource/inter/variable-full.css";
 import "@fontsource/source-code-pro/variable.css";
 
-import { extendTheme } from "@chakra-ui/react";
+import { extendTheme,Theme,theme as origTheme } from "@chakra-ui/react";
 
 export const chakraTheme = extendTheme({
   fonts: {
@@ -15,5 +15,21 @@ export const chakraTheme = extendTheme({
         color: props.colorMode === "light" ? "#553ACF" : "#CCC3F9",
       }),
     },
+    Alert: {
+      variants: {
+        solid: (props: {colorScheme: string, colorMode: "light" | "dark", theme: Theme}) => { // only applies to `solid` variant
+          const { colorScheme: c, colorMode } = props;
+          if (c !== "blue") {
+            // use original definition for all color schemes except "blue"
+            return origTheme.components.Alert.variants.solid(props);
+          }
+          return {
+            container: {
+              bg: colorMode === "light" ? "#553ACF" : "#CCC3F9",
+            },
+          };
+        }
+      }
+    }
   },
 });

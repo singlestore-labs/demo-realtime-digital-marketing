@@ -17,12 +17,12 @@ import {
 import React, { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 
+import { connectionDatabase } from "@/data/recoil";
 import {
   useConnectionState,
   useMountedCallback,
   useResetSchema,
-} from "@/data/hooks/hooks";
-import { connectionDatabase } from "@/data/recoil";
+} from "@/view/hooks/hooks";
 
 export type Props = HTMLChakraProps<"button"> &
   ButtonOptions &

@@ -29,6 +29,7 @@ export const ConfigInput = ({
     </FormLabel>
     <Input
       size="sm"
+      borderRadius="6px"
       placeholder={placeholder}
       value={value}
       onChange={(e) => setValue(e.target.value)}

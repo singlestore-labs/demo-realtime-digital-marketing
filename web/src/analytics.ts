@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
-import { useConnectionState } from "@/data/hooks/hooks";
 import { userSessionID } from "@/data/recoil";
+import { useConnectionState } from "@/view/hooks/hooks";
 
 export function trackAnalyticsEvent(
   event: string,

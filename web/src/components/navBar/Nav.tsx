@@ -36,9 +36,8 @@ import { VscTwitter } from "react-icons/vsc";
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { NavLink as RouterLink } from "react-router-dom";
 
-import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.png";
-
-import { GithubStargazer } from "../GithubButtons";
+import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
+import { GithubStargazer } from "@/components/GithubButtons";
 
 export const Nav = () => {
   const { toggleColorMode } = useColorMode();
@@ -92,7 +91,7 @@ export const Nav = () => {
   const links = (
     <>
       <NavLinkComponent
-        to="/"
+        to="/dashboard"
         NavLinkTitle="Dashboard"
         IconElement={<Icon as={colorMode === "light" ? BsMap : BsMapFill} />}
       />
@@ -218,9 +217,10 @@ export const Nav = () => {
                 </MenuList>
               </Menu>
               {colorMode === "light" ? (
-                <SunIcon onClick={toggleColorMode} />
+                <MoonIcon cursor="pointer" onClick={toggleColorMode} />
               ) : (
-                <MoonIcon onClick={toggleColorMode} />
+                <SunIcon cursor="pointer" onClick={toggleColorMode} />
+                
               )}
               <GithubStargazer
                 color="black"
