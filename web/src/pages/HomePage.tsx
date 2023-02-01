@@ -32,7 +32,6 @@ export const HomePage: React.FC<{
 			if (queryObject.redirect) {
 				navigate(queryObject.redirect);
 			} else {
-				console.log(queryObject.redirect);
 				navigate('/dashboard');
 			}
 		}
