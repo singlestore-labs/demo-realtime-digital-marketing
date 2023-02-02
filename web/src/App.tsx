@@ -1,4 +1,4 @@
-import { Box, Center, Flex, Spinner, useColorModeValue } from "@chakra-ui/react";
+import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
@@ -23,7 +23,7 @@ function App() {
         speed="0.85s"
         thickness="3px"
         emptyColor="gray.200"
-        color={useColorModeValue("purple.600", "purple.300")}
+        colorScheme="purple"
       />
     </Center>
   );

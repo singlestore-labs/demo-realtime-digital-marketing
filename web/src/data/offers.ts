@@ -17,7 +17,7 @@ import VENDORS from "@/static-data/vendors.json";
 export const DEFAULT_CITY = {
   id: 120658,
   name: "New York City",
-  lonlat: [-73.993562, 40.727063] as Point,
+  lonlat: [-74.00597003, 40.71427003] as Point,
   diameter: 0.04,
 };
 
