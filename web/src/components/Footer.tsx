@@ -21,6 +21,12 @@ export const Footer = () => {
     );
   };
 
+  let gitHubIconButton = <VscGithub size="1.2em" />;
+
+  if (colorMode === "dark") {
+    gitHubIconButton = <VscGithubInverted size="1.2em" />;
+  }
+
   return (
     <>
       <Box
@@ -59,13 +65,7 @@ export const Footer = () => {
                 aria-label="Github Repo"
                 size="sm"
                 background={ colorMode === "light" ? undefined : "black"}
-                icon={
-                  colorMode === "light" ? (
-                    <VscGithub size="1.2em" />
-                  ) : (
-                    <VscGithubInverted size="1.2em" />
-                  )
-                }
+                icon={gitHubIconButton}
                 value="https://github.com/singlestore-labs/demo-realtime-digital-marketing"
                 onClick={handleRedirects}
               />

@@ -23,6 +23,7 @@ import {
   useMountedCallback,
   useResetSchema,
 } from "@/view/hooks/hooks";
+import { Loading } from "./loading/Loading";
 
 export type Props = HTMLChakraProps<"button"> &
   ButtonOptions &
@@ -92,7 +93,7 @@ export const ResetSchemaButton = (props: Props) => {
                 ml={3}
               >
                 {resettingSchema ? (
-                  <Spinner />
+                  <Loading size="small" />
                 ) : initialized ? (
                   "Recreate database"
                 ) : (

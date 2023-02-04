@@ -44,6 +44,8 @@ export const Nav = () => {
   const { colorMode } = useColorMode();
   const navMenu = useDisclosure();
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
+  let themeModeIcon = <MoonIcon cursor="pointer" onClick={toggleColorMode} />;
+
 
   const NavLinkActiveButtonStyle = {
     background: useColorModeValue("#4F34C7", "#CCC3F9"),
@@ -121,6 +123,21 @@ export const Nav = () => {
       "_blank"
     );
   };
+
+  const handleHamburgerNavMenu = () => {
+    if(navMenu.isOpen) {
+      return <Box pb={4} display={{ md: "none" }}>
+      <Stack as="nav" spacing={4}>
+        {links}
+      </Stack>
+    </Box>;
+    }
+    return null;
+  };
+
+  if (colorMode === "dark") {
+    themeModeIcon = <SunIcon cursor="pointer" onClick={toggleColorMode} />;
+  }
 
   return (
     <>
@@ -216,12 +233,7 @@ export const Nav = () => {
                   </MenuItem>
                 </MenuList>
               </Menu>
-              {colorMode === "light" ? (
-                <MoonIcon cursor="pointer" onClick={toggleColorMode} />
-              ) : (
-                <SunIcon cursor="pointer" onClick={toggleColorMode} />
-                
-              )}
+              {themeModeIcon}
               <GithubStargazer
                 color="black"
                 owner="singlestore-labs"
@@ -230,13 +242,7 @@ export const Nav = () => {
             </Flex>
           </Flex>
 
-          {navMenu.isOpen ? (
-            <Box pb={4} display={{ md: "none" }}>
-              <Stack as="nav" spacing={4}>
-                {links}
-              </Stack>
-            </Box>
-          ) : null}
+          {handleHamburgerNavMenu()}
         </Container>
       </Box>
     </>

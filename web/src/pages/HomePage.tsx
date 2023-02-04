@@ -1,4 +1,4 @@
-import { Flex, Grid, GridItem, Heading, Image, Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Text, useColorModeValue } from "@chakra-ui/react";
+import { Flex, Grid, GridItem, Heading, Image, Link, Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Text, useColorModeValue, useMediaQuery } from "@chakra-ui/react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,6 +16,7 @@ export const HomePage: React.FC<{
 	const {connected} = useConnectionState();
 	const navigate = useNavigate();
 	const fontColor = useColorModeValue("#553ACF", "#CCC3F9");
+	const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
 	React.useEffect(() => {
 		if (connected) {
@@ -36,7 +37,7 @@ export const HomePage: React.FC<{
 		}
 	}, [redirectToHomePage, navigate, updateCityList]);
 
-	return <Grid templateColumns="repeat(2, 1fr)" width="100%" height="100%" justifyContent="center" alignItems="center">
+	return <Grid templateColumns={isSmallScreen ? "repeat(1, 1fr)" : "repeat(2, 1fr)"} width="100%" height="100%" justifyContent="center" alignItems="center">
 		<GridItem padding="10% 10% 10% 20%">
 			<Stack spacing={4}>
 				<Heading>
@@ -46,7 +47,7 @@ export const HomePage: React.FC<{
 					<Text>Realtime Digital Marketing</Text>
 				</Heading>
 				<Text size="1.2em">
-					Watch SingleStoreDB serve ads to millions of simulated subscribers based on their behavior, purchases, request history, and geolocation. 
+					Watch <Link fontWeight="bold" href="https://portal.singlestore.com" isExternal>SingleStoreDB</Link> serve ads to millions of simulated subscribers based on their behavior, purchases, request history, and geolocation. 
 				</Text>
 				<Tabs variant="unstyled">
 					<TabList><Tab justifyContent="center" _selected={{ color: fontColor, borderBottom: `2px solid ${useColorModeValue("#553ACF", "#CCC3F9")}` }} fontWeight="bold" gap={1}>Connect to Singlestore</Tab></TabList>
@@ -62,10 +63,11 @@ export const HomePage: React.FC<{
 			backgroundImage={GraphicalBackground2}
 			justifyContent="center"
 			alignItems="center"
-			backgroundSize="130%"
+			backgroundSize="170%"
 			height="100%"
 			width="100%"
-			backgroundPosition="left"
+			minWidth="300px"
+			backgroundPosition="center"
 			backgroundRepeat="no-repeat"
 			
 		>

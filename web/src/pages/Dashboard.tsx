@@ -14,7 +14,7 @@ import {
   useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import React from "react";
 import { BsEye, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 
@@ -57,11 +57,38 @@ const StatsWrapper = () => {
   const [lastSelectedCityId, setLastSelectedCityId] =
     useRecoilState(selectedCity);
   const { colorMode } = useColorMode();
-
   const [totalSelectableCities, setTotalSelectableCities] =
-    useState(selectedCities);
+    React.useState(selectedCities);
 
-  useEffect(() => {
+  const getCheckedFontColor = (city: City) => {
+    if(selectedCities.map((c) => c.id).includes(city.id)) {
+      if (colorMode === "light") {
+        return "purple.500";
+      } else {
+        return "purple.200";
+      }
+    }
+    return undefined;
+  };
+
+  const setCheckItem = (city: City, checkStatus: boolean) => {
+    if (checkStatus) {
+      onCreateCity(city.centerLat, city.centerLon);
+      setLastSelectedCityId(city.id);
+    } else {
+      const noOfSelectedCities = selectedCities.length;
+      if (noOfSelectedCities <= 1) {
+        setLastSelectedCityId(-1);
+      } else {
+        setLastSelectedCityId(
+          city.id !== selectedCities[0].id ? selectedCities[0].id : selectableCitiesData[1].id
+        );
+      }
+      onRemoveCity(city.id);
+    }
+  };
+
+  React.useEffect(() => {
     const selectableCityIds = selectableCitiesData.map((c) => c.id);
     const unknownSelectedCities = selectedCities.filter(
       (c) => !selectableCityIds.includes(c.id)
@@ -74,25 +101,6 @@ const StatsWrapper = () => {
       setLastSelectedCityId(selectedCities[0].id);
     }
   }, [selectedCities, lastSelectedCityId, setLastSelectedCityId]);
-
-  const setCheckItem = (city: City, checkStatus: boolean) => {
-    if (checkStatus) {
-      onCreateCity(city.centerLat, city.centerLon);
-      setLastSelectedCityId(city.id);
-    } else {
-      const noOfSelectedCities = selectedCities.length;
-      if (noOfSelectedCities <= 1) {
-        setLastSelectedCityId(-1);
-      } else {
-        setLastSelectedCityId(
-          city.id !== selectedCities[0].id
-            ? selectedCities[0].id
-            : selectableCitiesData[1].id
-        );
-      }
-      onRemoveCity(city.id);
-    }
-  };
 
   return (
     <>
@@ -129,18 +137,10 @@ const StatsWrapper = () => {
                   justifyContent="left"
                   alignItems="center"
                   gap={1}
-                  color={
-                    selectedCities.map((c) => c.id).includes(city.id)
-                      ? colorMode === "light"
-                        ? "purple.500"
-                        : "purple.200"
-                      : undefined
-                  }
+                  color={getCheckedFontColor(city)}
                 >
                   <Text>{city.name}</Text>
-                  {lastSelectedCityId === city.id ? (
-                    <BsEye size="1.2em" />
-                  ) : undefined}
+                  {lastSelectedCityId === city.id && selectedCities.length ? <BsEye size="1.2em" /> : undefined}
                 </Flex>
               </Checkbox>
             ))}

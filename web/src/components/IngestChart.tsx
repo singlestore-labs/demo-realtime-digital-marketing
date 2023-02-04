@@ -1,4 +1,4 @@
-import { Center, Spinner, Text, useColorMode } from "@chakra-ui/react";
+import { Center, Text, useColorMode } from "@chakra-ui/react";
 import {
   AnimatedLineSeries,
   Axis,
@@ -12,6 +12,7 @@ import { format } from "d3-format";
 import { useCallback, useMemo, useRef } from "react";
 import useSWR from "swr";
 
+import { Loading } from "@/components/loading/Loading";
 import { ConnectionConfig } from "@/data/client";
 import { estimatedRowCountObj } from "@/data/queries";
 import { Timeseries, TimeseriesPoint } from "@/data/timeseries";
@@ -99,9 +100,11 @@ export const IngestChart = <TableName extends string>({
 
   if (tables.some((name) => data[name].length < 2)) {
     return (
+      
       <Center height={props.height}>
-        <Spinner size="md" />
+        <Loading size="small" centered={true} />
       </Center>
+      
     );
   }
 

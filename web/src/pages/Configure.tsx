@@ -2,6 +2,7 @@ import {
   CheckCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  WarningIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -18,8 +19,8 @@ import {
   GridItem,
   Heading,
   HStack,
-  Icon,
   Input,
+  Link,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -42,7 +43,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { BsCheckCircleFill, BsInfoCircleFill } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
@@ -51,6 +51,7 @@ import GraphicalBackground from "@/assets/graphical-background.svg";
 import { CodeBlock } from "@/components/CodeBlock";
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
+import { Loading } from "@/components/loading/Loading";
 import { MarkdownText } from "@/components/MarkdownText";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
@@ -133,15 +134,47 @@ const Section = (props: {
   const { title, left, right } = props;
   const { colorMode } = useColorMode();
 
+  const collapsibleSectionStyle = {
+    opacity: 1,
+    border: "1px solid #553ACF",
+    background: "transparent",
+    color: "#E6E5EA",
+  };
+
+  if(!props.completed && !props.previousStepCompleted) {
+    collapsibleSectionStyle.opacity = 0.4;
+  }
+
+  if(colorMode === "light") {
+    collapsibleSectionStyle.border = "1px solid #ECE8FD";
+    if(props.completed) {
+      collapsibleSectionStyle.background = "#553ACF";
+      collapsibleSectionStyle.color = "white";
+    } else if(props.previousStepCompleted) {
+      collapsibleSectionStyle.background = "#F7F6FE";
+      collapsibleSectionStyle.color = "#553ACF";
+    } else {
+      collapsibleSectionStyle.color = "#777582";
+    }
+  } else {
+    if(props.completed) {
+      collapsibleSectionStyle.background = "#CCC3F9";
+      collapsibleSectionStyle.color = "#2F206E";
+    } else if(props.previousStepCompleted) {
+      collapsibleSectionStyle.background = "#2F206E";
+      collapsibleSectionStyle.color = "#CCC3F9";
+    }
+  }
+
   return (
     <CollapsibleSection
       disabled={!props.completed && !props.previousStepCompleted}
       title={
         <Flex width="100%" alignItems="center" gap={1.5}>
-          {props.completed ? (
-            <Icon as={BsCheckCircleFill} />
+          {props.completed || !props.previousStepCompleted ? (
+            <WarningIcon />
           ) : (
-            <Icon as={BsInfoCircleFill} />
+            <CheckCircleIcon />
           )}
           {title}
         </Flex>
@@ -152,22 +185,7 @@ const Section = (props: {
           <GridItem>{right}</GridItem>
         </Grid>
       }
-      buttonStyle={{
-        opacity: !props.completed && !props.previousStepCompleted ? 0.4 :1,
-        border: `1px solid ${colorMode === "light" ? "#ECE8FD" : "#553ACF"}`,
-        background: props.completed
-          ? colorMode === "light"
-            ? "#F7F6FE"
-            : "#CCC3F9"
-          : props.previousStepCompleted
-          ? colorMode === "light" ? "#553ACF" : "#2F206E"
-          : "transparent",
-        color: props.completed
-          ? colorMode === "light" ? "#553ACF" : "#2F206E"
-          : props.previousStepCompleted
-          ? colorMode === "light" ? "white" : "#CCC3F9"
-          : colorMode === "light" ? "#777582" :" #E6E5EA",
-      }}
+      buttonStyle={collapsibleSectionStyle}
       containerStyle={{
         marginTop: "30px",
         marginBottom: "30px",
@@ -422,6 +440,13 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
     tables.some((name) => data[name].length < 2) ||
     tables.every((name) => timeseriesIsEmpty(data[name]));
 
+  let pipelineButtonText = "Create Pipeline";
+  if(working) {
+      pipelineButtonText = "Creating Pipeline";
+  } else if (completed) {
+      pipelineButtonText = "waiting for data...";
+    }
+
   const ensurePipelinesButton = (
     <Button
       background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
@@ -430,12 +455,8 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
       onClick={onEnsurePipelines}
       disabled={completed}
     >
-      {(working || completed) && <Spinner mr={2} />}
-      {working
-        ? "Creating Pipelines"
-        : completed
-        ? "...waiting for data"
-        : "Create pipelines"}
+      {(working || completed) && <Loading size="small" centered={true} />}&nbsp;
+      {pipelineButtonText}
     </Button>
   );
 
@@ -969,10 +990,9 @@ export const Overview = () => {
                   </li>
                   <li>
                     Explore the{" "}
-                    <a
+                    <Link
                       href="https://portal.singlestore.com"
-                      target="_blank"
-                      rel="noreferrer"
+                      isExternal
                       color="white"
                       style={{
                         fontWeight: "bold",
@@ -980,8 +1000,8 @@ export const Overview = () => {
                       }}
                     >
                       {database}
-                    </a>{" "}
-                    database in SingleStore Studio
+                    </Link>{" "}
+                    database in SingleStore Customer Portal
                   </li>
                 </ul>
               </Text>

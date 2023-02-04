@@ -1,30 +1,24 @@
-import { Box, Center, Flex, Spinner } from "@chakra-ui/react";
+import { Box, Center, Flex } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 
 import { useAnalytics } from "@/analytics";
 import { Footer } from "@/components/Footer";
+import { Loading } from "@/components/loading/Loading";
 import { Nav } from "@/components/navBar/Nav";
+import { useUpdateCityList } from "@/data/models/useUpdateCityList";
+import { connectionConfig } from "@/data/recoil";
 import { AnalyticsDashboard } from "@/pages/Analytics";
 import { Overview } from "@/pages/Configure";
 import { NotificationsMap } from "@/pages/Dashboard";
-
-import { useUpdateCityList } from "./data/models/useUpdateCityList";
-import { connectionConfig } from "./data/recoil";
-import { HomePage } from "./pages/HomePage";
-import { useConnectionState } from "./view/hooks/hooks";
+import { HomePage } from "@/pages/HomePage";
+import { useConnectionState } from "@/view/hooks/hooks";
 
 function App() {
   const loadingFallback = (
     <Center height="100vh">
-      <Spinner
-        size="xl"
-        speed="0.85s"
-        thickness="3px"
-        emptyColor="gray.200"
-        colorScheme="purple"
-      />
+      <Loading size="large" centered={true} />
     </Center>
   );
 

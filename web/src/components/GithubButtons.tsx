@@ -10,6 +10,7 @@ export interface IPropTypes {
 
 export const GithubStargazer: React.FC<IPropTypes> = ({owner, repo}) => {
   const [stargazersCount, setStargazersCount] = React.useState(0);
+
   const handleFlexRedirects = () => {
     window.open(
       `https://github.com/${owner}/${repo}`,
@@ -17,7 +18,6 @@ export const GithubStargazer: React.FC<IPropTypes> = ({owner, repo}) => {
     );
   };
   
-
   React.useEffect(() => {
     const getCount = async () => {
       const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);

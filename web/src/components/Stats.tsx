@@ -50,32 +50,34 @@ export const Stats = () => {
     );
   };
 
-  return tableCounts.data ? (
-    <SimpleGrid spacing={2} minChildWidth="25%">
-      <StatWrapper
-        statLabel="offeres"
-        statNumber={formatStat(tableCounts.data.offers)}
-      />
-      <StatWrapper
-        statLabel="Cities"
-        statNumber={formatStat(tableCounts.data.cities)}
-      />
-      <StatWrapper
-        statLabel="Subscribers"
-        statNumber={formatStat(tableCounts.data.subscribers)}
-      />
-      <StatWrapper
-        statLabel="Segments"
-        statNumber={formatStat(tableCounts.data.segments)}
-      />
-      <StatWrapper
-        statLabel="Segmentation"
-        statNumber={formatMs(updateSegmentsDuration)}
-      />
-      <StatWrapper
-        statLabel="Matching"
-        statNumber={formatMs(matchingDuration)}
-      />
-    </SimpleGrid>
-  ) : null;
+  if(tableCounts.data) {
+    return (
+      <SimpleGrid spacing={2} minChildWidth="25%">
+        <StatWrapper
+          statLabel="offeres"
+          statNumber={formatStat(tableCounts.data.offers)}
+        />
+        <StatWrapper
+          statLabel="Cities"
+          statNumber={formatStat(tableCounts.data.cities)}
+        />
+        <StatWrapper
+          statLabel="Subscribers"
+          statNumber={formatStat(tableCounts.data.subscribers)}
+        />
+        <StatWrapper
+          statLabel="Segments"
+          statNumber={formatStat(tableCounts.data.segments)}
+        />
+        <StatWrapper
+          statLabel="Segmentation"
+          statNumber={formatMs(updateSegmentsDuration)}
+        />
+        <StatWrapper
+          statLabel="Matching"
+          statNumber={formatMs(matchingDuration)}
+        />
+      </SimpleGrid>
+    );
+  } else return null;
 };

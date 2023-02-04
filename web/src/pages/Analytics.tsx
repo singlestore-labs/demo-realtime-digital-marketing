@@ -1,14 +1,12 @@
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import {
   Box,
-  Center,
   Container,
   Flex,
   Grid,
   GridItem,
   Heading,
   Progress,
-  Spinner,
   Stack,
   Stat,
   StatHelpText,
@@ -34,6 +32,7 @@ import useSWR from "swr";
 
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/HeatMap";
+import { Loading } from "@/components/loading/Loading";
 import {
   CustomerMetrics,
   customerMetrics,
@@ -57,12 +56,13 @@ export const AnalyticsDashboard = () => {
   useSimulator(enabled);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
-  return (
-    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
-      {!initialized ? (
-        <LoadingIndicator />
-      ) : enabled ? (
-        <Stack gap={10}>
+  const containerChild = () => {
+    if(!initialized) {
+      return <LoadingIndicator size="large" centered={true}/>;
+    }
+
+    if(enabled) {
+      return <Stack gap={10}>
           <Box>
             <Heading fontSize="md">Engagement</Heading>
             <Text overflowWrap="break-word">
@@ -139,24 +139,20 @@ export const AnalyticsDashboard = () => {
             <br />
             <ConversionTable />
           </Box>
-        </Stack>
-      ) : (
-        <EnableSimulatorButton />
-      )}
+        </Stack>;
+    }
+    return <EnableSimulatorButton />;
+  };
+
+  return (
+    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
+      {containerChild}
     </Container>
   );
 };
 
-const LoadingIndicator = () => (
-  <Center>
-    <Spinner
-      size="xl"
-      speed="0.85s"
-      thickness="3px"
-      emptyColor="gray.200"
-      colorScheme="purple"
-    />
-  </Center>
+const LoadingIndicator = ({size, centered}: {size: "small" | "large", centered: boolean}) => (
+    <Loading size={size || "large"} centered={centered} />
 );
 
 const StatWrapper = ({statLabel, statNumber, helpText, colSpan}: {
@@ -177,9 +173,7 @@ const StatWrapper = ({statLabel, statNumber, helpText, colSpan}: {
         <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
           {statNumber}
         </StatNumber>
-        {helpText ? (
-          <StatHelpText>{helpText}</StatHelpText>
-        ) : undefined}
+        {helpText ? <StatHelpText>{helpText}</StatHelpText> : undefined}
       </Stat>
     </GridItem>
   );
@@ -211,7 +205,7 @@ const StatGrid = () => {
     !overallRateRequests.data ||
     !overallRatePurchases.data
   ) {
-    return <LoadingIndicator />;
+    return <LoadingIndicator size="small" centered={true} />;
   }
 
   return (
@@ -254,6 +248,39 @@ const ConversionTable = () => {
     { refreshInterval: 1000 }
   );
   const activeColor = useColorModeValue("#553ACF", "#CCC3F9");
+
+  const getTableBody = () => {
+    if(metricsTableData.isValidating && !metricsTableData.data) {
+      return <Tr><Td colSpan={4}><LoadingIndicator size="small" centered={true} /></Td></Tr>;
+    }
+    return metricsTableData.data?.map((c) => (
+      <Tr key={c.customer}>
+        <Td>{c.customer}</Td>
+        <Td paddingLeft="10px">{formatStat(c.totalNotifications)}</Td>
+        <Td paddingLeft="10px">{formatStat(c.totalConversions)}</Td>
+        <Td paddingLeft="10px">
+          <Box
+            background="white"
+            display="inline-block"
+            borderRadius="5px"
+            padding={0}
+            margin={0}
+          >
+            <Box
+              display="inline-block"
+              borderRadius="5px"
+              padding="4px"
+              fontSize="xs"
+              background={`rgba(0, 0, 0, ${c.conversionRate + 0.01})`}
+              color="rgba(0,0,0,1)"
+            >
+              {formatPct(c.conversionRate)}
+            </Box>
+          </Box>
+        </Td>
+      </Tr>
+    ));
+  };
 
   return (
     <Box overflowX="auto">
@@ -309,36 +336,7 @@ const ConversionTable = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {metricsTableData.isValidating && !metricsTableData.data ? (
-              <Spinner size="sm" />
-            ) : undefined}
-            {metricsTableData.data?.map((c) => (
-              <Tr key={c.customer}>
-                <Td>{c.customer}</Td>
-                <Td paddingLeft="10px">{formatStat(c.totalNotifications)}</Td>
-                <Td paddingLeft="10px">{formatStat(c.totalConversions)}</Td>
-                <Td paddingLeft="10px">
-                  <Box
-                    background="white"
-                    display="inline-block"
-                    borderRadius="5px"
-                    padding={0}
-                    margin={0}
-                  >
-                    <Box
-                      display="inline-block"
-                      borderRadius="5px"
-                      padding="4px"
-                      fontSize="xs"
-                      background={`rgba(0, 0, 0, ${c.conversionRate + 0.01})`}
-                      color="rgba(0,0,0,1)"
-                    >
-                      {formatPct(c.conversionRate)}
-                    </Box>
-                  </Box>
-                </Td>
-              </Tr>
-            ))}
+            {getTableBody()}
           </Tbody>
         </Table>
       </TableContainer>

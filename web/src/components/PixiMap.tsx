@@ -7,7 +7,6 @@ import {
   Divider,
   Flex,
   Link,
-  Spinner,
   Stack,
   Text,
   Tooltip,
@@ -20,9 +19,11 @@ import React from "react";
 import Select from "react-select";
 import { useRecoilState } from "recoil";
 
+import { Loading } from "@/components/loading/Loading";
 import { DEFAULT_CITY } from "@/data/offers";
 import { City } from "@/data/queries";
 import { isUpdatingCities,selectedCities as selectedCitiesFromRecoil, selectedCity } from "@/data/recoil";
+import { useConnectionState } from "@/view/hooks/hooks";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -190,10 +191,37 @@ export const PixiMap = <T,>({
   const [ selectedCities ] = useRecoilState(selectedCitiesFromRecoil);
   const [ isUpdating ] = useRecoilState(isUpdatingCities);
   const [forceUpdateMap, setForceUpdateMap] = React.useState(false);
+  const {connected} = useConnectionState();
+  const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
+
+  React.useEffect(() => {
+  if (!connected) {
+    setDropdownDisabledMsg("Please configure connection to change map city");
+  } else if(selectedCities.length <= 0) {
+    setDropdownDisabledMsg("Select atleast one city from dashboard location section");
+  } else if(isUpdating) {
+    setDropdownDisabledMsg("City list is updating please wait");
+  }
+}, [connected, isUpdating, selectedCities]);
 
   const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState(
     undefined as City | undefined
   );
+
+  let selectionValue = { label: "Select city", value: { id: -1 } };
+  if (lastSelectedCityDetails) {
+    selectionValue = {
+      label: lastSelectedCityDetails.name,
+      value: lastSelectedCityDetails,
+    };
+  }
+
+  let centerValue: [number, number] | undefined = undefined;
+  if (lastSelectedCityDetails && !defaultCenter) {
+    centerValue = [lastSelectedCityDetails.centerLat, lastSelectedCityDetails.centerLon];
+  } else if(defaultCenter) {
+    centerValue = [defaultCenter[1], defaultCenter[0]];
+  }
 
   React.useEffect(() => {
     setForceUpdateMap(true);
@@ -204,12 +232,12 @@ export const PixiMap = <T,>({
 
   React.useEffect(() => {
     setForceUpdateMap(false);
-    lastSelectedCityDetails && !defaultCenter
-      ? setCenter([
-          lastSelectedCityDetails.centerLat,
-          lastSelectedCityDetails.centerLon,
-        ])
-      : undefined;
+    if (lastSelectedCityDetails && !defaultCenter) {
+      setCenter([
+        lastSelectedCityDetails.centerLat,
+        lastSelectedCityDetails.centerLon,
+      ]);
+    }
   }, [defaultCenter, lastSelectedCityDetails]);
 
   return (
@@ -244,12 +272,8 @@ export const PixiMap = <T,>({
             />
           </Center>
           <Tooltip
-            isDisabled={!(lastSelectedCityId === -1 || isUpdating)}
-            label={
-              isUpdating
-                ? "Please wait while we fetch cities list"
-                : "Please select at least 1 Location from the Dashboard menu"
-            }
+            isDisabled={!(selectedCities.length <= 0 || isUpdating || !connected)}
+            label={dropdownDisabledMsg}
           >
             <Box display="inline">
               <Select
@@ -257,20 +281,10 @@ export const PixiMap = <T,>({
                   label: c.name,
                   value: c,
                 }))}
-                value={
-                  lastSelectedCityDetails
-                    ? {
-                        label: lastSelectedCityDetails.name,
-                        value: lastSelectedCityDetails,
-                      }
-                    : { label: "Select city", value: { id: -1 } }
+                value={selectionValue}
+                onChange={(e) => setLastSelectedCityId(() => e?.value.id || -1)
                 }
-                onChange={(e) =>
-                  e
-                    ? setLastSelectedCityId(() => e.value.id)
-                    : setLastSelectedCityId(() => -1)
-                }
-                isDisabled={lastSelectedCityId === -1 || isUpdating}
+                isDisabled={selectedCities.length <= 0 || isUpdating || !connected}
                 styles={{
                   input: (props) => ({
                     ...props,
@@ -310,34 +324,25 @@ export const PixiMap = <T,>({
           </Tooltip>
         </Flex>
       ) : undefined}
-      {!forceUpdateMap ? (
-        <Box width="inherit" height={height}>
-          <Map
-            dprs={[1, 2]}
-            provider={stamenProvider("toner-lite")}
-            attribution={stamenAttribution}
-            maxZoom={20}
-            defaultCenter={
-              !lastSelectedCityDetails || defaultCenter ? center : undefined
-            }
-            center={
-              lastSelectedCityDetails && !defaultCenter
-                ? [
-                    lastSelectedCityDetails.centerLat,
-                    lastSelectedCityDetails.centerLon,
-                  ]
-                : defaultCenter
-                ? [defaultCenter[1], defaultCenter[0]]
-                : undefined
-            }
-            zoom={zoom}
-          >
-            <RequiresInitLayer useRenderer={useRenderer} options={options} />
-          </Map>
-        </Box>
-      ) : (
-        <Spinner size="sm" />
-      )}
+      <Box width="inherit" height={height}>
+        {!forceUpdateMap ? (
+            <Map
+              dprs={[1, 2]}
+              provider={stamenProvider("toner-lite")}
+              attribution={stamenAttribution}
+              maxZoom={20}
+              defaultCenter={
+                !lastSelectedCityDetails || defaultCenter ? center : undefined
+              }
+              center={centerValue}
+              zoom={zoom}
+            >
+              <RequiresInitLayer useRenderer={useRenderer} options={options} />
+            </Map>
+        ) : (
+          <Loading size="large" centered={true} />
+        )}
+      </Box>
     </Stack>
   );
 };
