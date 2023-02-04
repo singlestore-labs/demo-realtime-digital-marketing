@@ -1,9 +1,9 @@
-import "@/components/loading/loading.scss";
+import "@/components/loader/loader.scss";
 
 import classnames from "classnames";
 import * as React from "react";
 
-import { CenteringWrapper } from "@/components/loading/CenteringWrapper";
+import { CenteringWrapper } from "@/components/loader/CenteringWrapper";
 
 type Props = {
     className?: string;

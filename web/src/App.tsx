@@ -5,7 +5,7 @@ import { useRecoilValue } from "recoil";
 
 import { useAnalytics } from "@/analytics";
 import { Footer } from "@/components/Footer";
-import { Loading } from "@/components/loading/Loading";
+import { Loading } from "@/components/loader/Loader";
 import { Nav } from "@/components/navBar/Nav";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 import { connectionConfig } from "@/data/recoil";

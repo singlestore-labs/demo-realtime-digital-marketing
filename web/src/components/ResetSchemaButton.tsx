@@ -8,7 +8,6 @@ import {
   Button,
   ButtonOptions,
   HTMLChakraProps,
-  Spinner,
   ThemingProps,
   useBoolean,
   useColorModeValue,
@@ -17,13 +16,13 @@ import {
 import React, { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 
+import { Loading } from "@/components/loader/Loader";
 import { connectionDatabase } from "@/data/recoil";
 import {
   useConnectionState,
   useMountedCallback,
   useResetSchema,
 } from "@/view/hooks/hooks";
-import { Loading } from "./loading/Loading";
 
 export type Props = HTMLChakraProps<"button"> &
   ButtonOptions &

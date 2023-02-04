@@ -143,7 +143,7 @@ export const resetSchema = async (
 
   if (resetDataOnly) {
     progress(
-      "Resetting data. This might take a while. Thanks for you patience",
+      "Resetting data. This might take a while. Thanks for your patience",
       "info"
     );
     await dropPipelines(config);

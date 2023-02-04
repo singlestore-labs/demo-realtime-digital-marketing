@@ -30,9 +30,11 @@ import { useState } from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
+import { ConnectToSingleStoreButton } from "@/components/ConnectToSinglestoreButton";
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/HeatMap";
-import { Loading } from "@/components/loading/Loading";
+import { Loading } from "@/components/loader/Loader";
+import { SetupDatabaseButton } from "@/components/SetupDatabaseButton";
 import {
   CustomerMetrics,
   customerMetrics,
@@ -50,105 +52,102 @@ const formatPct = format(",.2%");
 const formatStat = format(".4~s");
 
 export const AnalyticsDashboard = () => {
-  const { initialized } = useConnectionState();
+  const { initialized, connected } = useConnectionState();
   const enabled = useRecoilValue(simulatorEnabled);
   useSimulationMonitor(enabled);
   useSimulator(enabled);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
-  const containerChild = () => {
-    if(!initialized) {
-      return <LoadingIndicator size="large" centered={true}/>;
-    }
-
-    if(enabled) {
-      return <Stack gap={10}>
-          <Box>
-            <Heading fontSize="md">Engagement</Heading>
-            <Text overflowWrap="break-word">
-              Conversion rate with subscribers
-            </Text>
-            <br />
-
-            <Flex gap={5} direction={isSmallScreen ? "column" : "row"}>
-              <Stack flex={2}>
-                <StatGrid />
-              </Stack>
-              <Stack
-                padding="17px"
-                flex={4}
-                borderRadius={10}
-                border="1px solid grey"
-                position="relative"
-              >
-                <Flex
-                  direction="row"
-                  justifyContent="space-between"
-                  width="100%"
-                  gap={10}
-                  alignItems="center"
-                >
-                  <Text
-                    fontWeight="bold"
-                    fontSize="sm"
-                    textTransform="uppercase"
-                  >
-                    Offer conversion rates by Notification zone
-                  </Text>
-                  <Flex width="30%" direction="column">
-                    <Box width="100%">
-                      <Progress
-                        colorScheme="transparent"
-                        height={2}
-                        bgGradient="linear(to-r, rgba(127, 17, 224, 1), white)"
-                        value={90}
-                      />
-                    </Box>
-                    <Flex width="100%" justifyContent="space-between">
-                      <Text>
-                        <small>High</small>
-                      </Text>
-                      <Text>
-                        <small>Low</small>
-                      </Text>
-                    </Flex>
-                  </Flex>
-                </Flex>
-                <br />
-
-                <Heatmap
-                  height={400}
-                  useCells={useConversionCells}
-                  colorInterpolater={interpolateBuPu}
-                  getCellConfig={({
-                    conversionRate,
-                    wktPolygon,
-                  }: ZoneMetrics) => ({
-                    value: conversionRate,
-                    wktPolygon,
-                  })}
-                />
-              </Stack>
-            </Flex>
-          </Box>
-          <Box>
-            <Heading fontSize="md">Top Performing Customers</Heading>
-            <Text overflowWrap="break-word">
-              Companies with the highest conversion rate
-            </Text>
-            <br />
-            <ConversionTable />
-          </Box>
-        </Stack>;
-    }
+  if(!connected) {
+    return <ConnectToSingleStoreButton />;
+  }
+  if (!initialized) {
+    return <SetupDatabaseButton />;
+  }
+  if(!enabled) {
     return <EnableSimulatorButton />;
-  };
+  }
 
-  return (
-    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
-      {containerChild}
-    </Container>
-  );
+  return <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
+      <Stack gap={10}>
+      <Box>
+        <Heading fontSize="md">Engagement</Heading>
+        <Text overflowWrap="break-word">
+          Conversion rate with subscribers
+        </Text>
+        <br />
+
+        <Flex gap={5} direction={isSmallScreen ? "column" : "row"}>
+          <Stack flex={2}>
+            <StatGrid />
+          </Stack>
+          <Stack
+            padding="17px"
+            flex={4}
+            borderRadius={10}
+            border="1px solid grey"
+            position="relative"
+          >
+            <Flex
+              direction="row"
+              justifyContent="space-between"
+              width="100%"
+              gap={10}
+              alignItems="center"
+            >
+              <Text
+                fontWeight="bold"
+                fontSize="sm"
+                textTransform="uppercase"
+              >
+                Offer conversion rates by Notification zone
+              </Text>
+              <Flex width="30%" direction="column">
+                <Box width="100%">
+                  <Progress
+                    colorScheme="transparent"
+                    height={2}
+                    bgGradient="linear(to-r, rgba(127, 17, 224, 1), white)"
+                    value={90}
+                  />
+                </Box>
+                <Flex width="100%" justifyContent="space-between">
+                  <Text>
+                    <small>High</small>
+                  </Text>
+                  <Text>
+                    <small>Low</small>
+                  </Text>
+                </Flex>
+              </Flex>
+            </Flex>
+            <br />
+
+            <Heatmap
+              height={400}
+              useCells={useConversionCells}
+              colorInterpolater={interpolateBuPu}
+              getCellConfig={({
+                conversionRate,
+                wktPolygon,
+              }: ZoneMetrics) => ({
+                value: conversionRate,
+                wktPolygon,
+              })}
+            />
+          </Stack>
+        </Flex>
+      </Box>
+      <Box>
+        <Heading fontSize="md">Top Performing Customers</Heading>
+        <Text overflowWrap="break-word">
+          Companies with the highest conversion rate
+        </Text>
+        <br />
+        <ConversionTable />
+      </Box>
+    </Stack>
+  </Container>;
 };
 
 const LoadingIndicator = ({size, centered}: {size: "small" | "large", centered: boolean}) => (

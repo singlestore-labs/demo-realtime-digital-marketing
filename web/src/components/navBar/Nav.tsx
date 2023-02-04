@@ -36,6 +36,7 @@ import { VscTwitter } from "react-icons/vsc";
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { NavLink as RouterLink } from "react-router-dom";
 
+import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { GithubStargazer } from "@/components/GithubButtons";
 
@@ -181,7 +182,7 @@ export const Nav = () => {
                   <Avatar
                     size="sm"
                     name="Dan Abrahmov"
-                    src={SinglestoreLogo}
+                    src={colorMode === "light" ? SinglestoreLogo : SingleStoreLogoDrak}
                   />
                 </WrapItem>
               </Wrap>

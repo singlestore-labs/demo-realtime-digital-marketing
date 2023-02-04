@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import DashboardControllerIamge from "@/assets/dashboard-controller-snapshot.svg";
 import GraphicalBackground2 from "@/assets/graphical-background-design-2.svg";
+import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { useConnectionState } from "@/view/hooks/hooks";
@@ -41,7 +42,7 @@ export const HomePage: React.FC<{
 		<GridItem padding="10% 10% 10% 20%">
 			<Stack spacing={4}>
 				<Heading>
-					<Image src={SinglestoreLogo} />
+					<Image src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDrak)} />
 				</Heading>
 				<Heading>
 					<Text>Realtime Digital Marketing</Text>

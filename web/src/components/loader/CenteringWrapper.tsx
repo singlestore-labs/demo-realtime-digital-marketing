@@ -1,4 +1,4 @@
-import "@/components/loading/centering-wrapper.scss";
+import "@/components/loader/centering-wrapper.scss";
 
 import { Box } from "@chakra-ui/react";
 import classnames from "classnames";

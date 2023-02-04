@@ -19,7 +19,7 @@ import React from "react";
 import Select from "react-select";
 import { useRecoilState } from "recoil";
 
-import { Loading } from "@/components/loading/Loading";
+import { Loading } from "@/components/loader/Loader";
 import { DEFAULT_CITY } from "@/data/offers";
 import { City } from "@/data/queries";
 import { isUpdatingCities,selectedCities as selectedCitiesFromRecoil, selectedCity } from "@/data/recoil";

@@ -51,7 +51,7 @@ import GraphicalBackground from "@/assets/graphical-background.svg";
 import { CodeBlock } from "@/components/CodeBlock";
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
-import { Loading } from "@/components/loading/Loading";
+import { Loading } from "@/components/loader/Loader";
 import { MarkdownText } from "@/components/MarkdownText";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";

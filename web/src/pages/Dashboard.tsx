@@ -1,7 +1,4 @@
-import { SettingsIcon } from "@chakra-ui/icons";
 import {
-  Box,
-  Button,
   Checkbox,
   Flex,
   Heading,
@@ -18,11 +15,11 @@ import React from "react";
 import { BsEye, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 
+import { ConnectToSingleStoreButton } from "@/components/ConnectToSinglestoreButton";
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
-import { MarkdownText } from "@/components/MarkdownText";
 import { PixiMap } from "@/components/PixiMap";
-import { ResetSchemaButton } from "@/components/ResetSchemaButton";
+import { SetupDatabaseButton } from "@/components/SetupDatabaseButton";
 import { Stats } from "@/components/Stats";
 import { selectableCitiesData } from "@/data/constants";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
@@ -185,58 +182,12 @@ export const NotificationsMap = () => {
   useSimulationMonitor(enabled && connected && initialized);
   useSimulator(enabled && connected && initialized);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
-  const { colorMode } = useColorMode();
-
-  const handleLinkRedirects = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    window.open(
-      e.currentTarget.value,
-      "_self"
-    );
-  };
 
   let inner;
   if (!connected) {
-    inner = (
-      <Box>
-        <MarkdownText>
-          {`
-
-        This application is a demo of how to use SingleStore to serve ads to
-        users based on their behavior and realtime location. The demo is
-        based on location, purchase, and request history from millions of
-        simulated subscribers for a hypothetical service company. To learn
-        about how this works please visit the [overview page](overview).
-      `}
-        </MarkdownText>
-        <Button
-          size="sm"
-          value="/"
-          onClick={handleLinkRedirects}
-          background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-          color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
-        >
-          <SettingsIcon />
-          <Text pl={2}>Connect to SingleStore</Text>
-        </Button>
-      </Box>
-    );
+    inner = <ConnectToSingleStoreButton />;
   } else if (!initialized) {
-    inner = (
-      <Box>
-        <MarkdownText>
-          {`
-        Setup database from configuration page to use the application.
-      `}
-        </MarkdownText>
-        <ResetSchemaButton
-          background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-          color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
-          size="sm"
-        >
-          Setup database
-        </ResetSchemaButton>
-      </Box>
-    );
+    inner = <SetupDatabaseButton />;
   } else if (!enabled) {
     inner = <EnableSimulatorButton />;
   } else {
