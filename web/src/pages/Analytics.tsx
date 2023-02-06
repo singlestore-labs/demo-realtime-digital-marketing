@@ -28,8 +28,8 @@ import { format } from "d3-format";
 import { interpolateBuPu } from "d3-scale-chromatic";
 import { Bounds } from "pigeon-maps";
 import { useState } from "react";
-import { BsBellFill, BsGearFill } from "react-icons/bs";
-import { HiOfficeBuilding, HiRefresh } from "react-icons/hi";
+import { BsGearFill } from "react-icons/bs";
+import { HiBell, HiOfficeBuilding, HiRefresh } from "react-icons/hi";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -328,7 +328,7 @@ const ConversionTable = () => {
                 cursor="pointer"
                 padding="10px 10px 10px 0px"
               >
-                <Icon as={BsBellFill} /> Total Notifications
+                <Icon as={HiBell} /> Total Notifications
                 {sortColumn === "totalNotifications" && <ChevronDownIcon />}
               </Th>
               <Th
