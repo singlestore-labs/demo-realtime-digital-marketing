@@ -61,92 +61,98 @@ export const AnalyticsDashboard = () => {
   useSimulator(enabled);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
-  if (!connected) {
-    return <ConnectToSingleStoreButton />;
-  }
-  if (!initialized) {
-    return <SetupDatabaseButton />;
-  }
-  if (!enabled) {
-    return <EnableSimulatorButton />;
-  }
+  const getContainerChild = () => {
+    if (!connected) {
+      return <ConnectToSingleStoreButton />;
+    } else if (!initialized) {
+      return <SetupDatabaseButton />;
+    } else if (!enabled) {
+      return <EnableSimulatorButton />;
+    } else
+      return (
+        <Stack gap={10}>
+          <Box>
+            <Heading fontSize="md">Engagement</Heading>
+            <Text overflowWrap="break-word">
+              Conversion rate with subscribers
+            </Text>
+            <br />
 
-  return (
-    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
-      <Stack gap={10}>
-        <Box>
-          <Heading fontSize="md">Engagement</Heading>
-          <Text overflowWrap="break-word">
-            Conversion rate with subscribers
-          </Text>
-          <br />
-
-          <Flex gap={5} direction={isSmallScreen ? "column" : "row"}>
-            <Stack flex={2}>
-              <StatGrid />
-            </Stack>
-            <Stack
-              padding="17px"
-              flex={4}
-              borderRadius={10}
-              border="1px solid grey"
-              position="relative"
-            >
-              <Flex
-                direction="row"
-                justifyContent="space-between"
-                width="100%"
-                gap={10}
-                alignItems="center"
+            <Flex gap={5} direction={isSmallScreen ? "column" : "row"}>
+              <Stack flex={2}>
+                <StatGrid />
+              </Stack>
+              <Stack
+                padding="17px"
+                flex={4}
+                borderRadius={10}
+                border="1px solid grey"
+                position="relative"
               >
-                <Text fontWeight="bold" fontSize="sm" textTransform="uppercase">
-                  Offer conversion rates by Notification zone
-                </Text>
-                <Flex width="30%" direction="column">
-                  <Box width="100%">
-                    <Progress
-                      colorScheme="transparent"
-                      height={2}
-                      bgGradient="linear(to-r, rgba(127, 17, 224, 1), white)"
-                      value={90}
-                    />
-                  </Box>
-                  <Flex width="100%" justifyContent="space-between">
-                    <Text>
-                      <small>High</small>
-                    </Text>
-                    <Text>
-                      <small>Low</small>
-                    </Text>
+                <Flex
+                  direction="row"
+                  justifyContent="space-between"
+                  width="100%"
+                  gap={10}
+                  alignItems="center"
+                >
+                  <Text
+                    fontWeight="bold"
+                    fontSize="sm"
+                    textTransform="uppercase"
+                  >
+                    Offer conversion rates by Notification zone
+                  </Text>
+                  <Flex width="30%" direction="column">
+                    <Box width="100%">
+                      <Progress
+                        colorScheme="transparent"
+                        height={2}
+                        bgGradient="linear(to-r, rgba(127, 17, 224, 1), white)"
+                        value={90}
+                      />
+                    </Box>
+                    <Flex width="100%" justifyContent="space-between">
+                      <Text>
+                        <small>High</small>
+                      </Text>
+                      <Text>
+                        <small>Low</small>
+                      </Text>
+                    </Flex>
                   </Flex>
                 </Flex>
-              </Flex>
-              <br />
+                <br />
 
-              <Heatmap
-                height={400}
-                useCells={useConversionCells}
-                colorInterpolater={interpolateBuPu}
-                getCellConfig={({
-                  conversionRate,
-                  wktPolygon,
-                }: ZoneMetrics) => ({
-                  value: conversionRate,
-                  wktPolygon,
-                })}
-              />
-            </Stack>
-          </Flex>
-        </Box>
-        <Box>
-          <Heading fontSize="md">Top Performing Customers</Heading>
-          <Text overflowWrap="break-word">
-            Companies with the highest conversion rate
-          </Text>
-          <br />
-          <ConversionTable />
-        </Box>
-      </Stack>
+                <Heatmap
+                  height={400}
+                  useCells={useConversionCells}
+                  colorInterpolater={interpolateBuPu}
+                  getCellConfig={({
+                    conversionRate,
+                    wktPolygon,
+                  }: ZoneMetrics) => ({
+                    value: conversionRate,
+                    wktPolygon,
+                  })}
+                />
+              </Stack>
+            </Flex>
+          </Box>
+          <Box>
+            <Heading fontSize="md">Top Performing Customers</Heading>
+            <Text overflowWrap="break-word">
+              Companies with the highest conversion rate
+            </Text>
+            <br />
+            <ConversionTable />
+          </Box>
+        </Stack>
+      );
+  };
+  return (
+    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
+      {getContainerChild()}
     </Container>
   );
 };
