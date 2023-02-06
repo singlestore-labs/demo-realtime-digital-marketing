@@ -440,7 +440,7 @@ export const truncateTimeseriesTables = async (
   const tablesSQL = tables.map((name) => `"${name}"`).join(",");
 
   const oversizedTables = await QueryNoDb<{
-    tableName: typeof tables[number];
+    tableName: (typeof tables)[number];
     minTs: number;
     maxTs: number;
     count: number;

@@ -8,16 +8,13 @@ export interface IPropTypes {
   color?: string;
 }
 
-export const GithubStargazer: React.FC<IPropTypes> = ({owner, repo}) => {
+export const GithubStargazer: React.FC<IPropTypes> = ({ owner, repo }) => {
   const [stargazersCount, setStargazersCount] = React.useState(0);
 
   const handleFlexRedirects = () => {
-    window.open(
-      `https://github.com/${owner}/${repo}`,
-      "_blank"
-    );
+    window.open(`https://github.com/${owner}/${repo}`, "_blank");
   };
-  
+
   React.useEffect(() => {
     const getCount = async () => {
       const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
@@ -36,7 +33,13 @@ export const GithubStargazer: React.FC<IPropTypes> = ({owner, repo}) => {
       padding={0}
       onClick={handleFlexRedirects}
     >
-      <Flex gap={0} justifyContent="center" margin={0} padding={0} cursor="pointer">
+      <Flex
+        gap={0}
+        justifyContent="center"
+        margin={0}
+        padding={0}
+        cursor="pointer"
+      >
         <Flex
           alignItems="center"
           gap={1}

@@ -3,7 +3,7 @@ import { Bounds, Point } from "pigeon-maps";
 import stringHash from "string-hash";
 
 import { ConnectionConfig, Exec } from "@/data/client";
-import { compileInsert,InsertStatement } from "@/data/sqlgen";
+import { compileInsert, InsertStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
 import {
   randomChoice,
@@ -51,7 +51,7 @@ export const removeCity = (config: ConnectionConfig, cityId: number) =>
   Exec(config, "DELETE FROM cities WHERE city_id = ?", cityId);
 
 export const SegmentKinds = ["olc_8", "purchase", "request"] as const;
-export type SegmentKind = typeof SegmentKinds[number];
+export type SegmentKind = (typeof SegmentKinds)[number];
 
 export const SegmentIntervals = [
   "minute",
@@ -60,7 +60,7 @@ export const SegmentIntervals = [
   "week",
   "month",
 ] as const;
-export type SegmentInterval = typeof SegmentIntervals[number];
+export type SegmentInterval = (typeof SegmentIntervals)[number];
 
 export type Segment = {
   interval: SegmentInterval;
@@ -161,7 +161,7 @@ export const createOffers = async (
 const randomSegmentKind = () => randomChoice(SegmentKinds);
 const randomSegmentInterval = () => randomChoice(SegmentIntervals);
 
-const vendorDomain = ({ vendor, tld }: typeof VENDORS[number]) =>
+const vendorDomain = ({ vendor, tld }: (typeof VENDORS)[number]) =>
   `${vendor.toLowerCase()}.${tld}`;
 
 const randomPointInCity = (city: CityConfig): Point => {

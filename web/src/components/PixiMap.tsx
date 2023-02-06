@@ -22,7 +22,11 @@ import { useRecoilState } from "recoil";
 import { Loading } from "@/components/loader/Loader";
 import { DEFAULT_CITY } from "@/data/offers";
 import { City } from "@/data/queries";
-import { isUpdatingCities,selectedCities as selectedCitiesFromRecoil, selectedCity } from "@/data/recoil";
+import {
+  isUpdatingCities,
+  selectedCities as selectedCitiesFromRecoil,
+  selectedCity,
+} from "@/data/recoil";
 import { useConnectionState } from "@/view/hooks/hooks";
 
 const stamenProvider =
@@ -188,21 +192,23 @@ export const PixiMap = <T,>({
   const { colorMode } = useColorMode();
   const [lastSelectedCityId, setLastSelectedCityId] =
     useRecoilState(selectedCity);
-  const [ selectedCities ] = useRecoilState(selectedCitiesFromRecoil);
-  const [ isUpdating ] = useRecoilState(isUpdatingCities);
+  const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
+  const [isUpdating] = useRecoilState(isUpdatingCities);
   const [forceUpdateMap, setForceUpdateMap] = React.useState(false);
-  const {connected} = useConnectionState();
+  const { connected } = useConnectionState();
   const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
 
   React.useEffect(() => {
-  if (!connected) {
-    setDropdownDisabledMsg("Please configure connection to change map city");
-  } else if(selectedCities.length <= 0) {
-    setDropdownDisabledMsg("Select atleast one city from dashboard location section");
-  } else if(isUpdating) {
-    setDropdownDisabledMsg("City list is updating please wait");
-  }
-}, [connected, isUpdating, selectedCities]);
+    if (!connected) {
+      setDropdownDisabledMsg("Please configure connection to change map city");
+    } else if (selectedCities.length <= 0) {
+      setDropdownDisabledMsg(
+        "Select atleast one city from dashboard location section"
+      );
+    } else if (isUpdating) {
+      setDropdownDisabledMsg("City list is updating please wait");
+    }
+  }, [connected, isUpdating, selectedCities]);
 
   const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState(
     undefined as City | undefined
@@ -218,8 +224,11 @@ export const PixiMap = <T,>({
 
   let centerValue: [number, number] | undefined = undefined;
   if (lastSelectedCityDetails && !defaultCenter) {
-    centerValue = [lastSelectedCityDetails.centerLat, lastSelectedCityDetails.centerLon];
-  } else if(defaultCenter) {
+    centerValue = [
+      lastSelectedCityDetails.centerLat,
+      lastSelectedCityDetails.centerLon,
+    ];
+  } else if (defaultCenter) {
     centerValue = [defaultCenter[1], defaultCenter[0]];
   }
 
@@ -272,7 +281,9 @@ export const PixiMap = <T,>({
             />
           </Center>
           <Tooltip
-            isDisabled={!(selectedCities.length <= 0 || isUpdating || !connected)}
+            isDisabled={
+              !(selectedCities.length <= 0 || isUpdating || !connected)
+            }
             label={dropdownDisabledMsg}
           >
             <Box display="inline">
@@ -282,14 +293,15 @@ export const PixiMap = <T,>({
                   value: c,
                 }))}
                 value={selectionValue}
-                onChange={(e) => setLastSelectedCityId(() => e?.value.id || -1)
+                onChange={(e) => setLastSelectedCityId(() => e?.value.id || -1)}
+                isDisabled={
+                  selectedCities.length <= 0 || isUpdating || !connected
                 }
-                isDisabled={selectedCities.length <= 0 || isUpdating || !connected}
                 styles={{
                   input: (props) => ({
                     ...props,
                     background: "transparent",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }),
                   placeholder: (props) => ({
                     ...props,
@@ -326,19 +338,19 @@ export const PixiMap = <T,>({
       ) : undefined}
       <Box width="inherit" height={height}>
         {!forceUpdateMap ? (
-            <Map
-              dprs={[1, 2]}
-              provider={stamenProvider("toner-lite")}
-              attribution={stamenAttribution}
-              maxZoom={20}
-              defaultCenter={
-                !lastSelectedCityDetails || defaultCenter ? center : undefined
-              }
-              center={centerValue}
-              zoom={zoom}
-            >
-              <RequiresInitLayer useRenderer={useRenderer} options={options} />
-            </Map>
+          <Map
+            dprs={[1, 2]}
+            provider={stamenProvider("toner-lite")}
+            attribution={stamenAttribution}
+            maxZoom={20}
+            defaultCenter={
+              !lastSelectedCityDetails || defaultCenter ? center : undefined
+            }
+            center={centerValue}
+            zoom={zoom}
+          >
+            <RequiresInitLayer useRenderer={useRenderer} options={options} />
+          </Map>
         ) : (
           <Loading size="large" centered={true} />
         )}

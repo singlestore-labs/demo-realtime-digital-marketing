@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { trackAnalyticsEvent } from "@/analytics";
 import { ConnectionConfig } from "@/data/client";
 
-import { defaultScaleFactor,ScaleFactor, ScaleFactors } from "../scalefactors";
+import { defaultScaleFactor, ScaleFactor, ScaleFactors } from "../scalefactors";
 import { City } from "./queries";
 
 type LocalStorageEffectConfig<T> = {
@@ -57,17 +57,17 @@ export const selectedCity = atom({
 
 export const selectedCities = atom<Array<City>>({
   key: "selectedCities",
-  default: []
+  default: [],
 });
 
 export const isUpdatingCities = atom({
   key: "isUpdatingCities",
-  default: false
+  default: false,
 });
 
 export const errorUpdatingCities = atom<Error | undefined>({
   key: "errorUpdatingCities",
-  default: undefined
+  default: undefined,
 });
 
 export const connectionHost = atom({

@@ -14,11 +14,10 @@ import { MarkdownText } from "./MarkdownText";
 
 export const Footer = () => {
   const { colorMode } = useColorMode();
-  const handleRedirects = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    window.open(
-      e.currentTarget.value,
-      "_blank"
-    );
+  const handleRedirects = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    window.open(e.currentTarget.value, "_blank");
   };
 
   let gitHubIconButton = <VscGithub size="1.2em" />;
@@ -48,12 +47,7 @@ export const Footer = () => {
             [**SingleStoreDB**](https://singlestore.com).
           </MarkdownText>
 
-          <Flex
-            direction="row"
-            gap={8}
-            fontWeight="bold"
-            fontSize="0.85em"
-          >
+          <Flex direction="row" gap={8} fontWeight="bold" fontSize="0.85em">
             <Flex
               direction="row"
               gap={1}
@@ -64,7 +58,7 @@ export const Footer = () => {
               <IconButton
                 aria-label="Github Repo"
                 size="sm"
-                background={ colorMode === "light" ? undefined : "black"}
+                background={colorMode === "light" ? undefined : "black"}
                 icon={gitHubIconButton}
                 value="https://github.com/singlestore-labs/demo-realtime-digital-marketing"
                 onClick={handleRedirects}

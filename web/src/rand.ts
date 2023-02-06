@@ -2,7 +2,7 @@ import { least } from "d3-array";
 
 import VENDORS from "@/static-data/vendors.json";
 
-export type Vendor = typeof VENDORS[number];
+export type Vendor = (typeof VENDORS)[number];
 
 export const randomChoice = <T>(arr: readonly T[]): T =>
   arr[Math.floor(Math.random() * arr.length)];

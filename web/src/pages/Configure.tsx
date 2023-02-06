@@ -141,26 +141,26 @@ const Section = (props: {
     color: "#E6E5EA",
   };
 
-  if(!props.completed && !props.previousStepCompleted) {
+  if (!props.completed && !props.previousStepCompleted) {
     collapsibleSectionStyle.opacity = 0.4;
   }
 
-  if(colorMode === "light") {
+  if (colorMode === "light") {
     collapsibleSectionStyle.border = "1px solid #ECE8FD";
-    if(props.completed) {
+    if (props.completed) {
       collapsibleSectionStyle.background = "#553ACF";
       collapsibleSectionStyle.color = "white";
-    } else if(props.previousStepCompleted) {
+    } else if (props.previousStepCompleted) {
       collapsibleSectionStyle.background = "#F7F6FE";
       collapsibleSectionStyle.color = "#553ACF";
     } else {
       collapsibleSectionStyle.color = "#777582";
     }
   } else {
-    if(props.completed) {
+    if (props.completed) {
       collapsibleSectionStyle.background = "#CCC3F9";
       collapsibleSectionStyle.color = "#2F206E";
-    } else if(props.previousStepCompleted) {
+    } else if (props.previousStepCompleted) {
       collapsibleSectionStyle.background = "#2F206E";
       collapsibleSectionStyle.color = "#CCC3F9";
     }
@@ -441,11 +441,11 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
     tables.every((name) => timeseriesIsEmpty(data[name]));
 
   let pipelineButtonText = "Create Pipeline";
-  if(working) {
-      pipelineButtonText = "Creating Pipeline";
+  if (working) {
+    pipelineButtonText = "Creating Pipeline";
   } else if (completed) {
-      pipelineButtonText = "waiting for data...";
-    }
+    pipelineButtonText = "waiting for data...";
+  }
 
   const ensurePipelinesButton = (
     <Button
@@ -936,8 +936,7 @@ export const Overview = () => {
         backgroundRepeat="no-repeat"
         minHeight="250px"
       >
-        {
-        tableCounts && !!tableCounts.notifications ? (
+        {tableCounts && !!tableCounts.notifications ? (
           <Flex
             maxWidth="50%"
             direction="row"
@@ -963,7 +962,7 @@ export const Overview = () => {
                   <li>
                     Adding or removing location from{" "}
                     <a
-                      onClick={() => navigate('/dashboard')}
+                      onClick={() => navigate("/dashboard")}
                       color="white"
                       style={{
                         fontWeight: "bold",
@@ -977,7 +976,7 @@ export const Overview = () => {
                   <li>
                     Inspect engagement under{" "}
                     <a
-                      onClick={() => navigate('/analytics')}
+                      onClick={() => navigate("/analytics")}
                       color="white"
                       style={{
                         fontWeight: "bold",

@@ -6,6 +6,7 @@ import {
   Grid,
   GridItem,
   Heading,
+  Icon,
   Progress,
   Stack,
   Stat,
@@ -27,6 +28,8 @@ import { format } from "d3-format";
 import { interpolateBuPu } from "d3-scale-chromatic";
 import { Bounds } from "pigeon-maps";
 import { useState } from "react";
+import { BsBellFill, BsGearFill } from "react-icons/bs";
+import { HiOfficeBuilding, HiRefresh } from "react-icons/hi";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -58,103 +61,110 @@ export const AnalyticsDashboard = () => {
   useSimulator(enabled);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
-  if(!connected) {
+  if (!connected) {
     return <ConnectToSingleStoreButton />;
   }
   if (!initialized) {
     return <SetupDatabaseButton />;
   }
-  if(!enabled) {
+  if (!enabled) {
     return <EnableSimulatorButton />;
   }
 
-  return <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
+  return (
+    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
       <Stack gap={10}>
-      <Box>
-        <Heading fontSize="md">Engagement</Heading>
-        <Text overflowWrap="break-word">
-          Conversion rate with subscribers
-        </Text>
-        <br />
+        <Box>
+          <Heading fontSize="md">Engagement</Heading>
+          <Text overflowWrap="break-word">
+            Conversion rate with subscribers
+          </Text>
+          <br />
 
-        <Flex gap={5} direction={isSmallScreen ? "column" : "row"}>
-          <Stack flex={2}>
-            <StatGrid />
-          </Stack>
-          <Stack
-            padding="17px"
-            flex={4}
-            borderRadius={10}
-            border="1px solid grey"
-            position="relative"
-          >
-            <Flex
-              direction="row"
-              justifyContent="space-between"
-              width="100%"
-              gap={10}
-              alignItems="center"
+          <Flex gap={5} direction={isSmallScreen ? "column" : "row"}>
+            <Stack flex={2}>
+              <StatGrid />
+            </Stack>
+            <Stack
+              padding="17px"
+              flex={4}
+              borderRadius={10}
+              border="1px solid grey"
+              position="relative"
             >
-              <Text
-                fontWeight="bold"
-                fontSize="sm"
-                textTransform="uppercase"
+              <Flex
+                direction="row"
+                justifyContent="space-between"
+                width="100%"
+                gap={10}
+                alignItems="center"
               >
-                Offer conversion rates by Notification zone
-              </Text>
-              <Flex width="30%" direction="column">
-                <Box width="100%">
-                  <Progress
-                    colorScheme="transparent"
-                    height={2}
-                    bgGradient="linear(to-r, rgba(127, 17, 224, 1), white)"
-                    value={90}
-                  />
-                </Box>
-                <Flex width="100%" justifyContent="space-between">
-                  <Text>
-                    <small>High</small>
-                  </Text>
-                  <Text>
-                    <small>Low</small>
-                  </Text>
+                <Text fontWeight="bold" fontSize="sm" textTransform="uppercase">
+                  Offer conversion rates by Notification zone
+                </Text>
+                <Flex width="30%" direction="column">
+                  <Box width="100%">
+                    <Progress
+                      colorScheme="transparent"
+                      height={2}
+                      bgGradient="linear(to-r, rgba(127, 17, 224, 1), white)"
+                      value={90}
+                    />
+                  </Box>
+                  <Flex width="100%" justifyContent="space-between">
+                    <Text>
+                      <small>High</small>
+                    </Text>
+                    <Text>
+                      <small>Low</small>
+                    </Text>
+                  </Flex>
                 </Flex>
               </Flex>
-            </Flex>
-            <br />
+              <br />
 
-            <Heatmap
-              height={400}
-              useCells={useConversionCells}
-              colorInterpolater={interpolateBuPu}
-              getCellConfig={({
-                conversionRate,
-                wktPolygon,
-              }: ZoneMetrics) => ({
-                value: conversionRate,
-                wktPolygon,
-              })}
-            />
-          </Stack>
-        </Flex>
-      </Box>
-      <Box>
-        <Heading fontSize="md">Top Performing Customers</Heading>
-        <Text overflowWrap="break-word">
-          Companies with the highest conversion rate
-        </Text>
-        <br />
-        <ConversionTable />
-      </Box>
-    </Stack>
-  </Container>;
+              <Heatmap
+                height={400}
+                useCells={useConversionCells}
+                colorInterpolater={interpolateBuPu}
+                getCellConfig={({
+                  conversionRate,
+                  wktPolygon,
+                }: ZoneMetrics) => ({
+                  value: conversionRate,
+                  wktPolygon,
+                })}
+              />
+            </Stack>
+          </Flex>
+        </Box>
+        <Box>
+          <Heading fontSize="md">Top Performing Customers</Heading>
+          <Text overflowWrap="break-word">
+            Companies with the highest conversion rate
+          </Text>
+          <br />
+          <ConversionTable />
+        </Box>
+      </Stack>
+    </Container>
+  );
 };
 
-const LoadingIndicator = ({size, centered}: {size: "small" | "large", centered: boolean}) => (
-    <Loading size={size || "large"} centered={centered} />
-);
+const LoadingIndicator = ({
+  size,
+  centered,
+}: {
+  size: "small" | "large";
+  centered: boolean;
+}) => <Loading size={size || "large"} centered={centered} />;
 
-const StatWrapper = ({statLabel, statNumber, helpText, colSpan}: {
+const StatWrapper = ({
+  statLabel,
+  statNumber,
+  helpText,
+  colSpan,
+}: {
   statLabel: string;
   statNumber: string;
   helpText?: string;
@@ -249,8 +259,14 @@ const ConversionTable = () => {
   const activeColor = useColorModeValue("#553ACF", "#CCC3F9");
 
   const getTableBody = () => {
-    if(metricsTableData.isValidating && !metricsTableData.data) {
-      return <Tr><Td colSpan={4}><LoadingIndicator size="small" centered={true} /></Td></Tr>;
+    if (metricsTableData.isValidating && !metricsTableData.data) {
+      return (
+        <Tr>
+          <Td colSpan={4}>
+            <LoadingIndicator size="small" centered={true} />
+          </Td>
+        </Tr>
+      );
     }
     return metricsTableData.data?.map((c) => (
       <Tr key={c.customer}>
@@ -291,9 +307,10 @@ const ConversionTable = () => {
                 onClick={() => setSortColumn("customer")}
                 _hover={{ color: activeColor }}
                 color={sortColumn === "customer" ? activeColor : undefined}
+                padding="10px 10px 10px 10px"
                 cursor="pointer"
               >
-                Customer
+                <Icon as={HiOfficeBuilding} /> Company
                 {sortColumn === "customer" && <ChevronDownIcon />}
               </Th>
               <Th
@@ -303,9 +320,9 @@ const ConversionTable = () => {
                   sortColumn === "totalNotifications" ? activeColor : undefined
                 }
                 cursor="pointer"
-                paddingLeft="0px"
+                padding="10px 10px 10px 0px"
               >
-                Total Notifications
+                <Icon as={BsBellFill} /> Total Notifications
                 {sortColumn === "totalNotifications" && <ChevronDownIcon />}
               </Th>
               <Th
@@ -315,9 +332,9 @@ const ConversionTable = () => {
                   sortColumn === "totalConversions" ? activeColor : undefined
                 }
                 cursor="pointer"
-                paddingLeft="0px"
+                padding="10px 10px 10px 0px"
               >
-                Total Conversions
+                <Icon as={HiRefresh} /> Total Conversions
                 {sortColumn === "totalConversions" && <ChevronDownIcon />}
               </Th>
               <Th
@@ -327,16 +344,14 @@ const ConversionTable = () => {
                   sortColumn === "conversionRate" ? activeColor : undefined
                 }
                 cursor="pointer"
-                paddingLeft="0px"
+                padding="10px 10px 10px 0px"
               >
-                Conversion Rate
+                <Icon as={BsGearFill} /> Conversion Rate
                 {sortColumn === "conversionRate" && <ChevronDownIcon />}
               </Th>
             </Tr>
           </Thead>
-          <Tbody>
-            {getTableBody()}
-          </Tbody>
+          <Tbody>{getTableBody()}</Tbody>
         </Table>
       </TableContainer>
     </Box>

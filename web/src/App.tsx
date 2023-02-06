@@ -1,6 +1,12 @@
 import { Box, Center, Flex } from "@chakra-ui/react";
 import React, { useState } from "react";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useRecoilValue } from "recoil";
 
 import { useAnalytics } from "@/analytics";
@@ -31,7 +37,7 @@ function App() {
 
 const RoutesContainer = () => {
   const config = useRecoilValue(connectionConfig);
-  const {connected} = useConnectionState();
+  const { connected } = useConnectionState();
   const { updateCityList } = useUpdateCityList(config);
   const [redirectToHomePage, setRedirectToHomaePage] = useState(true); // This allow user to modify connection settings in configuration page without redirecting to Home page
   const location = useLocation();
@@ -41,10 +47,10 @@ const RoutesContainer = () => {
     // We will redirect to Home page '/' if user loaded the website for first time in browser and configuration is not set.
     // Once connection is successful to singlestore it will autoredirect to appropriate page.
     if (location.pathname !== "/" && !connected && redirectToHomePage) {
-        navigate({
-          pathname: "/",
-          search: `?redirect=${location.pathname}`
-        });
+      navigate({
+        pathname: "/",
+        search: `?redirect=${location.pathname}`,
+      });
     }
     if (connected) {
       setRedirectToHomaePage(false);
@@ -55,37 +61,31 @@ const RoutesContainer = () => {
     useAnalytics();
     return <></>;
   };
-  
+
   return (
     <>
       <Analytics />
       <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
-        { !redirectToHomePage && <Nav /> }
+        {!redirectToHomePage && <Nav />}
         <Box flex="1" paddingTop="3px">
           <Routes>
             <Route
               path="/"
               element={
-                <HomePage updateCityList={updateCityList} redirectToHomePage={redirectToHomePage} setRedirectToHomaePage={setRedirectToHomaePage} />
+                <HomePage
+                  updateCityList={updateCityList}
+                  redirectToHomePage={redirectToHomePage}
+                  setRedirectToHomaePage={setRedirectToHomaePage}
+                />
               }
             />
-            <Route
-              path="/dashboard"
-              element={
-                  <NotificationsMap />
-              }
-            />
+            <Route path="/dashboard" element={<NotificationsMap />} />
             <Route path="/configure" element={<Overview />} />
-            <Route
-              path="/analytics"
-              element={
-                  <AnalyticsDashboard />
-              }
-            />
+            <Route path="/analytics" element={<AnalyticsDashboard />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Box>
-        { !redirectToHomePage && <Footer /> }
+        {!redirectToHomePage && <Footer />}
       </Flex>
     </>
   );

@@ -13,7 +13,11 @@ import {
 } from "@/data/queries";
 import { ScaleFactors } from "@/scalefactors";
 
-import { errorUpdatingCities, isUpdatingCities, selectedCities } from "../recoil";
+import {
+  errorUpdatingCities,
+  isUpdatingCities,
+  selectedCities,
+} from "../recoil";
 
 const getSelectedCitiesFromDatabase = async (
   config: ConnectionConfig,
@@ -86,7 +90,7 @@ const removeCityFromDatabase = async (
 export interface CityListHookReturnType {
   onCreateCity: (lat: number, lon: number) => void;
   onRemoveCity: (cityId: number) => void;
-  updateCityList: () => void
+  updateCityList: () => void;
 }
 
 export const useUpdateCityList = (
@@ -97,7 +101,7 @@ export const useUpdateCityList = (
   const [, setSelectedCities] = useRecoilState(selectedCities);
   const [, setError] = useRecoilState(errorUpdatingCities);
   const [, setIsUpdating] = useRecoilState(isUpdatingCities);
-  
+
   const onCreateCity = async (lat: number, lon: number) => {
     await addCityToDatabase(
       config,
@@ -118,12 +122,17 @@ export const useUpdateCityList = (
   };
 
   const updateCityList = async () => {
-    await getSelectedCitiesFromDatabase(config, setIsUpdating, setSelectedCities, setError);
+    await getSelectedCitiesFromDatabase(
+      config,
+      setIsUpdating,
+      setSelectedCities,
+      setError
+    );
   };
 
   return {
     onCreateCity,
     onRemoveCity,
-    updateCityList
+    updateCityList,
   };
 };

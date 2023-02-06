@@ -61,17 +61,17 @@ export const DatabaseConfigForm = ({
           value={password}
           setValue={setPassword}
           type="password"
-        />      
+        />
       </SimpleGrid>
       {showDatabase && (
-          <ConfigInput
-            label="Database"
-            placeholder="martech"
-            value={database}
-            setValue={setDatabase}
-          />
-        )}
-        {showScaleFactor && <ScaleFactorSelector />}
+        <ConfigInput
+          label="Database"
+          placeholder="martech"
+          value={database}
+          setValue={setDatabase}
+        />
+      )}
+      {showScaleFactor && <ScaleFactorSelector />}
     </Stack>
   );
 };

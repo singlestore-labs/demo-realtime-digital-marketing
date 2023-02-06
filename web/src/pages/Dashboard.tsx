@@ -58,7 +58,7 @@ const StatsWrapper = () => {
     React.useState(selectedCities);
 
   const getCheckedFontColor = (city: City) => {
-    if(selectedCities.map((c) => c.id).includes(city.id)) {
+    if (selectedCities.map((c) => c.id).includes(city.id)) {
       if (colorMode === "light") {
         return "purple.500";
       } else {
@@ -78,7 +78,9 @@ const StatsWrapper = () => {
         setLastSelectedCityId(-1);
       } else {
         setLastSelectedCityId(
-          city.id !== selectedCities[0].id ? selectedCities[0].id : selectableCitiesData[1].id
+          city.id !== selectedCities[0].id
+            ? selectedCities[0].id
+            : selectableCitiesData[1].id
         );
       }
       onRemoveCity(city.id);
@@ -137,7 +139,9 @@ const StatsWrapper = () => {
                   color={getCheckedFontColor(city)}
                 >
                   <Text>{city.name}</Text>
-                  {lastSelectedCityId === city.id && selectedCities.length ? <BsEye size="1.2em" /> : undefined}
+                  {lastSelectedCityId === city.id && selectedCities.length ? (
+                    <BsEye size="1.2em" />
+                  ) : undefined}
                 </Flex>
               </Checkbox>
             ))}

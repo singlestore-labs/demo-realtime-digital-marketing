@@ -47,13 +47,15 @@ export const Nav = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
   let themeModeIcon = <MoonIcon cursor="pointer" onClick={toggleColorMode} />;
 
-
   const NavLinkActiveButtonStyle = {
     background: useColorModeValue("#4F34C7", "#CCC3F9"),
     color: useColorModeValue("#FFFFFF", "#2F206E"),
   };
 
-  const LinksIntenralComponent = ({NavLinkTitle, IconElement}: {
+  const LinksIntenralComponent = ({
+    NavLinkTitle,
+    IconElement,
+  }: {
     NavLinkTitle: string;
     IconElement: ReactElement;
   }) => {
@@ -67,7 +69,11 @@ export const Nav = () => {
     );
   };
 
-  const NavLinkComponent = ({NavLinkTitle, IconElement, to}: {
+  const NavLinkComponent = ({
+    NavLinkTitle,
+    IconElement,
+    to,
+  }: {
     NavLinkTitle: string;
     IconElement: ReactElement;
     to: string;
@@ -118,20 +124,21 @@ export const Nav = () => {
     </>
   );
 
-  const handleLinkRedirects = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    window.open(
-      e.currentTarget.value,
-      "_blank"
-    );
+  const handleLinkRedirects = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    window.open(e.currentTarget.value, "_blank");
   };
 
   const handleHamburgerNavMenu = () => {
-    if(navMenu.isOpen) {
-      return <Box pb={4} display={{ md: "none" }}>
-      <Stack as="nav" spacing={4}>
-        {links}
-      </Stack>
-    </Box>;
+    if (navMenu.isOpen) {
+      return (
+        <Box pb={4} display={{ md: "none" }}>
+          <Stack as="nav" spacing={4}>
+            {links}
+          </Stack>
+        </Box>
+      );
     }
     return null;
   };
@@ -172,17 +179,17 @@ export const Nav = () => {
               onClick={navMenu.isOpen ? navMenu.onClose : navMenu.onOpen}
             />
 
-            <HStack
-              as="nav"
-              spacing={2}
-              display={{ base: "none", md: "flex" }}
-            >
+            <HStack as="nav" spacing={2} display={{ base: "none", md: "flex" }}>
               <Wrap display="inline-block">
                 <WrapItem>
                   <Avatar
                     size="sm"
                     name="Dan Abrahmov"
-                    src={colorMode === "light" ? SinglestoreLogo : SingleStoreLogoDrak}
+                    src={
+                      colorMode === "light"
+                        ? SinglestoreLogo
+                        : SingleStoreLogoDrak
+                    }
                   />
                 </WrapItem>
               </Wrap>

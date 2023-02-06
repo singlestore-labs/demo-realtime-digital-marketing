@@ -50,7 +50,7 @@ export const Stats = () => {
     );
   };
 
-  if(tableCounts.data) {
+  if (tableCounts.data) {
     return (
       <SimpleGrid spacing={2} minChildWidth="25%">
         <StatWrapper

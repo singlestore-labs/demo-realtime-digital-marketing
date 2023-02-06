@@ -100,11 +100,9 @@ export const IngestChart = <TableName extends string>({
 
   if (tables.some((name) => data[name].length < 2)) {
     return (
-      
       <Center height={props.height}>
         <Loading size="small" centered={true} />
       </Center>
-      
     );
   }
 

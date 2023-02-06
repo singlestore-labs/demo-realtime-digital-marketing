@@ -33,6 +33,8 @@
         "**/*.{js, ts}":"CAMEL_CASE"
       }
     ],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["error"],
     "semi": ["error", "always"],
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
@@ -49,8 +51,7 @@
       {
         "forbid": [">", "}", "\""]
       }
-    ],
-    "unused-imports/no-unused-imports-ts" : "error"
+    ]
   },
   "settings": {
     "react": {
