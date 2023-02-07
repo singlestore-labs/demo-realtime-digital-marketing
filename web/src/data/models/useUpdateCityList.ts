@@ -1,4 +1,3 @@
-import { Point } from "pigeon-maps";
 import React from "react";
 import { useRecoilState } from "recoil";
 
@@ -50,7 +49,7 @@ const addCityToDatabase = async (
   const cityConfig = {
     id: city.id,
     name: city.name,
-    lonlat: [city.centerLon, city.centerLat] as Point,
+    lonlat: <[number, number]>[city.centerLon, city.centerLat],
     diameter: city.diameter,
   };
   await createCity(config, cityConfig);

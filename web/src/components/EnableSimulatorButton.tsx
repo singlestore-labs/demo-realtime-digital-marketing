@@ -4,6 +4,7 @@ import {
   AlertTitle,
   Button,
   useBoolean,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { useCallback } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
@@ -56,7 +57,8 @@ export const EnableSimulatorButton = () => {
         right={4}
         top={3}
         size="xs"
-        colorScheme="purple"
+        background={useColorModeValue("#ECE8FD", "#2F206E")}
+        color={useColorModeValue("#553ACF", "#ECE8FD")}
         disabled={enabling}
         onClick={onEnableSimulator}
       >

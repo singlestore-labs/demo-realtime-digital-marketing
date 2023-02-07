@@ -1,7 +1,7 @@
 import "@/components/loader/loader.scss";
 
 import classnames from "classnames";
-import * as React from "react";
+import React from "react";
 
 import { CenteringWrapper } from "@/components/loader/CenteringWrapper";
 
@@ -200,7 +200,7 @@ function SvgLarge() {
   );
 }
 
-export function Loading({
+export function Loader({
   size,
   className,
   rightMargin,

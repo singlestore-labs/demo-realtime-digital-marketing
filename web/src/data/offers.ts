@@ -17,7 +17,7 @@ import VENDORS from "@/static-data/vendors.json";
 export const DEFAULT_CITY = {
   id: 120658,
   name: "New York City",
-  lonlat: [-73.993562, 40.727063] as Point,
+  lonlat: <[number, number]>[-73.993562, 40.727063],
   diameter: 0.04,
 };
 
@@ -50,16 +50,16 @@ export const createCity = (config: ConnectionConfig, city: CityConfig) =>
 export const removeCity = (config: ConnectionConfig, cityId: number) =>
   Exec(config, "DELETE FROM cities WHERE city_id = ?", cityId);
 
-export const SegmentKinds = ["olc_8", "purchase", "request"] as const;
+export const SegmentKinds = <const>["olc_8", "purchase", "request"];
 export type SegmentKind = (typeof SegmentKinds)[number];
 
-export const SegmentIntervals = [
+export const SegmentIntervals = <const>[
   "minute",
   "hour",
   "day",
   "week",
   "month",
-] as const;
+];
 export type SegmentInterval = (typeof SegmentIntervals)[number];
 
 export type Segment = {
@@ -219,10 +219,10 @@ export const randomOffer = (city: CityConfig): Offer => {
   const [lon, lat] = randomPointInCity(city);
   const olc = OpenLocationCode.encode(lat, lon, 8);
   const area = OpenLocationCode.decode(olc);
-  const bounds = {
+  const bounds = <Bounds>{
     ne: [area.latitudeHi, area.longitudeHi],
     sw: [area.latitudeLo, area.longitudeLo],
-  } as Bounds;
+  };
 
   return {
     customer: vendor.vendor,

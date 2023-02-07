@@ -36,7 +36,7 @@ import useSWR from "swr";
 import { ConnectToSingleStoreButton } from "@/components/ConnectToSinglestoreButton";
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/HeatMap";
-import { Loading } from "@/components/loader/Loader";
+import { Loader } from "@/components/loader/Loader";
 import { SetupDatabaseButton } from "@/components/SetupDatabaseButton";
 import {
   CustomerMetrics,
@@ -157,14 +157,6 @@ export const AnalyticsDashboard = () => {
   );
 };
 
-const LoadingIndicator = ({
-  size,
-  centered,
-}: {
-  size: "small" | "large";
-  centered: boolean;
-}) => <Loading size={size || "large"} centered={centered} />;
-
 const StatWrapper = ({
   statLabel,
   statNumber,
@@ -220,7 +212,7 @@ const StatGrid = () => {
     !overallRateRequests.data ||
     !overallRatePurchases.data
   ) {
-    return <LoadingIndicator size="small" centered={true} />;
+    return <Loader size="small" centered={true} />;
   }
 
   return (
@@ -269,7 +261,7 @@ const ConversionTable = () => {
       return (
         <Tr>
           <Td colSpan={4}>
-            <LoadingIndicator size="small" centered={true} />
+            <Loader size="small" centered={true} />
           </Td>
         </Tr>
       );

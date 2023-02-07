@@ -51,7 +51,7 @@ import GraphicalBackground from "@/assets/graphical-background.svg";
 import { CodeBlock } from "@/components/CodeBlock";
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
-import { Loading } from "@/components/loader/Loader";
+import { Loader } from "@/components/loader/Loader";
 import { MarkdownText } from "@/components/MarkdownText";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
@@ -455,7 +455,7 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
       onClick={onEnsurePipelines}
       disabled={completed}
     >
-      {(working || completed) && <Loading size="small" centered={true} />}&nbsp;
+      {(working || completed) && <Loader size="small" centered={true} />}&nbsp;
       {pipelineButtonText}
     </Button>
   );

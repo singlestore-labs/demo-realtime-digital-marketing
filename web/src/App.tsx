@@ -7,14 +7,11 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { useRecoilValue } from "recoil";
 
 import { useAnalytics } from "@/analytics";
 import { Footer } from "@/components/Footer";
-import { Loading } from "@/components/loader/Loader";
+import { Loader } from "@/components/loader/Loader";
 import { Nav } from "@/components/navBar/Nav";
-import { useUpdateCityList } from "@/data/models/useUpdateCityList";
-import { connectionConfig } from "@/data/recoil";
 import { AnalyticsDashboard } from "@/pages/Analytics";
 import { Overview } from "@/pages/Configure";
 import { NotificationsMap } from "@/pages/Dashboard";
@@ -24,7 +21,7 @@ import { useConnectionState } from "@/view/hooks/hooks";
 function App() {
   const loadingFallback = (
     <Center height="100vh">
-      <Loading size="large" centered={true} />
+      <Loader size="large" centered={true} />
     </Center>
   );
 
@@ -36,10 +33,9 @@ function App() {
 }
 
 const RoutesContainer = () => {
-  const config = useRecoilValue(connectionConfig);
   const { connected } = useConnectionState();
-  const { updateCityList } = useUpdateCityList(config);
-  const [redirectToHomePage, setRedirectToHomaePage] = useState(true); // This allow user to modify connection settings in configuration page without redirecting to Home page
+  
+  const [redirectToHomePage, setRedirectToHomaePage] = useState(true);  // To ensure connection configuration when RTDM App is loaded for the first time.
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -73,7 +69,6 @@ const RoutesContainer = () => {
               path="/"
               element={
                 <HomePage
-                  updateCityList={updateCityList}
                   redirectToHomePage={redirectToHomePage}
                   setRedirectToHomaePage={setRedirectToHomaePage}
                 />

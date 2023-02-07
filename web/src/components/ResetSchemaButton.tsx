@@ -16,7 +16,7 @@ import {
 import React, { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 
-import { Loading } from "@/components/loader/Loader";
+import { Loader } from "@/components/loader/Loader";
 import { connectionDatabase } from "@/data/recoil";
 import {
   useConnectionState,
@@ -92,7 +92,7 @@ export const ResetSchemaButton = (props: Props) => {
                 ml={3}
               >
                 {resettingSchema ? (
-                  <Loading size="small" />
+                  <Loader size="small" />
                 ) : initialized ? (
                   "Recreate database"
                 ) : (

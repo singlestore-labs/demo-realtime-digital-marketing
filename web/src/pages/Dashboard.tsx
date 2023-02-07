@@ -38,7 +38,6 @@ import { useSimulator } from "@/view/hooks/useSimulator";
 
 const StatsWrapper = () => {
   const config = useRecoilValue(connectionConfig);
-
   const ingestData = useIngestChartData(
     config,
     "locations",
@@ -57,6 +56,16 @@ const StatsWrapper = () => {
   const [totalSelectableCities, setTotalSelectableCities] =
     React.useState(selectedCities);
 
+    const getNewSelectedCityAfterDeletion = (city: City): number => {
+      const cityIndex = selectedCities.findIndex(c => c.id === city.id);
+      if(cityIndex === 0) {
+        if(selectedCities.length > 1) {
+          return selectableCitiesData[1].id;
+        }
+      }
+      return -1;
+    };
+
   const getCheckedFontColor = (city: City) => {
     if (selectedCities.map((c) => c.id).includes(city.id)) {
       if (colorMode === "light") {
@@ -74,14 +83,10 @@ const StatsWrapper = () => {
       setLastSelectedCityId(city.id);
     } else {
       const noOfSelectedCities = selectedCities.length;
-      if (noOfSelectedCities <= 1) {
+      if (noOfSelectedCities <= 0) {
         setLastSelectedCityId(-1);
       } else {
-        setLastSelectedCityId(
-          city.id !== selectedCities[0].id
-            ? selectedCities[0].id
-            : selectableCitiesData[1].id
-        );
+        setLastSelectedCityId(getNewSelectedCityAfterDeletion(city));
       }
       onRemoveCity(city.id);
     }

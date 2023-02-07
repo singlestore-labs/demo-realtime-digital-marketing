@@ -12,7 +12,7 @@ import { format } from "d3-format";
 import { useCallback, useMemo, useRef } from "react";
 import useSWR from "swr";
 
-import { Loading } from "@/components/loader/Loader";
+import { Loader } from "@/components/loader/Loader";
 import { ConnectionConfig } from "@/data/client";
 import { estimatedRowCountObj } from "@/data/queries";
 import { Timeseries, TimeseriesPoint } from "@/data/timeseries";
@@ -101,7 +101,7 @@ export const IngestChart = <TableName extends string>({
   if (tables.some((name) => data[name].length < 2)) {
     return (
       <Center height={props.height}>
-        <Loading size="small" centered={true} />
+        <Loader size="small" centered={true} />
       </Center>
     );
   }

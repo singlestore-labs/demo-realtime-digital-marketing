@@ -17,22 +17,26 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useRecoilValue } from "recoil";
 
 import DashboardControllerIamge from "@/assets/dashboard-controller-snapshot.svg";
 import GraphicalBackground2 from "@/assets/graphical-background-design-2.svg";
 import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
+import { useUpdateCityList } from "@/data/models/useUpdateCityList";
+import { connectionConfig } from "@/data/recoil";
 import { useConnectionState } from "@/view/hooks/hooks";
 
 export const HomePage: React.FC<{
   redirectToHomePage: boolean;
   setRedirectToHomaePage: (setStatus: boolean) => void;
-  updateCityList: () => void;
-}> = ({ redirectToHomePage, updateCityList, setRedirectToHomaePage }) => {
+}> = ({ redirectToHomePage, setRedirectToHomaePage }) => {
   const { connected } = useConnectionState();
   const navigate = useNavigate();
   const fontColor = useColorModeValue("#553ACF", "#CCC3F9");
+  const config = useRecoilValue(connectionConfig);
+  const { updateCityList } = useUpdateCityList(config);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   React.useEffect(() => {

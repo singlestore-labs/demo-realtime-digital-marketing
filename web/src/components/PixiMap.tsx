@@ -19,7 +19,7 @@ import React from "react";
 import Select from "react-select";
 import { useRecoilState } from "recoil";
 
-import { Loading } from "@/components/loader/Loader";
+import { Loader } from "@/components/loader/Loader";
 import { DEFAULT_CITY } from "@/data/offers";
 import { City } from "@/data/queries";
 import {
@@ -190,29 +190,13 @@ export const PixiMap = <T,>({
   const [center, setCenter] = React.useState(defaultCenter || DEFAULT_CENTER);
   const [zoom] = React.useState(DEFAULT_ZOOM);
   const { colorMode } = useColorMode();
-  const [lastSelectedCityId, setLastSelectedCityId] =
-    useRecoilState(selectedCity);
+  const [lastSelectedCityId, setLastSelectedCityId] = useRecoilState(selectedCity);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [isUpdating] = useRecoilState(isUpdatingCities);
   const [forceUpdateMap, setForceUpdateMap] = React.useState(false);
   const { connected } = useConnectionState();
   const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
-
-  React.useEffect(() => {
-    if (!connected) {
-      setDropdownDisabledMsg("Please configure connection to change map city");
-    } else if (selectedCities.length <= 0) {
-      setDropdownDisabledMsg(
-        "Select atleast one city from dashboard location section"
-      );
-    } else if (isUpdating) {
-      setDropdownDisabledMsg("City list is updating please wait");
-    }
-  }, [connected, isUpdating, selectedCities]);
-
-  const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState(
-    undefined as City | undefined
-  );
+  const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState<City | undefined>(undefined);
 
   let selectionValue = { label: "Select city", value: { id: -1 } };
   if (lastSelectedCityDetails) {
@@ -233,14 +217,26 @@ export const PixiMap = <T,>({
   }
 
   React.useEffect(() => {
-    setForceUpdateMap(true);
+    if (!connected) {
+      setDropdownDisabledMsg("Please configure connection to change map city");
+    } else if (selectedCities.length <= 0) {
+      setDropdownDisabledMsg(
+        "You need to select atleast one city from dashboard's Locations section"
+      );
+    } else if (isUpdating) {
+      setDropdownDisabledMsg("City list is updating please wait");
+    }
+  }, [connected, isUpdating, selectedCities]);
+
+  React.useEffect(() => {
+    
     setLastSelectedCityDetails(
       selectedCities.find((c) => c.id === lastSelectedCityId)
     );
   }, [selectedCities, lastSelectedCityId]);
 
   React.useEffect(() => {
-    setForceUpdateMap(false);
+    
     if (lastSelectedCityDetails && !defaultCenter) {
       setCenter([
         lastSelectedCityDetails.centerLat,
@@ -248,6 +244,14 @@ export const PixiMap = <T,>({
       ]);
     }
   }, [defaultCenter, lastSelectedCityDetails]);
+
+  React.useEffect(() => {
+    if (isUpdating) {
+      setForceUpdateMap(true);
+    } else {
+      setForceUpdateMap(false);
+    }
+  }, [isUpdating, setForceUpdateMap]);
 
   return (
     <Stack spacing={0} position="relative" height={height}>
@@ -352,7 +356,7 @@ export const PixiMap = <T,>({
             <RequiresInitLayer useRenderer={useRenderer} options={options} />
           </Map>
         ) : (
-          <Loading size="large" centered={true} />
+          <Loader size="large" centered={true} />
         )}
       </Box>
     </Stack>
