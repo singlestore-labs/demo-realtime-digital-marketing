@@ -11,7 +11,7 @@ import {
   useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { BsEye, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 

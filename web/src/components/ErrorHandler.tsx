@@ -8,7 +8,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { ReactNode } from "react-markdown/lib/react-markdown";
 import { useRecoilValue } from "recoil";
 import dedent from "ts-dedent";

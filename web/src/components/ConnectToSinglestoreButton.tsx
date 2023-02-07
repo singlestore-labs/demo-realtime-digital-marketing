@@ -1,6 +1,6 @@
 import { SettingsIcon } from "@chakra-ui/icons";
 import { Box, Button, Text, useColorModeValue } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 
 import { MarkdownText } from "./MarkdownText";
 

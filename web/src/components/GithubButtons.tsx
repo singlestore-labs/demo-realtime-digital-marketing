@@ -1,5 +1,5 @@
 import { Flex, useColorModeValue } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { BsGithub } from "react-icons/bs";
 
 export interface IPropTypes {

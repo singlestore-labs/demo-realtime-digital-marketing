@@ -15,7 +15,7 @@ import {
   useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 

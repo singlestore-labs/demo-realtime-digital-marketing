@@ -15,7 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import React from "react";
+import * as React from "react";
 import Select from "react-select";
 import { useRecoilState } from "recoil";
 

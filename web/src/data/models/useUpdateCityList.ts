@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { useRecoilState } from "recoil";
 
 import { trackAnalyticsEvent } from "@/analytics";

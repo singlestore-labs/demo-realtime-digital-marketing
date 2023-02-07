@@ -1,5 +1,5 @@
 import { Box, useColorModeValue } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 
 import { MarkdownText } from "@/components/MarkdownText";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
