@@ -233,7 +233,7 @@ export const Nav = () => {
                     onClick={handleLinkRedirects}
                   >
                     <IconButton
-                    aria-label="Github Repo"
+                      aria-label="Github Repo"
                       size="sm"
                       background={colorMode === "light" ? undefined : "black"}
                       icon={<BsLinkedin size="1em" />}

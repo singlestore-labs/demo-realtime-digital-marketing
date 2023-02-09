@@ -10,6 +10,7 @@ import {
   Box,
   Button,
   Center,
+  Code,
   Collapse,
   Container,
   Flex,
@@ -43,7 +44,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as ReactLink, useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
 
@@ -52,7 +53,6 @@ import { CodeBlock } from "@/components/CodeBlock";
 import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { Loader } from "@/components/loader/Loader";
-import { MarkdownText } from "@/components/MarkdownText";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
@@ -207,13 +207,19 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
         title="Connect to SingleStore"
         previousStepCompleted={true}
         left={
-          <MarkdownText>
-            {`
-            Please enter the host and port number for the specific Workspace you want to connect to. Then enter the Workspace Group username and password credentials.
-            
-            [Know more](https://docs.singlestore.com/managed-service/en/reference/data-api.html)
-          `}
-          </MarkdownText>
+          <Text>
+            Please enter the host and port number for the specific Workspace you
+            want to connect to. Then enter the Workspace Group username and
+            password credentials.
+            <ReactLink
+              to="https://docs.singlestore.com/managed-service/en/reference/data-api.html"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {" "}
+              Know more
+            </ReactLink>
+          </Text>
         }
         right={<DatabaseConfigForm />}
       />
@@ -309,11 +315,10 @@ const SchemaSection = ({
         title="Setup the schema"
         left={
           <>
-            <MarkdownText>
-              {`
-                A schema includes a database, tables and views to store all the data. Use the tags to create the schema.
-              `}
-            </MarkdownText>
+            <Text>
+              A schema includes a database, tables and views to store all the
+              data. Use the tags to create the schema.
+            </Text>
             {initialized ? undefined : (
               <HStack alignItems="flex-end">
                 <FormControl flex={1}>
@@ -475,14 +480,19 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
         previousStepCompleted={props.previousStepCompleted}
         left={
           <>
-            <MarkdownText>
-              {`
-                The application simulates streams for location, request and purchase history from simulated subscribers
-                using [SingleStore](https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html) Pipelines and [AWS S3](https://aws.amazon.com/s3/).
-                
-                You can view the schema of each pipeline via the following buttons:
-              `}
-            </MarkdownText>
+            <Text>
+              The application simulates streams for location, request and
+              purchase history from simulated subscribers using{" "}
+              <Link
+                href="https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html) Pipelines and [AWS S3](https://aws.amazon.com/s3/"
+                target="_blank"
+              >
+                {" "}
+                SingleStore.{" "}
+              </Link>
+              You can view the schema of each pipeline via the following
+              buttons:
+            </Text>
             <SimpleGrid columns={[1, 3, 3]} gap={1}>
               {pipelineNames.map((name) => (
                 <SchemaItem
@@ -555,25 +565,28 @@ const OffersSection = (props: { previousStepCompleted: boolean }) => {
       previousStepCompleted={props.previousStepCompleted}
       left={
         <>
-          <MarkdownText>
-            {`
-              Companies submit offers with a maximum bid price, notification zone, list of segments and notification content.
-              As subscribers travel, they are matched with offers based on their location and segments.
-              If multiple offers match to a subscriber, the highest bid price is selected.There are 200 simulated offers in the database.
-            `}
-            {!done &&
-              `
-                Press the "load offers" button on the right to create some
-                sample offers in New York City.
-            `}
-            {done &&
-              `
-                The map to your right displays a polygon representing each
-                offer's activation zone. Hover over a polygon to see it's exact
-                boundary. There are ${tableCounts.data?.offers} offers in the
-                database.
-            `}
-          </MarkdownText>
+          <Text>
+            Companies submit offers with a maximum bid price, notification zone,
+            list of segments and notification content. As subscribers travel,
+            they are matched with offers based on their location and segments.
+            If multiple offers match to a subscriber, the highest bid price is
+            selected.There are 200 simulated offers in the database.
+          </Text>
+          {!done && (
+            <Text>
+              <br />
+              {`Press the "load offers" button on the right to create some
+                sample offers in New York City.`}
+            </Text>
+          )}
+          {done && (
+            <Text>
+              <br />
+              The map to your right displays a polygon representing each offer's
+              activation zone. Hover over a polygon to see it's exact boundary.
+              There are ${tableCounts.data?.offers} offers in the database.
+            </Text>
+          )}
           {!done ? (
             <Button
               background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
@@ -640,14 +653,14 @@ const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
     const seg = formatNumber(segments);
     const memberships = formatNumber(subscriber_segments);
     workEstimate = (
-      <MarkdownText>
+      <Text>
         {`
           The last update evaluated ${estRows} rows against ${seg} segments
           producing ${memberships} segment memberships.
           
           **This process took ${durationFormatted}**.
         `}
-      </MarkdownText>
+      </Text>
     );
   }
 
@@ -658,24 +671,26 @@ const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
       previousStepCompleted={props.previousStepCompleted}
       left={
         <>
-          <MarkdownText>
-            {`
-            A segment is defined by a simple rule, such as “bought a coffee in the last day” or “visited the grocery store in the last week”.
-            While segments could be evaluated dynamically when matching offers to subscribers, this would waste compute time since segment
-            memberships rarely change. Instead SingleStore periodically caches the mapping between subscribers and segments for faster results.
-
-            Click the button to run the update interactively, or run the following query in your favorite SQL client:
-          `}
-          </MarkdownText>
-
+          <Text>
+            A segment is defined by a simple rule, such as “bought a coffee in
+            the last day” or “visited the grocery store in the last week”. While
+            segments could be evaluated dynamically when matching offers to
+            subscribers, this would waste compute time since segment memberships
+            rarely change. Instead SingleStore periodically caches the mapping
+            between subscribers and segments for faster results.
+            <br />
+            Click the button to run the update interactively, or run the
+            following query in your favorite SQL client:
+          </Text>
+          <br />
           <Button
             background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
             color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
             disabled={isRunning}
             onClick={onClick}
           >
-            {isRunning && <Spinner mr={2} />}
-            {isRunning ? "...running" : "Match subscribers to segments"}
+            {isRunning && <Loader size="small" />}&nbsp;
+            {isRunning ? " running..." : "Match subscribers to segments"}
           </Button>
           {workEstimate}
           {warmingUp && (
@@ -689,9 +704,9 @@ const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
       }
       right={
         <Flex direction="column" gap={4} padding="10px">
-          <MarkdownText>
+          <Code padding="5px">
             {`    select count(*) from dynamic_subscriber_segments(date_sub_dynamic(now(), "minute"), now());`}
-          </MarkdownText>
+          </Code>
         </Flex>
       }
     />
@@ -746,13 +761,13 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
     const durationFormatted = formatMs(elapsed);
     const sentNotifs = formatNumber(sentNotifications);
     workEstimate = (
-      <MarkdownText>
+      <Text>
         {`
           The last update evaluated up to ${estRows} notification opportunities
           against ${memberships} segment memberships generating ${sentNotifs}
           notifications. This process took ${durationFormatted}.
         `}
-      </MarkdownText>
+      </Text>
     );
   }
 
@@ -763,19 +778,18 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
       previousStepCompleted={props.previousStepCompleted}
       left={
         <>
-          <MarkdownText>
+          <Text>
             {`
-            Now that we have offers and have assigned subscribers to segments,
-            we are finally able to deliver ads to subscribers as push
-            notifications. In this demo, rather than actually sending
-            notifications we will insert them into a table called
-            "notifications".
-
-            Click the button to generate notifications interactively, or run the
-            following query in your favorite SQL client:
-
-          `}
-          </MarkdownText>
+              Now that we have offers and have assigned subscribers to segments,
+              we are finally able to deliver ads to subscribers as push
+              notifications. In this demo, rather than actually sending
+              notifications we will insert them into a table called
+              "notifications".`}
+            <br />
+            {`
+              Click the button to generate notifications interactively, or run the
+              following query in your favorite SQL client:`}
+          </Text>
           <br />
           <Button
             background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
@@ -790,7 +804,7 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
       }
       right={
         <Flex direction="column" gap={4} padding="10px">
-          <MarkdownText>{`    select * from match_offers_to_subscribers("second");`}</MarkdownText>
+          <Code padding="5px">{`    select * from match_offers_to_subscribers("second");`}</Code>
           <Flex
             direction="column"
             gap={4}

@@ -1,8 +1,8 @@
-import { SimpleGrid, Stack } from "@chakra-ui/react";
+import { SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { ConfigInput } from "@/components/ConfigInput";
-import { MarkdownText } from "@/components/MarkdownText";
 import { ScaleFactorSelector } from "@/components/ScaleFactorSelector";
 import {
   connectionDatabase,
@@ -33,23 +33,25 @@ export const DatabaseConfigForm = ({
         value={host}
         setValue={setHost}
         helpText={
-          <MarkdownText>
-            {`
-              The protocol (http, https), host, and port for the SingleStore
-              [Data API][1].
-
-              [1]: https://docs.singlestore.com/docs/http-api/
-            `}
-          </MarkdownText>
+          <Text>
+            The protocol (http, https), host, and port for the SingleStore
+            <Link
+              to="https://docs.singlestore.com/docs/http-api/"
+              target="_blank"
+            >
+              Data API
+            </Link>
+            .
+          </Text>
         }
       />
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
           label="Username"
           helpText={
-            <MarkdownText>
-              Fill in the Security credentials of workspace group.
-            </MarkdownText>
+            <Text>
+              Fill in the Security credentials of your workspace group.
+            </Text>
           }
           placeholder="admin"
           value={user}

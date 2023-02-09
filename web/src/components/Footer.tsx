@@ -9,8 +9,7 @@ import {
 import * as React from "react";
 import { BsLinkedin } from "react-icons/bs";
 import { VscGithub, VscGithubInverted, VscTwitter } from "react-icons/vsc";
-
-import { MarkdownText } from "./MarkdownText";
+import { Link } from "react-router-dom";
 
 export const Footer = () => {
   const { colorMode } = useColorMode();
@@ -42,10 +41,10 @@ export const Footer = () => {
           gap={0}
           alignItems="center"
         >
-          <MarkdownText>
+          <Text>
             RealTime Digital Marketing is a demo application running on
-            [**SingleStoreDB**](https://singlestore.com).
-          </MarkdownText>
+            <Link to="https://singlestore.com">**SingleStoreDB**</Link>
+          </Text>
 
           <Flex direction="row" gap={8} fontWeight="bold" fontSize="0.85em">
             <Flex

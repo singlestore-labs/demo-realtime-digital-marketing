@@ -88,6 +88,11 @@ export const connectionPassword = atom({
   effects: [localStorageEffect()],
 });
 
+export const redirectToHomaPage = atom({
+  key: "redirectToHomePage",
+  default: true
+});
+
 export const connectionDatabase = atom({
   key: "connectionDatabase",
   default: "martech",

@@ -9,6 +9,13 @@ export const chakraTheme = extendTheme({
     body: "InterVariable, sans-serif",
     mono: '"Source Code ProVariable", monospace',
   },
+  styles: {
+    global: ({ colorMode }: { colorMode: "light" | "dark" }) => ({
+      a: {
+        color: colorMode === "light" ? "#553ACF" : "#CCC3F9",
+      },
+    }),
+  },
   components: {
     Link: {
       baseStyle: (props: { colorMode: "light" | "dark" }) => ({

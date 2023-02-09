@@ -49,22 +49,22 @@ const StatsWrapper = () => {
 
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [isUpdating] = useRecoilState(isUpdatingCities);
-  const { onCreateCity, onRemoveCity } = useUpdateCityList(config);
+  const { onCreateCity, onRemoveCity } = useUpdateCityList();
   const [lastSelectedCityId, setLastSelectedCityId] =
     useRecoilState(selectedCity);
   const { colorMode } = useColorMode();
   const [totalSelectableCities, setTotalSelectableCities] =
     React.useState(selectedCities);
 
-    const getNewSelectedCityAfterDeletion = (city: City): number => {
-      const cityIndex = selectedCities.findIndex(c => c.id === city.id);
-      if(cityIndex === 0) {
-        if(selectedCities.length > 1) {
-          return selectableCitiesData[1].id;
-        }
+  const getNewSelectedCityAfterDeletion = (city: City): number => {
+    const cityIndex = selectedCities.findIndex((c) => c.id === city.id);
+    if (cityIndex === 0) {
+      if (selectedCities.length > 1) {
+        return selectableCitiesData[1].id;
       }
-      return -1;
-    };
+    }
+    return -1;
+  };
 
   const getCheckedFontColor = (city: City) => {
     if (selectedCities.map((c) => c.id).includes(city.id)) {
@@ -75,6 +75,13 @@ const StatsWrapper = () => {
       }
     }
     return undefined;
+  };
+
+  const CityNameConatiner: React.FC<{city: City}> = ({city}) => {
+    if (lastSelectedCityId === city.id && selectedCities.length) {
+      return <><Text>{city.name}</Text><BsEye size="1.2em"/></>;
+    }
+    return <Text>{city.name}</Text>;
   };
 
   const setCheckItem = (city: City, checkStatus: boolean) => {
@@ -143,10 +150,7 @@ const StatsWrapper = () => {
                   gap={1}
                   color={getCheckedFontColor(city)}
                 >
-                  <Text>{city.name}</Text>
-                  {lastSelectedCityId === city.id && selectedCities.length ? (
-                    <BsEye size="1.2em" />
-                  ) : undefined}
+                  <CityNameConatiner city ={city}/>
                 </Flex>
               </Checkbox>
             ))}

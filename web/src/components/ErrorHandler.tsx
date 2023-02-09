@@ -38,6 +38,7 @@ export const ClientErrorBoundary = ({ children }: { children: ReactNode }) => {
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = {};
 
+  
   constructor(props: Props) {
     super(props);
     this.handlePromiseRejection = this.handlePromiseRejection.bind(this);

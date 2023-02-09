@@ -190,13 +190,16 @@ export const PixiMap = <T,>({
   const [center, setCenter] = React.useState(defaultCenter || DEFAULT_CENTER);
   const [zoom] = React.useState(DEFAULT_ZOOM);
   const { colorMode } = useColorMode();
-  const [lastSelectedCityId, setLastSelectedCityId] = useRecoilState(selectedCity);
+  const [lastSelectedCityId, setLastSelectedCityId] =
+    useRecoilState(selectedCity);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [isUpdating] = useRecoilState(isUpdatingCities);
   const [forceUpdateMap, setForceUpdateMap] = React.useState(false);
   const { connected } = useConnectionState();
   const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
-  const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState<City | undefined>(undefined);
+  const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState<
+    City | undefined
+  >(undefined);
 
   let selectionValue = { label: "Select city", value: { id: -1 } };
   if (lastSelectedCityDetails) {
@@ -229,14 +232,12 @@ export const PixiMap = <T,>({
   }, [connected, isUpdating, selectedCities]);
 
   React.useEffect(() => {
-    
     setLastSelectedCityDetails(
       selectedCities.find((c) => c.id === lastSelectedCityId)
     );
   }, [selectedCities, lastSelectedCityId]);
 
   React.useEffect(() => {
-    
     if (lastSelectedCityDetails && !defaultCenter) {
       setCenter([
         lastSelectedCityDetails.centerLat,

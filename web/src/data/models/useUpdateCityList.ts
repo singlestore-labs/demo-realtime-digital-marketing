@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 
 import { trackAnalyticsEvent } from "@/analytics";
 import { ConnectionConfig } from "@/data/client";
@@ -13,6 +13,7 @@ import {
 import { ScaleFactors } from "@/scalefactors";
 
 import {
+  connectionConfig,
   errorUpdatingCities,
   isUpdatingCities,
   selectedCities,
@@ -92,14 +93,13 @@ export interface CityListHookReturnType {
   updateCityList: () => void;
 }
 
-export const useUpdateCityList = (
-  config: ConnectionConfig
-): CityListHookReturnType => {
+export const useUpdateCityList = (): CityListHookReturnType => {
   // The useUpdateCityList hook provides functionality to add or remove cities from cities database.
   // The RTDM will fetch data that will be related to only this cities after update
   const [, setSelectedCities] = useRecoilState(selectedCities);
   const [, setError] = useRecoilState(errorUpdatingCities);
   const [, setIsUpdating] = useRecoilState(isUpdatingCities);
+  const config = useRecoilValue(connectionConfig);
 
   const onCreateCity = async (lat: number, lon: number) => {
     await addCityToDatabase(

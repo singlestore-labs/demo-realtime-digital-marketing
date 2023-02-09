@@ -39,6 +39,13 @@ export const ResetSchemaButton = (props: Props) => {
   const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
   const { skipSeedData, resetDataOnly, disabled, ...restProps } = props;
 
+  let resetButtonChild: string | React.ReactElement = "Create Database";
+  if (resettingSchema) {
+    resetButtonChild = <Loader size="small" />;
+  } else if (initialized) {
+    resetButtonChild = "Recreate database";
+  }
+
   const onResetSchema = useResetSchema({
     before: useCallback(() => resettingSchemaCtrl.on(), [resettingSchemaCtrl]),
     after: useMountedCallback(() => {
@@ -91,13 +98,7 @@ export const ResetSchemaButton = (props: Props) => {
                 onClick={onResetSchema}
                 ml={3}
               >
-                {resettingSchema ? (
-                  <Loader size="small" />
-                ) : initialized ? (
-                  "Recreate database"
-                ) : (
-                  "Create database"
-                )}
+                {resetButtonChild}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
