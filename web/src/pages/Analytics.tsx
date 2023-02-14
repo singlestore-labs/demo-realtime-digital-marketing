@@ -34,9 +34,9 @@ import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
 import { ConnectToSingleStoreButton } from "@/components/ConnectToSinglestoreButton";
+import { Loader } from "@/components/customcomponents/loader/Loader";
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/HeatMap";
-import { Loader } from "@/components/loader/Loader";
 import { SetupDatabaseButton } from "@/components/SetupDatabaseButton";
 import {
   CustomerMetrics,

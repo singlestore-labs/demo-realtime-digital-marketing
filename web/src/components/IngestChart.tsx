@@ -12,7 +12,7 @@ import { format } from "d3-format";
 import { useCallback, useMemo, useRef } from "react";
 import useSWR from "swr";
 
-import { Loader } from "@/components/loader/Loader";
+import { Loader } from "@/components/customcomponents/loader/Loader";
 import { ConnectionConfig } from "@/data/client";
 import { estimatedRowCountObj } from "@/data/queries";
 import { Timeseries, TimeseriesPoint } from "@/data/timeseries";

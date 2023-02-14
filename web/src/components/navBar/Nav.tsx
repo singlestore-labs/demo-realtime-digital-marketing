@@ -26,26 +26,38 @@ import {
   BsFillBarChartFill,
   BsGear,
   BsGearFill,
-  BsLinkedin,
   BsMap,
   BsMapFill,
   BsShare,
   BsShareFill,
 } from "react-icons/bs";
-import { VscTwitter } from "react-icons/vsc";
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { NavLink as RouterLink } from "react-router-dom";
 
 import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { GithubStargazer } from "@/components/GithubButtons";
+import { LinkedinIcon, TwitterIcon } from "@/components/IconLinks";
 
 export const Nav = () => {
   const { toggleColorMode } = useColorMode();
   const { colorMode } = useColorMode();
   const navMenu = useDisclosure();
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
+
   let themeModeIcon = <MoonIcon cursor="pointer" onClick={toggleColorMode} />;
+  let logo = SinglestoreLogo;
+  if (colorMode === "dark") {
+    themeModeIcon = <SunIcon cursor="pointer" onClick={toggleColorMode} />;
+    logo = SingleStoreLogoDrak;
+  }
+
+  let NavButtonIcon = <CloseIcon />;
+  let navClickAction = navMenu.onOpen;
+  if (navMenu.isOpen) {
+    NavButtonIcon = <HamburgerIcon />;
+    navClickAction = navMenu.onClose;
+  }
 
   const NavLinkActiveButtonStyle = {
     background: useColorModeValue("#4F34C7", "#CCC3F9"),
@@ -143,10 +155,6 @@ export const Nav = () => {
     return null;
   };
 
-  if (colorMode === "dark") {
-    themeModeIcon = <SunIcon cursor="pointer" onClick={toggleColorMode} />;
-  }
-
   return (
     <>
       <Box
@@ -163,7 +171,7 @@ export const Nav = () => {
       >
         <Container
           maxW="inherit"
-          padding={!isSmallScreen ? " 0 12.5% 0 12.5%" : undefined}
+          padding={!isSmallScreen ? "0 12.5% 0 12.5%" : undefined}
         >
           <Flex
             h={16}
@@ -173,24 +181,16 @@ export const Nav = () => {
           >
             <IconButton
               size="md"
-              icon={navMenu.isOpen ? <CloseIcon /> : <HamburgerIcon />}
+              icon={NavButtonIcon}
               aria-label="Open Menu"
               display={{ md: "none" }}
-              onClick={navMenu.isOpen ? navMenu.onClose : navMenu.onOpen}
+              onClick={navClickAction}
             />
 
             <HStack as="nav" spacing={2} display={{ base: "none", md: "flex" }}>
               <Wrap display="inline-block">
                 <WrapItem>
-                  <Avatar
-                    size="sm"
-                    name="Dan Abrahmov"
-                    src={
-                      colorMode === "light"
-                        ? SinglestoreLogo
-                        : SingleStoreLogoDrak
-                    }
-                  />
+                  <Avatar size="sm" name="Singlestore" src={logo} />
                 </WrapItem>
               </Wrap>
               <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
@@ -209,34 +209,28 @@ export const Nav = () => {
 
             <Flex alignItems="center" justifyContent="right" gap={7}>
               <Menu>
-                <MenuButton>
+                <MenuButton alignItems="center">
                   <Icon
                     aria-label="Github Repo"
                     as={colorMode === "light" ? BsShare : BsShareFill}
                     cursor="pointer"
                   />
                 </MenuButton>
-                <MenuList p={0} minW="0">
-                  <MenuItem
-                    value="https://twitter.com/intent/tweet?url=https%3A%2F%2Fdigital-marketing.labs.singlestore.com%2F&text=Exciting%20MarTech%20demo%20application%20from%20SingleStoreDB%20showcasing%20its%20unique%20capabilities!%20As%20a%20demo%20app%2C%20it%20gives%20you%20a%20taste%20of%20what%27s%20possible%20when%20using%20SingleStoreDB%20for%20your%20own%20projects%2C%20.%20%0A%0A%23SingleStoreDB%20%23database%20%23digitalmarketing%20%23appdevelopment%20"
-                    onClick={handleLinkRedirects}
-                  >
-                    <IconButton
-                      aria-label="Github Repo"
-                      size="sm"
-                      background={colorMode === "light" ? undefined : "black"}
-                      icon={<VscTwitter size="1em" />}
+                <MenuList p={0} minW={0}>
+                  <MenuItem p={0} m={0} width="100%" justifyContent="center">
+                    <TwitterIcon
+                      background="transparent"
+                      _hover={{ background: "transparent" }}
+                      size="md"
+                      onClick={handleLinkRedirects}
                     />
                   </MenuItem>
-                  <MenuItem
-                    value="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fdigital-marketing.labs.singlestore.com%2F"
-                    onClick={handleLinkRedirects}
-                  >
-                    <IconButton
-                      aria-label="Github Repo"
-                      size="sm"
-                      background={colorMode === "light" ? undefined : "black"}
-                      icon={<BsLinkedin size="1em" />}
+                  <MenuItem p={0} m={0} width="100%" justifyContent="center">
+                    <LinkedinIcon
+                      background="transparent"
+                      _hover={{ background: "transparent" }}
+                      size="md"
+                      onClick={handleLinkRedirects}
                     />
                   </MenuItem>
                 </MenuList>

@@ -19,7 +19,7 @@ import * as React from "react";
 import Select from "react-select";
 import { useRecoilState } from "recoil";
 
-import { Loader } from "@/components/loader/Loader";
+import { Loader } from "@/components/customcomponents/loader/Loader";
 import { DEFAULT_CITY } from "@/data/offers";
 import { City } from "@/data/queries";
 import {
@@ -168,6 +168,122 @@ const RequiresInitLayer = <T,>({
   );
 };
 
+const CitySelectionDropdown: React.FC<{
+  selectionDropdownLeft: string | number;
+  selectionDropdownTop: string | number;
+  lastSelectedCityDetails: City | undefined;
+}> = ({
+  lastSelectedCityDetails,
+  selectionDropdownTop = "10px",
+  selectionDropdownLeft = "10px",
+}) => {
+  const { colorMode } = useColorMode();
+  const [isUpdating] = useRecoilState(isUpdatingCities);
+  const { connected } = useConnectionState();
+  const [, setLastSelectedCityId] = useRecoilState(selectedCity);
+  const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
+  const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
+  const [dropdownDisabled] = React.useState<boolean>(
+    selectedCities.length <= 0 || isUpdating || !connected
+  );
+
+  const options = selectedCities.map((c) => ({ label: c.name, value: c }));
+
+  let fontColor = "white";
+  if (colorMode === "dark") {
+    fontColor = "black";
+  }
+
+  let selectionValue = { label: "Select city", value: { id: -1 } };
+  if (lastSelectedCityDetails) {
+    selectionValue = {
+      label: lastSelectedCityDetails.name,
+      value: lastSelectedCityDetails,
+    };
+  }
+
+  React.useEffect(() => {
+    if (!connected) {
+      setDropdownDisabledMsg("Please configure connection to change map city");
+    } else if (selectedCities.length <= 0) {
+      setDropdownDisabledMsg(
+        "You need to select atleast one city from dashboard's Locations section"
+      );
+    } else if (isUpdating) {
+      setDropdownDisabledMsg("City list is updating please wait");
+    }
+  }, [connected, isUpdating, selectedCities]);
+
+  return (
+    <Flex
+      position="absolute"
+      zIndex={5}
+      top={selectionDropdownTop}
+      left={selectionDropdownLeft}
+      background={colorMode === "light" ? "#553ACF" : "#CCC3F9"}
+      color={fontColor}
+      boxShadow="1px 6px 6px grey"
+      width="-webkit-fit-content"
+      justifyContent="space-between"
+      gap={1}
+      padding="0px 2px 0px 10px"
+      borderRadius="6px"
+      alignItems="center"
+    >
+      <Box display="inline">
+        <Text display="inline">Map view</Text>
+      </Box>
+      <Center height="25px" margin="2px 0px 2px 5px" background={fontColor}>
+        <Divider color={fontColor} orientation="vertical" />
+      </Center>
+      <Tooltip isDisabled={!dropdownDisabled} label={dropdownDisabledMsg}>
+        <Box display="inline">
+          <Select
+            options={options}
+            value={selectionValue}
+            onChange={(e) => setLastSelectedCityId(e?.value.id || -1)}
+            isDisabled={dropdownDisabled}
+            styles={{
+              input: (props) => ({
+                ...props,
+                background: "transparent",
+                cursor: "pointer",
+              }),
+              placeholder: (props) => ({
+                ...props,
+                color: fontColor,
+              }),
+              option: (props) => ({
+                ...props,
+                background: "white",
+                cursor: "pointer",
+                color: "#4C4A57",
+              }),
+              dropdownIndicator: (props) => ({
+                ...props,
+                color: fontColor,
+              }),
+              indicatorSeparator: (props) => ({
+                ...props,
+                display: "none",
+              }),
+              control: (props) => ({
+                ...props,
+                background: "transparent",
+                border: "none",
+              }),
+              singleValue: (props) => ({
+                ...props,
+                color: fontColor,
+              }),
+            }}
+          />
+        </Box>
+      </Tooltip>
+    </Flex>
+  );
+};
+
 export type PixiMapProps<T> = {
   useRenderer: UsePixiRenderer<T>;
   height?: number | string;
@@ -189,25 +305,14 @@ export const PixiMap = <T,>({
 }: PixiMapProps<T>) => {
   const [center, setCenter] = React.useState(defaultCenter || DEFAULT_CENTER);
   const [zoom] = React.useState(DEFAULT_ZOOM);
-  const { colorMode } = useColorMode();
-  const [lastSelectedCityId, setLastSelectedCityId] =
-    useRecoilState(selectedCity);
+
+  const [lastSelectedCityId] = useRecoilState(selectedCity);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [isUpdating] = useRecoilState(isUpdatingCities);
   const [forceUpdateMap, setForceUpdateMap] = React.useState(false);
-  const { connected } = useConnectionState();
-  const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
-  const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState<
-    City | undefined
-  >(undefined);
 
-  let selectionValue = { label: "Select city", value: { id: -1 } };
-  if (lastSelectedCityDetails) {
-    selectionValue = {
-      label: lastSelectedCityDetails.name,
-      value: lastSelectedCityDetails,
-    };
-  }
+  const [lastSelectedCityDetails, setLastSelectedCityDetails] =
+    React.useState<City>();
 
   let centerValue: [number, number] | undefined = undefined;
   if (lastSelectedCityDetails && !defaultCenter) {
@@ -219,17 +324,16 @@ export const PixiMap = <T,>({
     centerValue = [defaultCenter[1], defaultCenter[0]];
   }
 
-  React.useEffect(() => {
-    if (!connected) {
-      setDropdownDisabledMsg("Please configure connection to change map city");
-    } else if (selectedCities.length <= 0) {
-      setDropdownDisabledMsg(
-        "You need to select atleast one city from dashboard's Locations section"
-      );
-    } else if (isUpdating) {
-      setDropdownDisabledMsg("City list is updating please wait");
-    }
-  }, [connected, isUpdating, selectedCities]);
+  let citySelectionDropdown;
+  if (showCitySelectionDropDown) {
+    citySelectionDropdown = (
+      <CitySelectionDropdown
+        selectionDropdownLeft={selectionDropdownLeft}
+        selectionDropdownTop={selectionDropdownTop}
+        lastSelectedCityDetails={lastSelectedCityDetails}
+      />
+    );
+  }
 
   React.useEffect(() => {
     setLastSelectedCityDetails(
@@ -256,91 +360,7 @@ export const PixiMap = <T,>({
 
   return (
     <Stack spacing={0} position="relative" height={height}>
-      {showCitySelectionDropDown ? (
-        <Flex
-          position="absolute"
-          zIndex={5}
-          top={selectionDropdownTop}
-          left={selectionDropdownLeft}
-          background={colorMode === "light" ? "#553ACF" : "#CCC3F9"}
-          color={colorMode === "light" ? "white" : "black"}
-          boxShadow="1px 6px 6px grey"
-          width="-webkit-fit-content"
-          justifyContent="space-between"
-          gap={1}
-          padding="0px 2px 0px 10px"
-          borderRadius="6px"
-          alignItems="center"
-        >
-          <Box display="inline">
-            <Text display="inline">Map view</Text>
-          </Box>
-          <Center
-            height="25px"
-            margin="2px 0px 2px 5px"
-            background={colorMode === "light" ? "white" : "black"}
-          >
-            <Divider
-              color={colorMode === "light" ? "black" : "white"}
-              orientation="vertical"
-            />
-          </Center>
-          <Tooltip
-            isDisabled={
-              !(selectedCities.length <= 0 || isUpdating || !connected)
-            }
-            label={dropdownDisabledMsg}
-          >
-            <Box display="inline">
-              <Select
-                options={selectedCities.map((c) => ({
-                  label: c.name,
-                  value: c,
-                }))}
-                value={selectionValue}
-                onChange={(e) => setLastSelectedCityId(() => e?.value.id || -1)}
-                isDisabled={
-                  selectedCities.length <= 0 || isUpdating || !connected
-                }
-                styles={{
-                  input: (props) => ({
-                    ...props,
-                    background: "transparent",
-                    cursor: "pointer",
-                  }),
-                  placeholder: (props) => ({
-                    ...props,
-                    color: colorMode === "light" ? "white" : "black",
-                  }),
-                  option: (props) => ({
-                    ...props,
-                    background: "white",
-                    cursor: "pointer",
-                    color: "#4C4A57",
-                  }),
-                  dropdownIndicator: (props) => ({
-                    ...props,
-                    color: colorMode === "light" ? "white" : "black",
-                  }),
-                  indicatorSeparator: (props) => ({
-                    ...props,
-                    display: "none",
-                  }),
-                  control: (props) => ({
-                    ...props,
-                    background: "transparent",
-                    border: "none",
-                  }),
-                  singleValue: (props) => ({
-                    ...props,
-                    color: colorMode === "light" ? "white" : "black",
-                  }),
-                }}
-              />
-            </Box>
-          </Tooltip>
-        </Flex>
-      ) : undefined}
+      {citySelectionDropdown}
       <Box width="inherit" height={height}>
         {!forceUpdateMap ? (
           <Map

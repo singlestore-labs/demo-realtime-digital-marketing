@@ -50,9 +50,10 @@ import useSWR, { useSWRConfig } from "swr";
 
 import GraphicalBackground from "@/assets/graphical-background.svg";
 import { CodeBlock } from "@/components/CodeBlock";
-import { DatabaseConfigForm } from "@/components/DatabaseConfigForm";
+import { PrimaryButton } from "@/components/customcomponents/Button";
+import { Loader } from "@/components/customcomponents/loader/Loader";
+import { DatabaseConfigForm } from "@/components/dataConfigForm/DatabaseConfigFormAutomatic";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
-import { Loader } from "@/components/loader/Loader";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
@@ -91,7 +92,14 @@ import {
 } from "@/view/hooks/hooks";
 import { useSimulationMonitor } from "@/view/hooks/useSimulationMonitor";
 
-const CollapsibleSection = (props: {
+const CollapsibleSection = ({
+  title,
+  childComponent,
+  disabled,
+  buttonStyle,
+  containerStyle,
+  childContainerStyle,
+}: {
   title: string | ReactElement;
   childComponent: ReactElement;
   disabled: boolean;
@@ -99,39 +107,44 @@ const CollapsibleSection = (props: {
   containerStyle?: React.CSSProperties;
   childContainerStyle?: React.CSSProperties;
 }) => {
-  const [sectionOpen, setSectionOpen] = useState(!props.disabled);
+  const [sectionOpen, setSectionOpen] = useState(!disabled);
 
   useEffect(() => {
-    setSectionOpen(!props.disabled);
-  }, [props.disabled]);
+    setSectionOpen(!disabled);
+  }, [disabled]);
 
   return (
-    <div style={props.containerStyle}>
+    <div style={containerStyle}>
       <Button
         justifyContent="space-between"
         size="sm"
         width="100%"
-        style={props.buttonStyle}
+        style={buttonStyle}
         onClick={() => setSectionOpen(!sectionOpen)}
       >
-        {props.title}
+        {title}
         {sectionOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
       </Button>
-      <div style={props.childContainerStyle}>
-        <Collapse in={sectionOpen}>{props.childComponent}</Collapse>
+      <div style={childContainerStyle}>
+        <Collapse in={sectionOpen}>{childComponent}</Collapse>
       </div>
     </div>
   );
 };
 
-const Section = (props: {
+const Section = ({
+  completed,
+  previousStepCompleted,
+  title,
+  left,
+  right,
+}: {
   completed: boolean;
   previousStepCompleted: boolean;
   title: string;
   left: ReactNode;
   right: ReactNode;
 }) => {
-  const { title, left, right } = props;
   const { colorMode } = useColorMode();
 
   const collapsibleSectionStyle = {
@@ -141,26 +154,26 @@ const Section = (props: {
     color: "#E6E5EA",
   };
 
-  if (!props.completed && !props.previousStepCompleted) {
+  if (!completed && !previousStepCompleted) {
     collapsibleSectionStyle.opacity = 0.4;
   }
 
   if (colorMode === "light") {
     collapsibleSectionStyle.border = "1px solid #ECE8FD";
-    if (props.completed) {
+    if (completed) {
       collapsibleSectionStyle.background = "#553ACF";
       collapsibleSectionStyle.color = "white";
-    } else if (props.previousStepCompleted) {
+    } else if (previousStepCompleted) {
       collapsibleSectionStyle.background = "#F7F6FE";
       collapsibleSectionStyle.color = "#553ACF";
     } else {
       collapsibleSectionStyle.color = "#777582";
     }
   } else {
-    if (props.completed) {
+    if (completed) {
       collapsibleSectionStyle.background = "#CCC3F9";
       collapsibleSectionStyle.color = "#2F206E";
-    } else if (props.previousStepCompleted) {
+    } else if (previousStepCompleted) {
       collapsibleSectionStyle.background = "#2F206E";
       collapsibleSectionStyle.color = "#CCC3F9";
     }
@@ -168,10 +181,10 @@ const Section = (props: {
 
   return (
     <CollapsibleSection
-      disabled={!props.completed && !props.previousStepCompleted}
+      disabled={!completed && !previousStepCompleted}
       title={
         <Flex width="100%" alignItems="center" gap={1.5}>
-          {props.completed || !props.previousStepCompleted ? (
+          {completed || !previousStepCompleted ? (
             <WarningIcon />
           ) : (
             <CheckCircleIcon />
@@ -192,8 +205,8 @@ const Section = (props: {
       }}
       childContainerStyle={{
         padding: "10px",
-        opacity: props.previousStepCompleted ? 1 : 0.5,
-        pointerEvents: props.previousStepCompleted ? undefined : "none",
+        opacity: previousStepCompleted ? 1 : 0.5,
+        pointerEvents: previousStepCompleted ? undefined : "none",
       }}
     />
   );
@@ -418,12 +431,15 @@ const usePipelineStatus = (
   return { pipelines, completed };
 };
 
-const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
+const PipelinesSection = ({
+  previousStepCompleted,
+}: {
+  previousStepCompleted: boolean;
+}) => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { pipelines, completed } = usePipelineStatus(config, scaleFactor);
   const isResettingSchema = useRecoilValue(resettingSchema);
-  const { colorMode } = useColorMode();
   useSimulationMonitor(completed && !isResettingSchema);
 
   const [selectedPipeline, setSelectedPipeline] =
@@ -453,16 +469,10 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
   }
 
   const ensurePipelinesButton = (
-    <Button
-      background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-      color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
-      size="sm"
-      onClick={onEnsurePipelines}
-      disabled={completed}
-    >
+    <PrimaryButton size="sm" onClick={onEnsurePipelines} disabled={completed}>
       {(working || completed) && <Loader size="small" centered={true} />}&nbsp;
       {pipelineButtonText}
-    </Button>
+    </PrimaryButton>
   );
 
   return (
@@ -477,7 +487,7 @@ const PipelinesSection = (props: { previousStepCompleted: boolean }) => {
       <Section
         completed={completed}
         title="Ingest data"
-        previousStepCompleted={props.previousStepCompleted}
+        previousStepCompleted={previousStepCompleted}
         left={
           <>
             <Text>
@@ -543,7 +553,11 @@ const useTableCounts = (config: ConnectionConfig, enabled = true) =>
     { isPaused: () => !enabled }
   );
 
-const OffersSection = (props: { previousStepCompleted: boolean }) => {
+const OffersSection = ({
+  previousStepCompleted,
+}: {
+  previousStepCompleted: boolean;
+}) => {
   const config = useRecoilValue(connectionConfig);
   const [working, workingCtrl] = useBoolean();
   const tableCounts = useTableCounts(config);
@@ -556,13 +570,12 @@ const OffersSection = (props: { previousStepCompleted: boolean }) => {
   }, [config, tableCounts, workingCtrl]);
 
   const done = !!tableCounts.data?.offers;
-  const { colorMode } = useColorMode();
 
   return (
     <Section
       completed={done}
       title="Offers"
-      previousStepCompleted={props.previousStepCompleted}
+      previousStepCompleted={previousStepCompleted}
       left={
         <>
           <Text>
@@ -588,15 +601,10 @@ const OffersSection = (props: { previousStepCompleted: boolean }) => {
             </Text>
           )}
           {!done ? (
-            <Button
-              background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-              color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
-              onClick={onSeedData}
-              disabled={working}
-            >
+            <PrimaryButton onClick={onSeedData} disabled={working}>
               {working && <Spinner mr={2} />}
               {working ? "loading..." : done ? "loaded offers!" : "load offers"}
-            </Button>
+            </PrimaryButton>
           ) : undefined}
         </>
       }
@@ -621,13 +629,16 @@ const OffersSection = (props: { previousStepCompleted: boolean }) => {
   );
 };
 
-const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
+const SegmentationSection = ({
+  previousStepCompleted,
+}: {
+  previousStepCompleted: boolean;
+}) => {
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
   const [warmingUp, setWarmingUp] = useState(false);
   const timestampCursor = useRef(toISOStringNoTZ(new Date()));
-  const { colorMode } = useColorMode();
 
   const done = !!tableCounts.data?.subscriber_segments;
 
@@ -668,7 +679,7 @@ const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
     <Section
       completed={done}
       title="Segmentation"
-      previousStepCompleted={props.previousStepCompleted}
+      previousStepCompleted={previousStepCompleted}
       left={
         <>
           <Text>
@@ -683,15 +694,10 @@ const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
             following query in your favorite SQL client:
           </Text>
           <br />
-          <Button
-            background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-            color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
-            disabled={isRunning}
-            onClick={onClick}
-          >
+          <PrimaryButton disabled={isRunning} onClick={onClick}>
             {isRunning && <Loader size="small" />}&nbsp;
             {isRunning ? " running..." : "Match subscribers to segments"}
-          </Button>
+          </PrimaryButton>
           {workEstimate}
           {warmingUp && (
             <Alert status="warning">
@@ -713,12 +719,15 @@ const SegmentationSection = (props: { previousStepCompleted: boolean }) => {
   );
 };
 
-const MatchingSection = (props: { previousStepCompleted: boolean }) => {
+const MatchingSection = ({
+  previousStepCompleted,
+}: {
+  previousStepCompleted: boolean;
+}) => {
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
   const notificationsDataKey = useNotificationsDataKey();
   const { mutate: swrMutate } = useSWRConfig();
-  const { colorMode } = useColorMode();
 
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
   const [sentNotifications, setSentNotifications] = useState(0);
@@ -775,7 +784,7 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
     <Section
       completed={done}
       title="Matching"
-      previousStepCompleted={props.previousStepCompleted}
+      previousStepCompleted={previousStepCompleted}
       left={
         <>
           <Text>
@@ -791,15 +800,10 @@ const MatchingSection = (props: { previousStepCompleted: boolean }) => {
               following query in your favorite SQL client:`}
           </Text>
           <br />
-          <Button
-            background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-            color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
-            disabled={isRunning}
-            onClick={onClick}
-          >
+          <PrimaryButton disabled={isRunning} onClick={onClick}>
             {isRunning && <Spinner mr={2} />}
             {isRunning ? "...running" : "Generate notifications"}
-          </Button>
+          </PrimaryButton>
         </>
       }
       right={

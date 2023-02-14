@@ -18,8 +18,8 @@ export const chakraTheme = extendTheme({
   },
   components: {
     Link: {
-      baseStyle: (props: { colorMode: "light" | "dark" }) => ({
-        color: props.colorMode === "light" ? "#553ACF" : "#CCC3F9",
+      baseStyle: ({ colorMode }: { colorMode: "light" | "dark" }) => ({
+        color: colorMode === "light" ? "#553ACF" : "#CCC3F9",
       }),
     },
     Alert: {

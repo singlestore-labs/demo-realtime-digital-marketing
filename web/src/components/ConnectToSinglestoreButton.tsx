@@ -1,17 +1,17 @@
 import { SettingsIcon } from "@chakra-ui/icons";
-import { Box, Button, Text, useColorMode } from "@chakra-ui/react";
+import { Box, Text, useColorMode } from "@chakra-ui/react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
+import { PrimaryButton } from "./customcomponents/Button";
+
 export const ConnectToSingleStoreButton: React.FC = () => {
   const { colorMode } = useColorMode();
-  const buttonStyle = {
-    background: "#ECE8FD",
+  const LinkStyle = {
     color: "#553ACF",
   };
   if (colorMode === "dark") {
-    buttonStyle.background = "#2F206E";
-    buttonStyle.color = "#ECE8FD";
+    LinkStyle.color = "#ECE8FD";
   }
 
   const handleLinkRedirects = (
@@ -28,20 +28,15 @@ export const ConnectToSingleStoreButton: React.FC = () => {
         on location, purchase, and request history from millions of simulated
         subscribers for a hypothetical service company. To learn about how this
         works please visit the{" "}
-        <Link style={{ color: buttonStyle.color }} to="/configure">
+        <Link style={LinkStyle} to="/configure">
           Configure page
         </Link>
       </Text>
       <br />
-      <Button
-        size="sm"
-        value="/"
-        onClick={handleLinkRedirects}
-        {...buttonStyle}
-      >
+      <PrimaryButton size="sm" value="/" onClick={handleLinkRedirects}>
         <SettingsIcon />
         <Text pl={2}>Connect to SingleStore</Text>
-      </Button>
+      </PrimaryButton>
     </Box>
   );
 };

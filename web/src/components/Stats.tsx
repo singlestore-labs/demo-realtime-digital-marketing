@@ -35,16 +35,22 @@ export const Stats = () => {
   );
   const formatStat = format(".4~s");
 
-  const StatWrapper = (props: { statLabel: string; statNumber: string }) => {
+  const StatWrapper = ({
+    statLabel,
+    statNumber,
+  }: {
+    statLabel: string;
+    statNumber: string;
+  }) => {
     return (
       <Stat
         padding="20px"
         background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
         borderRadius="15px"
       >
-        <StatLabel>{props.statLabel}</StatLabel>
+        <StatLabel>{statLabel}</StatLabel>
         <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
-          {props.statNumber}
+          {statNumber}
         </StatNumber>
       </Stat>
     );

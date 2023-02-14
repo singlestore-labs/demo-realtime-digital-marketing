@@ -77,9 +77,14 @@ const StatsWrapper = () => {
     return undefined;
   };
 
-  const CityNameConatiner: React.FC<{city: City}> = ({city}) => {
+  const CityNameConatiner: React.FC<{ city: City }> = ({ city }) => {
     if (lastSelectedCityId === city.id && selectedCities.length) {
-      return <><Text>{city.name}</Text><BsEye size="1.2em"/></>;
+      return (
+        <>
+          <Text>{city.name}</Text>
+          <BsEye size="1.2em" />
+        </>
+      );
     }
     return <Text>{city.name}</Text>;
   };
@@ -150,7 +155,7 @@ const StatsWrapper = () => {
                   gap={1}
                   color={getCheckedFontColor(city)}
                 >
-                  <CityNameConatiner city ={city}/>
+                  <CityNameConatiner city={city} />
                 </Flex>
               </Checkbox>
             ))}

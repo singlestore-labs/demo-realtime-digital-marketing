@@ -16,13 +16,15 @@ import {
 import React, { useCallback } from "react";
 import { useRecoilValue } from "recoil";
 
-import { Loader } from "@/components/loader/Loader";
+import { Loader } from "@/components/customcomponents/loader/Loader";
 import { connectionDatabase } from "@/data/recoil";
 import {
   useConnectionState,
   useMountedCallback,
   useResetSchema,
 } from "@/view/hooks/hooks";
+
+import { PrimaryButton } from "./customcomponents/Button";
 
 export type Props = HTMLChakraProps<"button"> &
   ButtonOptions &
@@ -91,15 +93,13 @@ export const ResetSchemaButton = (props: Props) => {
               >
                 Cancel
               </Button>
-              <Button
+              <PrimaryButton
                 disabled={resettingSchema}
-                background={useColorModeValue("#ECE8FD", "#2F206E")}
-                color={useColorModeValue("#553ACF", "#ECE8FD")}
                 onClick={onResetSchema}
                 ml={3}
               >
                 {resetButtonChild}
-              </Button>
+              </PrimaryButton>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>

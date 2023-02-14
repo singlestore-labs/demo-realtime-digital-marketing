@@ -10,8 +10,8 @@ import {
 import { useRecoilState, useRecoilValue } from "recoil";
 
 import { useAnalytics } from "@/analytics";
+import { Loader } from "@/components/customcomponents/loader/Loader";
 import { Footer } from "@/components/Footer";
-import { Loader } from "@/components/loader/Loader";
 import { Nav } from "@/components/navBar/Nav";
 import { AnalyticsDashboard } from "@/pages/Analytics";
 import { Overview } from "@/pages/Configure";
@@ -35,7 +35,9 @@ function App() {
   );
 }
 
-const PrivateRoute: React.FC<{children: React.ReactElement}> = ( {children }) => {
+const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
+  children,
+}) => {
   const redirect = useRecoilValue(redirectToHomaPage);
   if (redirect) {
     return <Navigate to="/" />;
@@ -43,17 +45,23 @@ const PrivateRoute: React.FC<{children: React.ReactElement}> = ( {children }) =>
   return children;
 };
 
-const LayoutContainer = ({children}: {children: React.ReactElement}) => {
+const LayoutContainer = ({ children }: { children: React.ReactElement }) => {
   const redirect = useRecoilValue(redirectToHomaPage);
-  if(redirect) {
+  if (redirect) {
     return children;
   }
-  return <><Nav />{children}<Footer /></>;
+  return (
+    <>
+      <Nav />
+      {children}
+      <Footer />
+    </>
+  );
 };
 
 const RoutesContainer = () => {
   const { connected } = useConnectionState();
-  const [redirect, setRedirect] = useRecoilState(redirectToHomaPage);  // To ensure connection configuration when RTDM App is loaded for the first time.
+  const [redirect, setRedirect] = useRecoilState(redirectToHomaPage); // To ensure connection configuration when RTDM App is loaded for the first time.
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -81,15 +89,36 @@ const RoutesContainer = () => {
       <Analytics />
       <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
         <LayoutContainer>
-        <Box flex="1" paddingTop="3px">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/dashboard" element={<PrivateRoute><NotificationsMap /></PrivateRoute>} />
-            <Route path="/configure" element={<PrivateRoute><Overview /></PrivateRoute>} />
-            <Route path="/analytics" element={<PrivateRoute><AnalyticsDashboard /></PrivateRoute>} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </Box>
+          <Box flex="1" paddingTop="3px">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <PrivateRoute>
+                    <NotificationsMap />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/configure"
+                element={
+                  <PrivateRoute>
+                    <Overview />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <PrivateRoute>
+                    <AnalyticsDashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </Box>
         </LayoutContainer>
       </Flex>
     </>

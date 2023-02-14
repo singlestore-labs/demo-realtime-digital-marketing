@@ -17,6 +17,8 @@ import { CodeBlock } from "@/components/CodeBlock";
 import { SQLError } from "@/data/client";
 import { resettingSchema } from "@/data/recoil";
 
+import { PrimaryButton } from "./customcomponents/Button";
+
 type Props = {
   isResettingSchema?: boolean;
   children?: ReactNode;
@@ -38,7 +40,6 @@ export const ClientErrorBoundary = ({ children }: { children: ReactNode }) => {
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = {};
 
-  
   constructor(props: Props) {
     super(props);
     this.handlePromiseRejection = this.handlePromiseRejection.bind(this);
@@ -103,14 +104,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
               >
                 Dismiss Error
               </Button>
-              <Button
+              <PrimaryButton
                 onClick={() => window.location.reload()}
                 size="sm"
-                colorScheme="purple"
                 leftIcon={<RepeatIcon />}
               >
                 Reload
-              </Button>
+              </PrimaryButton>
             </HStack>
           </Stack>
         </Container>

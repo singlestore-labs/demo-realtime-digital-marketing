@@ -90,7 +90,7 @@ export const connectionPassword = atom({
 
 export const redirectToHomaPage = atom({
   key: "redirectToHomePage",
-  default: true
+  default: true,
 });
 
 export const connectionDatabase = atom({
