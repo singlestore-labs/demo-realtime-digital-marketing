@@ -1,4 +1,11 @@
-import { Box, Center, Flex, Text, useColorMode, useToast } from "@chakra-ui/react";
+import {
+  Box,
+  Center,
+  Flex,
+  Text,
+  useColorMode,
+  useToast,
+} from "@chakra-ui/react";
 import * as React from "react";
 import {
   Navigate,
@@ -51,14 +58,13 @@ const RoutesBlock = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const toast = useToast();
-  const {colorMode} = useColorMode();
+  const { colorMode } = useColorMode();
 
   const ToastDescriptionComponent = () => {
     return (
       <Text style={{ lineHeight: "28px", fontWeight: 400, fontSize: "16px" }}>
-        This is a demo application for an international
-        marketing company serving simulated customer
-        offers to millions of subscribers. You can:
+        This is a demo application for an international marketing company
+        serving simulated customer offers to millions of subscribers. You can:
         <ul style={{ listStylePosition: "inside", listStyleType: "initial" }}>
           <li>Add or remove locations from Dashboard</li>
           <li>Inspect engagement under Analytics</li>
@@ -83,11 +89,11 @@ const RoutesBlock = () => {
   }, [connected, location.pathname, navigate, redirect, setRedirect]);
 
   React.useEffect(() => {
-    if(!redirect) {
+    if (!redirect) {
       toast({
         title: "Hello there!",
         description: <ToastDescriptionComponent />,
-        status: 'info',
+        status: "info",
         duration: 9000,
         isClosable: true,
         containerStyle: {
@@ -95,8 +101,8 @@ const RoutesBlock = () => {
           background: colorMode === "light" ? "#553ACF" : "#CCC3F9",
           position: "absolute",
           bottom: "15%",
-          zIndex: 10
-        }
+          zIndex: 10,
+        },
       });
     }
   }, [redirect, toast, colorMode]);
@@ -142,7 +148,7 @@ const App = () => {
     </Center>
   );
 
-  const Analytics = ({children}: {children: React.ReactNode}) => {
+  const Analytics = ({ children }: { children: React.ReactNode }) => {
     useAnalytics();
     return <>{children}</>;
   };
@@ -152,7 +158,7 @@ const App = () => {
       <Analytics>
         <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
           <LayoutContainer>
-          <RoutesBlock />
+            <RoutesBlock />
           </LayoutContainer>
         </Flex>
       </Analytics>
