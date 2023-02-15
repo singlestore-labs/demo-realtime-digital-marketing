@@ -16,7 +16,7 @@ import {
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
 import * as React from "react";
-import Select from "react-select";
+import Select, { GroupBase, StylesConfig } from "react-select";
 import { useRecoilState } from "recoil";
 
 import { Loader } from "@/components/customcomponents/loader/Loader";
@@ -183,9 +183,8 @@ const CitySelectionDropdown: React.FC<{
   const [, setLastSelectedCityId] = useRecoilState(selectedCity);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
-  const [dropdownDisabled] = React.useState<boolean>(
-    selectedCities.length <= 0 || isUpdating || !connected
-  );
+  const [dropdownDisabled, setDropdownDisabled] =
+    React.useState<boolean>(false);
 
   const options = selectedCities.map((c) => ({ label: c.name, value: c }));
 
@@ -202,7 +201,47 @@ const CitySelectionDropdown: React.FC<{
     };
   }
 
+  const selectionStyle: StylesConfig<
+    { label: string; value: { id: number } },
+    false,
+    GroupBase<{ label: string; value: { id: number } }>
+  > = {
+    input: (props) => ({
+      ...props,
+      background: "transparent",
+      cursor: "pointer",
+    }),
+    placeholder: (props) => ({
+      ...props,
+      color: fontColor,
+    }),
+    option: (props) => ({
+      ...props,
+      background: "white",
+      cursor: "pointer",
+      color: "#4C4A57",
+    }),
+    dropdownIndicator: (props) => ({
+      ...props,
+      color: fontColor,
+    }),
+    indicatorSeparator: (props) => ({
+      ...props,
+      display: "none",
+    }),
+    control: (props) => ({
+      ...props,
+      background: "transparent",
+      border: "none",
+    }),
+    singleValue: (props) => ({
+      ...props,
+      color: fontColor,
+    }),
+  };
+
   React.useEffect(() => {
+    setDropdownDisabled(selectedCities.length <= 0 || isUpdating || !connected);
     if (!connected) {
       setDropdownDisabledMsg("Please configure connection to change map city");
     } else if (selectedCities.length <= 0) {
@@ -243,40 +282,7 @@ const CitySelectionDropdown: React.FC<{
             value={selectionValue}
             onChange={(e) => setLastSelectedCityId(e?.value.id || -1)}
             isDisabled={dropdownDisabled}
-            styles={{
-              input: (props) => ({
-                ...props,
-                background: "transparent",
-                cursor: "pointer",
-              }),
-              placeholder: (props) => ({
-                ...props,
-                color: fontColor,
-              }),
-              option: (props) => ({
-                ...props,
-                background: "white",
-                cursor: "pointer",
-                color: "#4C4A57",
-              }),
-              dropdownIndicator: (props) => ({
-                ...props,
-                color: fontColor,
-              }),
-              indicatorSeparator: (props) => ({
-                ...props,
-                display: "none",
-              }),
-              control: (props) => ({
-                ...props,
-                background: "transparent",
-                border: "none",
-              }),
-              singleValue: (props) => ({
-                ...props,
-                color: fontColor,
-              }),
-            }}
+            styles={selectionStyle}
           />
         </Box>
       </Tooltip>

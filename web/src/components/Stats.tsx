@@ -3,7 +3,6 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  useColorMode,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
@@ -14,10 +13,30 @@ import { estimatedRowCountObj } from "@/data/queries";
 import { connectionConfig, tickDurationMs } from "@/data/recoil";
 import { formatMs } from "@/format";
 
+const StatWrapper = ({
+  statLabel,
+  statNumber,
+}: {
+  statLabel: string;
+  statNumber: string;
+}) => {
+  return (
+    <Stat
+      padding="20px"
+      background={useColorModeValue("#ECE8FD", "#2F206E")}
+      borderRadius="15px"
+    >
+      <StatLabel>{statLabel}</StatLabel>
+      <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
+        {statNumber}
+      </StatNumber>
+    </Stat>
+  );
+};
+
 export const Stats = () => {
   const config = useRecoilValue(connectionConfig);
   const matchingDuration = useRecoilValue(tickDurationMs("SimulatorMatcher"));
-  const { colorMode } = useColorMode();
   const updateSegmentsDuration = useRecoilValue(
     tickDurationMs("SimulatorUpdateSegments")
   );
@@ -34,27 +53,6 @@ export const Stats = () => {
     { refreshInterval: 1000 }
   );
   const formatStat = format(".4~s");
-
-  const StatWrapper = ({
-    statLabel,
-    statNumber,
-  }: {
-    statLabel: string;
-    statNumber: string;
-  }) => {
-    return (
-      <Stat
-        padding="20px"
-        background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-        borderRadius="15px"
-      >
-        <StatLabel>{statLabel}</StatLabel>
-        <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
-          {statNumber}
-        </StatNumber>
-      </Stat>
-    );
-  };
 
   if (tableCounts.data) {
     return (

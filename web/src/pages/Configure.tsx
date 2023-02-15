@@ -108,6 +108,10 @@ const CollapsibleSection = ({
   childContainerStyle?: React.CSSProperties;
 }) => {
   const [sectionOpen, setSectionOpen] = useState(!disabled);
+  let acordianIcon = <ChevronUpIcon />;
+  if (sectionOpen) {
+    acordianIcon = <ChevronDownIcon />;
+  }
 
   useEffect(() => {
     setSectionOpen(!disabled);
@@ -123,7 +127,7 @@ const CollapsibleSection = ({
         onClick={() => setSectionOpen(!sectionOpen)}
       >
         {title}
-        {sectionOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+        {acordianIcon}
       </Button>
       <div style={childContainerStyle}>
         <Collapse in={sectionOpen}>{childComponent}</Collapse>
@@ -158,6 +162,12 @@ const Section = ({
     collapsibleSectionStyle.opacity = 0.4;
   }
 
+  let sectionIcon = <CheckCircleIcon />;
+
+  if (!completed && previousStepCompleted) {
+    sectionIcon = <WarningIcon />;
+  }
+
   if (colorMode === "light") {
     collapsibleSectionStyle.border = "1px solid #ECE8FD";
     if (completed) {
@@ -184,11 +194,7 @@ const Section = ({
       disabled={!completed && !previousStepCompleted}
       title={
         <Flex width="100%" alignItems="center" gap={1.5}>
-          {completed || !previousStepCompleted ? (
-            <WarningIcon />
-          ) : (
-            <CheckCircleIcon />
-          )}
+          {sectionIcon}
           {title}
         </Flex>
       }
@@ -302,6 +308,45 @@ const SchemaItem = ({
   );
 };
 
+const ConfigHeader = ({
+  configInitialized,
+}: {
+  configInitialized: boolean;
+}) => {
+  const [database, setDatabase] = useRecoilState(connectionDatabase);
+  const { colorMode } = useColorMode();
+
+  if (configInitialized) {
+    return <></>;
+  }
+
+  return (
+    <HStack alignItems="flex-end">
+      <FormControl flex={1}>
+        <FormLabel fontSize="xs" fontWeight="bold" textTransform="uppercase">
+          Database name
+        </FormLabel>
+        <Input
+          placeholder="martech"
+          value={database}
+          size="sm"
+          onChange={(e) => setDatabase(e.target.value)}
+        />
+      </FormControl>
+      <Box flex={1}>
+        <ResetSchemaButton
+          background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
+          color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
+          size="sm"
+          skipSeedData
+        >
+          Setup schema
+        </ResetSchemaButton>
+      </Box>
+    </HStack>
+  );
+};
+
 const SchemaSection = ({
   initialized,
   previousStepCompleted,
@@ -309,10 +354,8 @@ const SchemaSection = ({
   initialized: boolean;
   previousStepCompleted: boolean;
 }) => {
-  const [database, setDatabase] = useRecoilState(connectionDatabase);
   const schemaObjs = useSchemaObjects();
   const [selectedSchemaObj, setSelectedSchemaObj] = useState<null | string>();
-  const { colorMode } = useColorMode();
 
   return (
     <>
@@ -332,35 +375,7 @@ const SchemaSection = ({
               A schema includes a database, tables and views to store all the
               data. Use the tags to create the schema.
             </Text>
-            {initialized ? undefined : (
-              <HStack alignItems="flex-end">
-                <FormControl flex={1}>
-                  <FormLabel
-                    fontSize="xs"
-                    fontWeight="bold"
-                    textTransform="uppercase"
-                  >
-                    Database name
-                  </FormLabel>
-                  <Input
-                    placeholder="martech"
-                    value={database}
-                    size="sm"
-                    onChange={(e) => setDatabase(e.target.value)}
-                  />
-                </FormControl>
-                <Box flex={1}>
-                  <ResetSchemaButton
-                    background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-                    color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
-                    size="sm"
-                    skipSeedData
-                  >
-                    Setup schema
-                  </ResetSchemaButton>
-                </Box>
-              </HStack>
-            )}
+            <ConfigHeader configInitialized={initialized} />
           </>
         }
         right={
@@ -425,9 +440,10 @@ const usePipelineStatus = (
     () => pipelineStatus(config, scaleFactor),
     { isPaused: () => !enabled }
   );
-  const completed = pipelines.data?.length
-    ? pipelines.data.every((p) => !p.needsUpdate)
-    : false;
+  const completed =
+    !!pipelines.data &&
+    !!pipelines.data.length &&
+    pipelines.data.every((p) => !p.needsUpdate);
   return { pipelines, completed };
 };
 
@@ -475,6 +491,49 @@ const PipelinesSection = ({
     </PrimaryButton>
   );
 
+  let sectionRight = (
+    <Flex
+      direction="column"
+      gap={4}
+      padding="15px"
+      border="1px solid"
+      borderRadius="15px"
+      borderColor="#777582"
+    >
+      <IngestChart data={data} yAxisLabel="total rows" height={200} />
+    </Flex>
+  );
+
+  if (emptyChart || !completed) {
+    sectionRight = <Center h={220}>{ensurePipelinesButton}</Center>;
+  }
+
+  const sectionLeft = (
+    <>
+      <Text>
+        The application simulates streams for location, request and purchase
+        history from simulated subscribers using{" "}
+        <Link
+          href="https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html) Pipelines and [AWS S3](https://aws.amazon.com/s3/"
+          target="_blank"
+        >
+          {" "}
+          SingleStore.{" "}
+        </Link>
+        You can view the schema of each pipeline via the following buttons:
+      </Text>
+      <SimpleGrid columns={[1, 3, 3]} gap={1}>
+        {pipelineNames.map((name) => (
+          <SchemaItem
+            key={name}
+            name={name}
+            onClick={() => setSelectedPipeline(name)}
+          />
+        ))}
+      </SimpleGrid>
+    </>
+  );
+
   return (
     <>
       {!!selectedPipeline && (
@@ -488,48 +547,8 @@ const PipelinesSection = ({
         completed={completed}
         title="Ingest data"
         previousStepCompleted={previousStepCompleted}
-        left={
-          <>
-            <Text>
-              The application simulates streams for location, request and
-              purchase history from simulated subscribers using{" "}
-              <Link
-                href="https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html) Pipelines and [AWS S3](https://aws.amazon.com/s3/"
-                target="_blank"
-              >
-                {" "}
-                SingleStore.{" "}
-              </Link>
-              You can view the schema of each pipeline via the following
-              buttons:
-            </Text>
-            <SimpleGrid columns={[1, 3, 3]} gap={1}>
-              {pipelineNames.map((name) => (
-                <SchemaItem
-                  key={name}
-                  name={name}
-                  onClick={() => setSelectedPipeline(name)}
-                />
-              ))}
-            </SimpleGrid>
-          </>
-        }
-        right={
-          emptyChart || !completed ? (
-            <Center h={220}>{ensurePipelinesButton}</Center>
-          ) : (
-            <Flex
-              direction="column"
-              gap={4}
-              padding="15px"
-              border="1px solid"
-              borderRadius="15px"
-              borderColor="#777582"
-            >
-              <IngestChart data={data} yAxisLabel="total rows" height={200} />
-            </Flex>
-          )
-        }
+        left={sectionLeft}
+        right={sectionRight}
       />
     </>
   );
@@ -570,6 +589,40 @@ const OffersSection = ({
   }, [config, tableCounts, workingCtrl]);
 
   const done = !!tableCounts.data?.offers;
+  const loadButtonText = working
+    ? "loading..."
+    : done
+    ? "loaded offers!"
+    : "load offers";
+
+  let loadOffersButton;
+  let mapInfoContent;
+  let loadButton;
+
+  if (done) {
+    mapInfoContent = (
+      <Text>
+        <br />
+        The map to your right displays a polygon representing each offer's
+        activation zone. Hover over a polygon to see it's exact boundary. There
+        are ${tableCounts.data?.offers} offers in the database.
+      </Text>
+    );
+  } else {
+    loadButton = (
+      <PrimaryButton onClick={onSeedData} disabled={working}>
+        {working && <Spinner mr={2} />}
+        {loadButtonText}
+      </PrimaryButton>
+    );
+    loadOffersButton = (
+      <Text>
+        <br />
+        {`Press the "load offers" button on the right to create some
+          sample offers in New York City.`}
+      </Text>
+    );
+  }
 
   return (
     <Section
@@ -585,27 +638,9 @@ const OffersSection = ({
             If multiple offers match to a subscriber, the highest bid price is
             selected.There are 200 simulated offers in the database.
           </Text>
-          {!done && (
-            <Text>
-              <br />
-              {`Press the "load offers" button on the right to create some
-                sample offers in New York City.`}
-            </Text>
-          )}
-          {done && (
-            <Text>
-              <br />
-              The map to your right displays a polygon representing each offer's
-              activation zone. Hover over a polygon to see it's exact boundary.
-              There are ${tableCounts.data?.offers} offers in the database.
-            </Text>
-          )}
-          {!done ? (
-            <PrimaryButton onClick={onSeedData} disabled={working}>
-              {working && <Spinner mr={2} />}
-              {working ? "loading..." : done ? "loaded offers!" : "load offers"}
-            </PrimaryButton>
-          ) : undefined}
+          {loadOffersButton}
+          {mapInfoContent}
+          {loadButton}
         </>
       }
       right={
@@ -839,12 +874,88 @@ const MatchingSection = ({
   );
 };
 
+const CompleteToast = () => {
+  const database = useRecoilValue(connectionDatabase);
+  const navigate = useNavigate();
+
+  return (
+    <Flex
+      maxWidth="50%"
+      direction="row"
+      justifyContent="center"
+      alignItems="center"
+      margin="50px"
+      padding="20px 25px 10px 10px"
+      gap={5}
+      borderRadius="10px"
+      background="#4F34C7"
+      color="white"
+    >
+      <CheckCircleIcon margin="15px" fontSize="lg" />
+      <Box
+        color="white"
+        style={{ lineHeight: "28px", fontWeight: 400, fontSize: "16px" }}
+      >
+        <Heading size="sm">Great Job!</Heading>
+
+        <Text>
+          The applications is up and running. Explore it further by:
+          <ul style={{ listStylePosition: "inside" }}>
+            <li>
+              Adding or removing location from{" "}
+              <a
+                onClick={() => navigate("/dashboard")}
+                color="white"
+                style={{
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Dashboard
+              </a>
+            </li>
+            <li>
+              Inspect engagement under{" "}
+              <a
+                onClick={() => navigate("/analytics")}
+                color="white"
+                style={{
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Analytics
+              </a>
+            </li>
+            <li>
+              Explore the{" "}
+              <Link
+                href="https://portal.singlestore.com"
+                isExternal
+                color="white"
+                style={{
+                  fontWeight: "bold",
+                  textDecoration: "underline",
+                }}
+              >
+                {database}
+              </Link>{" "}
+              database in SingleStore Customer Portal
+            </li>
+          </ul>
+        </Text>
+      </Box>
+    </Flex>
+  );
+};
+
 export const Overview = () => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { connected, initialized } = useConnectionState();
-  const database = useRecoilValue(connectionDatabase);
-  const navigate = useNavigate();
+
   const { completed: pipelinesCompleted } = usePipelineStatus(
     config,
     scaleFactor,
@@ -954,77 +1065,7 @@ export const Overview = () => {
         backgroundRepeat="no-repeat"
         minHeight="250px"
       >
-        {tableCounts && !!tableCounts.notifications ? (
-          <Flex
-            maxWidth="50%"
-            direction="row"
-            justifyContent="center"
-            alignItems="center"
-            margin="50px"
-            padding="20px 25px 10px 10px"
-            gap={5}
-            borderRadius="10px"
-            background="#4F34C7"
-            color="white"
-          >
-            <CheckCircleIcon margin="15px" fontSize="lg" />
-            <Box
-              color="white"
-              style={{ lineHeight: "28px", fontWeight: 400, fontSize: "16px" }}
-            >
-              <Heading size="sm">Great Job!</Heading>
-
-              <Text>
-                The applications is up and running. Explore it further by:
-                <ul style={{ listStylePosition: "inside" }}>
-                  <li>
-                    Adding or removing location from{" "}
-                    <a
-                      onClick={() => navigate("/dashboard")}
-                      color="white"
-                      style={{
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                      }}
-                    >
-                      Dashboard
-                    </a>
-                  </li>
-                  <li>
-                    Inspect engagement under{" "}
-                    <a
-                      onClick={() => navigate("/analytics")}
-                      color="white"
-                      style={{
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                      }}
-                    >
-                      Analytics
-                    </a>
-                  </li>
-                  <li>
-                    Explore the{" "}
-                    <Link
-                      href="https://portal.singlestore.com"
-                      isExternal
-                      color="white"
-                      style={{
-                        fontWeight: "bold",
-                        textDecoration: "underline",
-                      }}
-                    >
-                      {database}
-                    </Link>{" "}
-                    database in SingleStore Customer Portal
-                  </li>
-                </ul>
-              </Text>
-            </Box>
-          </Flex>
-        ) : undefined}
+        {tableCounts && !!tableCounts.notifications && <CompleteToast />}
       </Flex>
     </Container>
   );

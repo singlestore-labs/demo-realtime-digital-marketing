@@ -36,7 +36,7 @@ import { useConnectionState } from "@/view/hooks/hooks";
 import { useSimulationMonitor } from "@/view/hooks/useSimulationMonitor";
 import { useSimulator } from "@/view/hooks/useSimulator";
 
-const StatsWrapper = () => {
+const RealtimeChart = () => {
   const config = useRecoilValue(connectionConfig);
   const ingestData = useIngestChartData(
     config,
@@ -46,15 +46,48 @@ const StatsWrapper = () => {
     "notifications",
     "subscriber_segments"
   );
+  return (
+    <>
+      <Stack spacing={4}>
+        <Stack spacing={1}>
+          <Heading size="md">Key Metrics</Heading>
+          <Text>Serving ads real-time to sumulate Subscribers</Text>
+        </Stack>
+        <Stats />
+      </Stack>
+      <Stack border="1px solid silver" borderRadius="10px" padding="15px">
+        <Flex justifyContent="space-between" alignItems="center">
+          <Text fontSize="sm" fontWeight="bold">
+            INGESTED DATA
+          </Text>
+          <Flex
+            justifyContent="space-between"
+            gap={2}
+            fontSize="xs"
+            alignItems="center"
+            color={useColorModeValue("#553ACF", "#ECE8FD")}
+          >
+            <Icon as={BsInfoCircleFill} />{" "}
+            <Text>Hover over graph for schema details</Text>
+          </Flex>
+        </Flex>
+        <SimpleGrid>
+          <IngestChart data={ingestData} yAxisLabel="total rows" height={170} />
+        </SimpleGrid>
+      </Stack>
+    </>
+  );
+};
 
+const SelectCityCheckbox = (props: {
+  isUpdating: boolean;
+  totalSelectableCities: City[];
+}) => {
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
-  const [isUpdating] = useRecoilState(isUpdatingCities);
   const { onCreateCity, onRemoveCity } = useUpdateCityList();
+  const { colorMode } = useColorMode();
   const [lastSelectedCityId, setLastSelectedCityId] =
     useRecoilState(selectedCity);
-  const { colorMode } = useColorMode();
-  const [totalSelectableCities, setTotalSelectableCities] =
-    React.useState(selectedCities);
 
   const getNewSelectedCityAfterDeletion = (city: City): number => {
     const cityIndex = selectedCities.findIndex((c) => c.id === city.id);
@@ -104,6 +137,42 @@ const StatsWrapper = () => {
     }
   };
 
+  return (
+    <SimpleGrid minChildWidth="25%" spacing={[1, 3]}>
+      {props.totalSelectableCities.map((city) => (
+        <Checkbox
+          size="md"
+          disabled={props.isUpdating}
+          key={city.id}
+          zIndex={10}
+          colorScheme="purple"
+          isChecked={
+            selectedCities.map((c) => c.id).includes(city.id) ? true : false
+          }
+          onChange={(e) => setCheckItem(city, e.target.checked)}
+        >
+          <Flex
+            justifyContent="left"
+            alignItems="center"
+            gap={1}
+            color={getCheckedFontColor(city)}
+          >
+            <CityNameConatiner city={city} />
+          </Flex>
+        </Checkbox>
+      ))}
+    </SimpleGrid>
+  );
+};
+
+const StatsWrapper = () => {
+  const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
+  const [isUpdating] = useRecoilState(isUpdatingCities);
+  const [lastSelectedCityId, setLastSelectedCityId] =
+    useRecoilState(selectedCity);
+  const [totalSelectableCities, setTotalSelectableCities] =
+    React.useState(selectedCities);
+
   React.useEffect(() => {
     const selectableCityIds = selectableCitiesData.map((c) => c.id);
     const unknownSelectedCities = selectedCities.filter(
@@ -128,68 +197,20 @@ const StatsWrapper = () => {
           </Text>
         </Stack>
         <Tooltip
-          isDisabled={isUpdating ? false : true}
+          isDisabled={!isUpdating}
           label="Updating city list"
           hasArrow
           placement="top"
           zIndex={5}
         >
-          <SimpleGrid minChildWidth="25%" spacing={[1, 3]}>
-            {totalSelectableCities.map((city) => (
-              <Checkbox
-                size="md"
-                disabled={isUpdating}
-                key={city.id}
-                zIndex={10}
-                colorScheme="purple"
-                isChecked={
-                  selectedCities.map((c) => c.id).includes(city.id)
-                    ? true
-                    : false
-                }
-                onChange={(e) => setCheckItem(city, e.target.checked)}
-              >
-                <Flex
-                  justifyContent="left"
-                  alignItems="center"
-                  gap={1}
-                  color={getCheckedFontColor(city)}
-                >
-                  <CityNameConatiner city={city} />
-                </Flex>
-              </Checkbox>
-            ))}
-          </SimpleGrid>
+          <SelectCityCheckbox
+            isUpdating={isUpdating}
+            totalSelectableCities={totalSelectableCities}
+          />
         </Tooltip>
         <br />
       </Stack>
-      <Stack spacing={4}>
-        <Stack spacing={1}>
-          <Heading size="md">Key Metrics</Heading>
-          <Text>Serving ads real-time to sumulate Subscribers</Text>
-        </Stack>
-        <Stats />
-      </Stack>
-      <Stack border="1px solid silver" borderRadius="10px" padding="15px">
-        <Flex justifyContent="space-between" alignItems="center">
-          <Text fontSize="sm" fontWeight="bold">
-            INGESTED DATA
-          </Text>
-          <Flex
-            justifyContent="space-between"
-            gap={2}
-            fontSize="xs"
-            alignItems="center"
-            color={useColorModeValue("#553ACF", "#ECE8FD")}
-          >
-            <Icon as={BsInfoCircleFill} />{" "}
-            <Text>Hover over graph for schema details</Text>
-          </Flex>
-        </Flex>
-        <SimpleGrid>
-          <IngestChart data={ingestData} yAxisLabel="total rows" height={170} />
-        </SimpleGrid>
-      </Stack>
+      <RealtimeChart />
     </>
   );
 };
