@@ -314,7 +314,13 @@ export const PixiMap = <T,>({
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [lastSelectedCityDetails, setLastSelectedCityDetails] =
     React.useState<City>();
-  const [centerValue, setCenterValue] = React.useState<[number, number]>(lastSelectedCityDetails && [lastSelectedCityDetails.centerLat, lastSelectedCityDetails.centerLon] || DEFAULT_CENTER);
+  const [centerValue, setCenterValue] = React.useState<[number, number]>(
+    (lastSelectedCityDetails && [
+      lastSelectedCityDetails.centerLat,
+      lastSelectedCityDetails.centerLon,
+    ]) ||
+      DEFAULT_CENTER
+  );
   const [zoom, setZoom] = React.useState(DEFAULT_ZOOM);
 
   let citySelectionDropdown;
@@ -347,21 +353,20 @@ export const PixiMap = <T,>({
     <Stack spacing={0} height={height} position="relative">
       {citySelectionDropdown}
       <Box width="100%" overflow="hidden" height={height} {...rest}>
-          <Map
-            dprs={[1, 2]}
-            provider={stamenProvider("toner-lite")}
-            attribution={stamenAttribution}
-            maxZoom={20}
-            onBoundsChanged={({center, zoom}) => {
-              setCenterValue(center);
-              setZoom(zoom);
-            }}
-            center={defaultCenter || centerValue}
-            zoom={zoom}
-          >
-            <RequiresInitLayer useRenderer={useRenderer} options={options} />
-          </Map>
-        
+        <Map
+          dprs={[1, 2]}
+          provider={stamenProvider("toner-lite")}
+          attribution={stamenAttribution}
+          maxZoom={20}
+          onBoundsChanged={({ center, zoom }) => {
+            setCenterValue(center);
+            setZoom(zoom);
+          }}
+          center={defaultCenter || centerValue}
+          zoom={zoom}
+        >
+          <RequiresInitLayer useRenderer={useRenderer} options={options} />
+        </Map>
       </Box>
     </Stack>
   );
