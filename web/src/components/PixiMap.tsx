@@ -19,7 +19,6 @@ import * as React from "react";
 import Select, { GroupBase, StylesConfig } from "react-select";
 import { useRecoilState } from "recoil";
 
-import { Loader } from "@/components/customcomponents/loader/Loader";
 import { DEFAULT_CITY } from "@/data/offers";
 import { City } from "@/data/queries";
 import {
@@ -308,25 +307,15 @@ export const PixiMap = <T,>({
   defaultCenter,
   useRenderer,
   options,
+  ...rest
 }: PixiMapProps<T>) => {
-  const [center, setCenter] = React.useState(defaultCenter || DEFAULT_CENTER);
+  // const [center, setCenter] = React.useState(defaultCenter || DEFAULT_CENTER);
   const [lastSelectedCityId] = useRecoilState(selectedCity);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
-  const [isUpdating] = useRecoilState(isUpdatingCities);
-  const [forceUpdateMap, setForceUpdateMap] = React.useState(false);
-
   const [lastSelectedCityDetails, setLastSelectedCityDetails] =
     React.useState<City>();
-
-  let centerValue: [number, number] | undefined = undefined;
-  if (lastSelectedCityDetails && !defaultCenter) {
-    centerValue = [
-      lastSelectedCityDetails.centerLat,
-      lastSelectedCityDetails.centerLon,
-    ];
-  } else if (defaultCenter) {
-    centerValue = [defaultCenter[1], defaultCenter[0]];
-  }
+  const [centerValue, setCenterValue] = React.useState<[number, number]>(lastSelectedCityDetails && [lastSelectedCityDetails.centerLat, lastSelectedCityDetails.centerLon] || DEFAULT_CENTER);
+  const [zoom, setZoom] = React.useState(DEFAULT_ZOOM);
 
   let citySelectionDropdown;
   if (showCitySelectionDropDown) {
@@ -347,40 +336,32 @@ export const PixiMap = <T,>({
 
   React.useEffect(() => {
     if (lastSelectedCityDetails && !defaultCenter) {
-      setCenter([
+      setCenterValue([
         lastSelectedCityDetails.centerLat,
         lastSelectedCityDetails.centerLon,
       ]);
     }
-  }, [defaultCenter, lastSelectedCityDetails]);
-
-  React.useEffect(() => {
-    if (isUpdating) {
-      setForceUpdateMap(true);
-    } else {
-      setForceUpdateMap(false);
-    }
-  }, [isUpdating, setForceUpdateMap]);
+  }, [lastSelectedCityDetails, defaultCenter]);
 
   return (
-    <Stack spacing={0} position="relative" height={height}>
+    <Stack spacing={0} height={height} position="relative">
       {citySelectionDropdown}
-      <Box width="inherit" height={height}>
-        {(!forceUpdateMap && (
+      <Box width="100%" overflow="hidden" height={height} {...rest}>
           <Map
             dprs={[1, 2]}
             provider={stamenProvider("toner-lite")}
             attribution={stamenAttribution}
             maxZoom={20}
-            defaultCenter={
-              !lastSelectedCityDetails || defaultCenter ? center : undefined
-            }
-            center={centerValue}
-            zoom={DEFAULT_ZOOM}
+            onBoundsChanged={({center, zoom}) => {
+              setCenterValue(center);
+              setZoom(zoom);
+            }}
+            center={defaultCenter || centerValue}
+            zoom={zoom}
           >
             <RequiresInitLayer useRenderer={useRenderer} options={options} />
           </Map>
-        )) || <Loader size="large" centered={true} />}
+        
       </Box>
     </Stack>
   );

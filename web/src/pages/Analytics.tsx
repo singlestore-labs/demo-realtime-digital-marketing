@@ -62,7 +62,7 @@ const NotificationZoneMap = () => {
       <Stack flex={2}>
         <StatGrid />
       </Stack>
-      <Stack
+      <Box
         padding="17px"
         flex={4}
         borderRadius={10}
@@ -109,7 +109,7 @@ const NotificationZoneMap = () => {
             wktPolygon,
           })}
         />
-      </Stack>
+      </Box>
     </Flex>
   );
 };
@@ -129,22 +129,24 @@ const DashboardContainerChild = () => {
   } else
     return (
       <Stack gap={10}>
-        <Box>
-          <Heading fontSize="md">Engagement</Heading>
-          <Text overflowWrap="break-word">
-            Conversion rate with subscribers
-          </Text>
-          <br />
+        <Stack spacing={3}>
+          <Stack spacing={2}>
+            <Heading fontSize="md">Engagement</Heading>
+            <Text overflowWrap="break-word">
+              Conversion rate with subscribers
+            </Text>
+          </Stack>
           <NotificationZoneMap />
-        </Box>
-        <Box>
-          <Heading fontSize="md">Top Performing Customers</Heading>
-          <Text overflowWrap="break-word">
-            Companies with the highest conversion rate
-          </Text>
-          <br />
+        </Stack>
+        <Stack spacing={3}>
+          <Stack spacing={2}>
+            <Heading fontSize="md">Top Performing Customers</Heading>
+            <Text overflowWrap="break-word">
+              Companies with the highest conversion rate
+            </Text>
+          </Stack>
           <ConversionTable />
-        </Box>
+        </Stack>
       </Stack>
     );
 };
@@ -153,7 +155,7 @@ export const AnalyticsDashboard = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   return (
-    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="30%">
+    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="5%">
       <DashboardContainerChild />
     </Container>
   );

@@ -73,7 +73,7 @@ export const HomePage: React.FC = () => {
             />
           </Heading>
           <Heading>
-            <Text>Realtime Digital Marketing</Text>
+            <Text>Real-time Digital Marketing</Text>
           </Heading>
           <Text size="1.2em">
             Watch{" "}

@@ -31,6 +31,8 @@ import { redirectToHomaPage } from "./data/recoil";
 const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
   children,
 }) => {
+  // Private routes will ensure user is connected to singlestore before using the route.
+  // Will redirect to connection page in case user in not connected.
   const redirect = useRecoilValue(redirectToHomaPage);
   if (redirect) {
     return <Navigate to="/" />;
@@ -76,7 +78,7 @@ const RoutesBlock = () => {
 
   React.useEffect(() => {
     // We will redirect to Home page '/' if user loaded the website for first time in browser and configuration is not set.
-    // Once connection is successful to singlestore it will autoredirect to appropriate page.
+    // Once connection is successful to singlestore it will autoredirect to appropriate page that user was trying to open.
     if (location.pathname !== "/" && !connected && redirect) {
       navigate({
         pathname: "/",
@@ -89,6 +91,7 @@ const RoutesBlock = () => {
   }, [connected, location.pathname, navigate, redirect, setRedirect]);
 
   React.useEffect(() => {
+    // Welcome message toast on successfully connecting to singlestore for the first time.
     if (!redirect) {
       toast({
         title: "Hello there!",

@@ -30,6 +30,7 @@ import {
   ModalOverlay,
   SimpleGrid,
   Spinner,
+  Stack,
   Text,
   useBoolean,
   useColorMode,
@@ -44,7 +45,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Link as ReactLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
 
@@ -229,15 +230,13 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
           <Text>
             Please enter the host and port number for the specific Workspace you
             want to connect to. Then enter the Workspace Group username and
-            password credentials.
-            <ReactLink
-              to="https://docs.singlestore.com/managed-service/en/reference/data-api.html"
-              target="_blank"
-              rel="noreferrer"
+            password credentials.{" "}
+            <Link
+              href="https://docs.singlestore.com/managed-service/en/reference/data-api.html"
+              isExternal
             >
-              {" "}
               Know more
-            </ReactLink>
+            </Link>
           </Text>
         }
         right={<DatabaseConfigForm />}
@@ -905,11 +904,10 @@ const CompleteToast = () => {
               Adding or removing location from{" "}
               <a
                 onClick={() => navigate("/dashboard")}
-                color="white"
                 style={{
                   fontWeight: "bold",
+                  color: "white",
                   cursor: "pointer",
-                  textDecoration: "underline",
                 }}
               >
                 Dashboard
@@ -919,11 +917,10 @@ const CompleteToast = () => {
               Inspect engagement under{" "}
               <a
                 onClick={() => navigate("/analytics")}
-                color="white"
                 style={{
                   fontWeight: "bold",
                   cursor: "pointer",
-                  textDecoration: "underline",
+                  color: "white",
                 }}
               >
                 Analytics
@@ -935,10 +932,7 @@ const CompleteToast = () => {
                 href="https://portal.singlestore.com"
                 isExternal
                 color="white"
-                style={{
-                  fontWeight: "bold",
-                  textDecoration: "underline",
-                }}
+                fontWeight="bold"
               >
                 {database}
               </Link>{" "}
@@ -1032,15 +1026,24 @@ export const Overview = () => {
       marginBottom="50px"
     >
       <Flex gap={5} justifyContent="space-between" marginBottom="50px">
-        <Box>
+        <Stack spacing={2}>
           <Heading fontSize="md">Application set up</Heading>
           <Text size="xs" overflowWrap="break-word">
-            Connect to a SingleStoreDB workspace to see how SingleStoreDB can
-            power the Realtime Digital Marketing applications. If you have any
-            questions or issues, please file an issue on the GitHub repo or on
-            our forums.
+            Connect to a SingleStoreDB workspace to see how{" "}
+            <Link href="https://portal.singlestore.com" isExternal>
+              SingleStoreDB
+            </Link>{" "}
+            can power the Real-time Digital Marketing applications. If you have
+            any questions or issues, please file an issue on the{" "}
+            <Link
+              href="https://github.com/singlestore-labs/demo-realtime-digital-marketing"
+              isExternal
+            >
+              GitHub repo
+            </Link>{" "}
+            or on our forums.
           </Text>
-        </Box>
+        </Stack>
         <Box>
           <ResetSchemaButton
             background={useColorModeValue("#C53030", "#C41337")}

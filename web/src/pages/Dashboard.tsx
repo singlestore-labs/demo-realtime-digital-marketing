@@ -1,4 +1,5 @@
 import {
+  Box,
   Checkbox,
   Flex,
   Heading,
@@ -49,9 +50,11 @@ const RealtimeChart = () => {
   return (
     <>
       <Stack spacing={4}>
-        <Stack spacing={1}>
-          <Heading size="md">Key Metrics</Heading>
-          <Text>Serving ads real-time to sumulate Subscribers</Text>
+        <Stack spacing={3}>
+          <Stack spacing={2}>
+            <Heading size="md">Key Metrics</Heading>
+            <Text>Serving ads real-time to sumulate Subscribers</Text>
+          </Stack>
         </Stack>
         <Stats />
       </Stack>
@@ -190,11 +193,13 @@ const StatsWrapper = () => {
   return (
     <>
       <Stack spacing={4}>
-        <Stack spacing={1}>
-          <Heading fontSize="md">Locations</Heading>
-          <Text overflowWrap="break-word">
-            Select cities to add to the dataset
-          </Text>
+        <Stack spacing={3}>
+          <Stack spacing={2}>
+            <Heading fontSize="md">Locations</Heading>
+            <Text overflowWrap="break-word">
+              Select cities to add to the dataset
+            </Text>
+          </Stack>
         </Stack>
         <Tooltip
           isDisabled={!isUpdating}
@@ -243,14 +248,14 @@ export const NotificationsMap = () => {
       position="relative"
       height="100%"
     >
-      <Stack spacing={0} width="100%" height="100%" minHeight="60%">
+      <Box width="100%" flex="2 2 0" minHeight="200px" maxHeight="100%">
         <PixiMap
           selectionDropdownLeft={isSmallScreen ? undefined : "31.5%"}
           selectionDropdownTop={isSmallScreen ? undefined : "1vw"}
           useRenderer={useNotificationsRenderer}
           options={{}}
         />
-      </Stack>
+      </Box>
       <Stack
         spacing={4}
         position={isSmallScreen ? "relative" : "absolute"}

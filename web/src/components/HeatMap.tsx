@@ -131,5 +131,5 @@ export const Heatmap = <T,>(props: HeatmapProps<T>) => {
     () => makeUseRenderer({ useCells, getCellConfig, colorInterpolater }),
     [colorInterpolater, getCellConfig, useCells]
   );
-  return <PixiMap {...rest} useRenderer={useRenderer} />;
+  return <PixiMap {...rest} useRenderer={useRenderer} options={{}} />;
 };

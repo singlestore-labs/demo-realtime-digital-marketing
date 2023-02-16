@@ -190,11 +190,17 @@ export const Nav = () => {
             <HStack as="nav" spacing={2} display={{ base: "none", md: "flex" }}>
               <Wrap display="inline-block">
                 <WrapItem>
-                  <Avatar size="sm" name="Singlestore" src={logo} />
+                  <Avatar
+                    size="sm"
+                    background={useColorModeValue("#553ACF", "#CCC3F9")}
+                    color={useColorModeValue("white", "#2F206E")}
+                    name="Singlestore"
+                    src={logo}
+                  />
                 </WrapItem>
               </Wrap>
               <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
-                {isSmallScreen ? "Martech" : "Realtime Digital Marketing"}
+                {isSmallScreen ? "Martech" : "Real-time Digital Marketing"}
               </Heading>
             </HStack>
             <HStack

@@ -66,7 +66,7 @@ export const DatabaseConfigFormManual = ({
         setValue={setLocalHost}
         helpText={
           <Text>
-            The protocol (http, https), host, and port for the SingleStore
+            The protocol (http, https), host, and port for the SingleStore{" "}
             <Link
               to="https://docs.singlestore.com/docs/http-api/"
               target="_blank"

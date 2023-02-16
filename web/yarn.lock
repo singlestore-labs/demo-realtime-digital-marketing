@@ -4607,10 +4607,10 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.2, picomatch@^2.3.1:
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
-pigeon-maps@^0.20:
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/pigeon-maps/-/pigeon-maps-0.20.0.tgz#2b619a205c543691ba8395c4856ba721014e46e5"
-  integrity sha512-aBAibTi0GCNvdrbcI02u+Ac+lqDK+EEquhBnhtFcR5qE8jzKTp4bZoY3CubAqAxFhywJRMAfumC06j8VYoKlDw==
+pigeon-maps@0.21.3:
+  version "0.21.3"
+  resolved "https://registry.yarnpkg.com/pigeon-maps/-/pigeon-maps-0.21.3.tgz#a15c44e5f179c56a2560993b3660296d184c3d6c"
+  integrity sha512-NbzISHHvMrcYBMBJ6NSSdTC1iGshSYOvsql9AqBfsE7KXni9xFIV9dkIWAfkKGCbafZ/0JysWZSp7zfg2piOFg==
 
 pirates@^4.0.1:
   version "4.0.5"
