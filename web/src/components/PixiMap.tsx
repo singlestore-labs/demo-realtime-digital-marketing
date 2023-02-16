@@ -310,8 +310,6 @@ export const PixiMap = <T,>({
   options,
 }: PixiMapProps<T>) => {
   const [center, setCenter] = React.useState(defaultCenter || DEFAULT_CENTER);
-  const [zoom] = React.useState(DEFAULT_ZOOM);
-
   const [lastSelectedCityId] = useRecoilState(selectedCity);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [isUpdating] = useRecoilState(isUpdatingCities);
@@ -368,7 +366,7 @@ export const PixiMap = <T,>({
     <Stack spacing={0} position="relative" height={height}>
       {citySelectionDropdown}
       <Box width="inherit" height={height}>
-        {!forceUpdateMap ? (
+        {(!forceUpdateMap && (
           <Map
             dprs={[1, 2]}
             provider={stamenProvider("toner-lite")}
@@ -378,13 +376,11 @@ export const PixiMap = <T,>({
               !lastSelectedCityDetails || defaultCenter ? center : undefined
             }
             center={centerValue}
-            zoom={zoom}
+            zoom={DEFAULT_ZOOM}
           >
             <RequiresInitLayer useRenderer={useRenderer} options={options} />
           </Map>
-        ) : (
-          <Loader size="large" centered={true} />
-        )}
+        )) || <Loader size="large" centered={true} />}
       </Box>
     </Stack>
   );

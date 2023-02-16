@@ -13,6 +13,8 @@ import { estimatedRowCountObj } from "@/data/queries";
 import { connectionConfig, tickDurationMs } from "@/data/recoil";
 import { formatMs } from "@/format";
 
+import { Loader } from "./customcomponents/loader/Loader";
+
 const StatWrapper = ({
   statLabel,
   statNumber,
@@ -83,5 +85,5 @@ export const Stats = () => {
         />
       </SimpleGrid>
     );
-  } else return null;
+  } else return <Loader size="small" centered={true} />;
 };

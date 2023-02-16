@@ -164,7 +164,7 @@ const Section = ({
 
   let sectionIcon = <CheckCircleIcon />;
 
-  if (!completed && previousStepCompleted) {
+  if (!completed) {
     sectionIcon = <WarningIcon />;
   }
 

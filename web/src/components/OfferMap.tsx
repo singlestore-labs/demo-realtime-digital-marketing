@@ -32,7 +32,7 @@ export const OfferMap = (props: Props) => {
     <Heatmap
       {...props}
       useCells={useCells}
-      colorInterpolater={() => "#04adff"}
+      colorInterpolater={() => "#553ACF"}
       getCellConfig={(cell: Offer) => {
         return {
           value: 1,
