@@ -28,22 +28,10 @@ import { useConnectionState } from "@/view/hooks/hooks";
 
 import { redirectToHomaPage } from "./data/recoil";
 
-const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
-  children,
-}) => {
-  // Private routes will ensure user is connected to singlestore before using the route.
-  // Will redirect to connection page in case user in not connected.
-  const redirect = useRecoilValue(redirectToHomaPage);
-  if (redirect) {
-    return <Navigate to="/" />;
-  }
-  return children;
-};
-
-const LayoutContainer = ({ children }: { children: React.ReactElement }) => {
-  const redirect = useRecoilValue(redirectToHomaPage);
-  if (redirect) {
-    return children;
+function PrivateRoute({ children }: { children: React.ReactElement }) {
+  const { connected } = useConnectionState();
+  if (!connected) {
+    return <Navigate to="/" />
   }
   return (
     <>
@@ -51,11 +39,11 @@ const LayoutContainer = ({ children }: { children: React.ReactElement }) => {
       {children}
       <Footer />
     </>
-  );
-};
+  )
+}
+
 
 const RoutesBlock = () => {
-  const [redirect, setRedirect] = useRecoilState(redirectToHomaPage); // To ensure connection configuration when RTDM App is loaded for the first time.
   const { connected } = useConnectionState();
   const location = useLocation();
   const navigate = useNavigate();
@@ -77,22 +65,8 @@ const RoutesBlock = () => {
   };
 
   React.useEffect(() => {
-    // We will redirect to Home page '/' if user loaded the website for first time in browser and configuration is not set.
-    // Once connection is successful to singlestore it will autoredirect to appropriate page that user was trying to open.
-    if (location.pathname !== "/" && !connected && redirect) {
-      navigate({
-        pathname: "/",
-        search: `?redirect=${location.pathname}`,
-      });
-    }
-    if (connected) {
-      setRedirect(false);
-    }
-  }, [connected, location.pathname, navigate, redirect, setRedirect]);
-
-  React.useEffect(() => {
     // Welcome message toast on successfully connecting to singlestore for the first time.
-    if (!redirect) {
+    if (connected) {
       toast({
         title: "Hello there!",
         description: <ToastDescriptionComponent />,
@@ -108,7 +82,7 @@ const RoutesBlock = () => {
         },
       });
     }
-  }, [redirect, toast, colorMode]);
+  }, [connected, toast, colorMode]);
 
   return (
     <Box flex="1" paddingTop="3px">
@@ -125,9 +99,11 @@ const RoutesBlock = () => {
         <Route
           path="/configure"
           element={
-            <PrivateRoute>
-              <Overview />
-            </PrivateRoute>
+            <>
+            <Nav />
+            <Overview />
+            <Footer />
+            </>
           }
         />
         <Route
@@ -160,9 +136,7 @@ const App = () => {
     <React.Suspense fallback={loadingFallback}>
       <Analytics>
         <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
-          <LayoutContainer>
             <RoutesBlock />
-          </LayoutContainer>
         </Flex>
       </Analytics>
     </React.Suspense>
