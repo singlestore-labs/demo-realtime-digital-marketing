@@ -88,7 +88,7 @@ export const connectionPassword = atom({
   effects: [localStorageEffect()],
 });
 
-export const redirectToHomaPage = atom({
+export const redirectToHomePage = atom({
   key: "redirectToHomePage",
   default: true,
 });

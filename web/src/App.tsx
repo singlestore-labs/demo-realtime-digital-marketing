@@ -26,14 +26,14 @@ import { NotificationsMap } from "@/pages/Dashboard";
 import { HomePage } from "@/pages/HomePage";
 import { useConnectionState } from "@/view/hooks/hooks";
 
-import { redirectToHomaPage } from "./data/recoil";
+import { redirectToHomePage } from "./data/recoil";
 
 const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
   children,
 }) => {
   // Private routes will ensure user is connected to singlestore before using the route.
   // Will redirect to connection page in case user in not connected.
-  const redirect = useRecoilValue(redirectToHomaPage);
+  const redirect = useRecoilValue(redirectToHomePage);
   if (redirect) {
     return <Navigate to="/" />;
   }
@@ -41,7 +41,7 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
 };
 
 const LayoutContainer = ({ children }: { children: React.ReactElement }) => {
-  const redirect = useRecoilValue(redirectToHomaPage);
+  const redirect = useRecoilValue(redirectToHomePage);
   if (redirect) {
     return children;
   }
@@ -55,7 +55,7 @@ const LayoutContainer = ({ children }: { children: React.ReactElement }) => {
 };
 
 const RoutesBlock = () => {
-  const [redirect, setRedirect] = useRecoilState(redirectToHomaPage); // To ensure connection configuration when RTDM App is loaded for the first time.
+  const [redirect, setRedirect] = useRecoilState(redirectToHomePage); // To ensure connection configuration when RTDM App is loaded for the first time.
   const { connected } = useConnectionState();
   const location = useLocation();
   const navigate = useNavigate();

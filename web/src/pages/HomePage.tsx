@@ -25,12 +25,12 @@ import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { DatabaseConfigFormManual } from "@/components/dataConfigForm/DatabaseConfigFormManual";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
-import { redirectToHomaPage } from "@/data/recoil";
+import { redirectToHomePage } from "@/data/recoil";
 import { useConnectionState } from "@/view/hooks/hooks";
 
 export const HomePage: React.FC = () => {
   const { connected } = useConnectionState();
-  const [redirect, setRedirect] = useRecoilState(redirectToHomaPage);
+  const [redirect, setRedirect] = useRecoilState(redirectToHomePage);
   const navigate = useNavigate();
   const fontColor = useColorModeValue("#553ACF", "#CCC3F9");
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
