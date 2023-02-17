@@ -635,7 +635,7 @@ const OffersSection = ({
             list of segments and notification content. As subscribers travel,
             they are matched with offers based on their location and segments.
             If multiple offers match to a subscriber, the highest bid price is
-            selected.There are 200 simulated offers in the database.
+            selected. There are 200 simulated offers in the database.
           </Text>
           {loadOffersButton}
           {mapInfoContent}
