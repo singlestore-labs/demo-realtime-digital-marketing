@@ -37,7 +37,7 @@ export const DatabaseConfigFormManual = ({
     setHost(localHost);
     setUser(localUser);
     setPassword(localPassword);
-    setDatabase(localDatabase);
+    setDatabase(localDatabase || "martech");
   };
 
   const connectDisabled =
