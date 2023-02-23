@@ -281,14 +281,12 @@ const SchemaItem = ({
   name: string;
   onClick: () => void;
 }) => {
-  const { colorMode } = useColorMode();
-
   return (
     <GridItem
       key={name}
-      bg={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
+      bg={useColorModeValue("#ECE8FD", "#2F206E")}
       fontSize="xs"
-      color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
+      color={useColorModeValue("#553ACF", "#ECE8FD")}
       textOverflow="ellipsis"
       whiteSpace="nowrap"
       overflow="hidden"
@@ -356,14 +354,19 @@ const SchemaSection = ({
   const schemaObjs = useSchemaObjects();
   const [selectedSchemaObj, setSelectedSchemaObj] = useState<null | string>();
 
+  let schemaObjectModal = undefined;
+  if (selectedSchemaObj) {
+    schemaObjectModal = (
+      <SchemaObjectModal
+        onClose={() => setSelectedSchemaObj(null)}
+        schemaObjectName={selectedSchemaObj}
+      />
+    );
+  }
+
   return (
     <>
-      {!!selectedSchemaObj && (
-        <SchemaObjectModal
-          onClose={() => setSelectedSchemaObj(null)}
-          schemaObjectName={selectedSchemaObj}
-        />
-      )}
+      {schemaObjectModal}
       <Section
         completed={initialized}
         previousStepCompleted={previousStepCompleted}
@@ -381,15 +384,16 @@ const SchemaSection = ({
           <Flex direction="column" gap={3}>
             <Heading size="sm">Tags</Heading>
             <SimpleGrid columns={[1, 3, 3]} gap={1}>
-              {Object.keys(schemaObjs.data || {})
-                .sort()
-                .map((name) => (
-                  <SchemaItem
-                    key={name}
-                    name={name}
-                    onClick={() => setSelectedSchemaObj(name)}
-                  />
-                ))}
+              {schemaObjs.data &&
+                Object.keys(schemaObjs.data)
+                  .sort()
+                  .map((name) => (
+                    <SchemaItem
+                      key={name}
+                      name={name}
+                      onClick={() => setSelectedSchemaObj(name)}
+                    />
+                  ))}
             </SimpleGrid>
           </Flex>
         }
@@ -480,7 +484,7 @@ const PipelinesSection = ({
   if (working) {
     pipelineButtonText = "Creating Pipeline";
   } else if (completed) {
-    pipelineButtonText = "waiting for data...";
+    pipelineButtonText = "Waiting for data...";
   }
 
   const ensurePipelinesButton = (
@@ -502,9 +506,19 @@ const PipelinesSection = ({
       <IngestChart data={data} yAxisLabel="total rows" height={200} />
     </Flex>
   );
-
   if (emptyChart || !completed) {
     sectionRight = <Center h={220}>{ensurePipelinesButton}</Center>;
+  }
+
+  let showPipelineModal = undefined;
+  if (selectedPipeline) {
+    showPipelineModal = (
+      <ShowPipelineModal
+        onClose={() => setSelectedPipeline(null)}
+        name={selectedPipeline}
+        scaleFactor={scaleFactor}
+      />
+    );
   }
 
   const sectionLeft = (
@@ -535,13 +549,7 @@ const PipelinesSection = ({
 
   return (
     <>
-      {!!selectedPipeline && (
-        <ShowPipelineModal
-          onClose={() => setSelectedPipeline(null)}
-          name={selectedPipeline}
-          scaleFactor={scaleFactor}
-        />
-      )}
+      {showPipelineModal}
       <Section
         completed={completed}
         title="Ingest data"
@@ -709,6 +717,17 @@ const SegmentationSection = ({
     );
   }
 
+  let warmingAlert;
+  if (warmingUp) {
+    warmingAlert = (
+      <Alert status="warning">
+        <AlertIcon />
+        Queries are still warming up. Please wait for a little bit and then try
+        again.
+      </Alert>
+    );
+  }
+
   return (
     <Section
       completed={done}
@@ -733,13 +752,7 @@ const SegmentationSection = ({
             {isRunning ? " running..." : "Match subscribers to segments"}
           </PrimaryButton>
           {workEstimate}
-          {warmingUp && (
-            <Alert status="warning">
-              <AlertIcon />
-              Queries are still warming up. Please wait for a little bit and
-              then try again.
-            </Alert>
-          )}
+          {warmingAlert}
         </>
       }
       right={
@@ -814,6 +827,17 @@ const MatchingSection = ({
     );
   }
 
+  let warmingAlert;
+  if (warmingUp) {
+    warmingAlert = (
+      <Alert status="warning">
+        <AlertIcon />
+        Queries are still warming up. Please wait for a little bit and then try
+        again.
+      </Alert>
+    );
+  }
+
   return (
     <Section
       completed={done}
@@ -860,13 +884,7 @@ const MatchingSection = ({
             />
           </Flex>
           {workEstimate}
-          {warmingUp && (
-            <Alert status="warning">
-              <AlertIcon />
-              Queries are still warming up. Please wait for a little bit and
-              then try again.
-            </Alert>
-          )}
+          {warmingAlert}
         </Flex>
       }
     />
@@ -1017,6 +1035,11 @@ export const Overview = () => {
     sections.push(component);
   }
 
+  let completeToast;
+  if (tableCounts && !!tableCounts.notifications) {
+    completeToast = <CompleteToast />;
+  }
+
   return (
     <Container
       maxW="75%"
@@ -1068,7 +1091,7 @@ export const Overview = () => {
         backgroundRepeat="no-repeat"
         minHeight="250px"
       >
-        {tableCounts && !!tableCounts.notifications && <CompleteToast />}
+        {completeToast}
       </Flex>
     </Container>
   );

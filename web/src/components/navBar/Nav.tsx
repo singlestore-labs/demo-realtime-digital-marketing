@@ -114,7 +114,7 @@ export const Nav = () => {
       <NavLinkComponent
         to="/dashboard"
         NavLinkTitle="Dashboard"
-        IconElement={<Icon as={colorMode === "light" ? BsMap : BsMapFill} />}
+        IconElement={<Icon as={useColorModeValue(BsMap, BsMapFill)} />}
       />
       <NavLinkComponent
         to="/analytics"
@@ -124,14 +124,14 @@ export const Nav = () => {
             border="1px"
             padding="1px"
             borderRadius="2px"
-            as={colorMode === "light" ? BsBarChart : BsFillBarChartFill}
+            as={useColorModeValue(BsBarChart, BsFillBarChartFill)}
           />
         }
       />
       <NavLinkComponent
         to="/configure"
         NavLinkTitle="Configure"
-        IconElement={<Icon as={colorMode === "light" ? BsGear : BsGearFill} />}
+        IconElement={<Icon as={useColorModeValue(BsGear, BsGearFill)} />}
       />
     </>
   );
@@ -164,7 +164,7 @@ export const Nav = () => {
         justifyContent="center"
         alignItems="center"
         alignContent="center"
-        boxShadow={colorMode === "light" ? "0 2px 2px #ddddde" : undefined}
+        boxShadow={useColorModeValue("0 2px 2px #ddddde", undefined)}
         zIndex={5}
         paddingLeft="1rem"
         paddingRight="1rem"
@@ -218,7 +218,7 @@ export const Nav = () => {
                 <MenuButton alignItems="center">
                   <Icon
                     aria-label="Github Repo"
-                    as={colorMode === "light" ? BsShare : BsShareFill}
+                    as={useColorModeValue(BsShare, BsShareFill)}
                     cursor="pointer"
                   />
                 </MenuButton>

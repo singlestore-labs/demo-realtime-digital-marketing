@@ -11,6 +11,7 @@ import {
   Text,
   Tooltip,
   useColorMode,
+  useColorModeValue,
   useConst,
 } from "@chakra-ui/react";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
@@ -258,7 +259,7 @@ const CitySelectionDropdown: React.FC<{
       zIndex={5}
       top={selectionDropdownTop}
       left={selectionDropdownLeft}
-      background={colorMode === "light" ? "#553ACF" : "#CCC3F9"}
+      background={useColorModeValue("#553ACF", "#CCC3F9")}
       color={fontColor}
       boxShadow="1px 6px 6px grey"
       width="-webkit-fit-content"

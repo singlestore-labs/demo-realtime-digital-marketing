@@ -46,11 +46,9 @@ export const HomePage: React.FC = () => {
     if (!redirect) {
       updateCityList();
       const urlSearchParams = new URLSearchParams(location.search.slice(1));
-      const queryObject = JSON.parse(
-        JSON.stringify(Object.fromEntries(urlSearchParams))
-      );
-      if (queryObject.redirect) {
-        navigate(queryObject.redirect);
+      const redirectLink = urlSearchParams.get("redirect");
+      if (redirectLink) {
+        navigate(redirectLink);
       } else {
         navigate("/dashboard");
       }

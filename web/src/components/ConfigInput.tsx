@@ -13,6 +13,7 @@ type ConfigInputProps = {
   setValue: (value: string) => void;
   helpText?: ReactNode;
   type?: "text" | "password" | "number";
+  required?: boolean;
 };
 
 export const ConfigInput = ({
@@ -22,6 +23,7 @@ export const ConfigInput = ({
   setValue,
   helpText,
   type = "text",
+  required = false,
 }: ConfigInputProps) => (
   <FormControl>
     <FormLabel mb={1} fontSize="xs" fontWeight="bold" textTransform="uppercase">
@@ -29,6 +31,7 @@ export const ConfigInput = ({
     </FormLabel>
     <Input
       size="sm"
+      required={required}
       borderRadius="6px"
       placeholder={placeholder}
       value={value}

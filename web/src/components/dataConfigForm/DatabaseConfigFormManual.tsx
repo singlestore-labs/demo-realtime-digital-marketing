@@ -1,4 +1,4 @@
-import { SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { SimpleGrid, Stack, Text, Tooltip } from "@chakra-ui/react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
@@ -40,12 +40,19 @@ export const DatabaseConfigFormManual = ({
     setDatabase(localDatabase);
   };
 
+  const connectDisabled =
+    localHost === "" ||
+    localUser === "" ||
+    localPassword === "" ||
+    localDatabase === "";
+
   let databaseInput;
   if (showDatabase) {
     databaseInput = (
       <ConfigInput
         label="Database"
         placeholder="martech"
+        required={true}
         value={localDatabase}
         setValue={setLocalDatabase}
       />
@@ -63,6 +70,7 @@ export const DatabaseConfigFormManual = ({
         label="Host & Port"
         placeholder="http://127.0.0.1:8808"
         value={localHost}
+        required={true}
         setValue={setLocalHost}
         helpText={
           <Text>
@@ -80,6 +88,7 @@ export const DatabaseConfigFormManual = ({
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
           label="Username"
+          required={true}
           helpText={
             <Text>
               Fill in the Security credentials of your workspace group.
@@ -91,6 +100,7 @@ export const DatabaseConfigFormManual = ({
         />
         <ConfigInput
           label="Password"
+          required={true}
           placeholder=""
           value={localPassword}
           setValue={setLocalPassword}
@@ -99,7 +109,21 @@ export const DatabaseConfigFormManual = ({
       </SimpleGrid>
       {databaseInput}
       {scaleFactor}
-      <PrimaryButton onClick={connect}>Connect</PrimaryButton>
+
+      <Tooltip
+        shouldWrapChildren
+        isDisabled={!connectDisabled}
+        hasArrow
+        label="Fill in the required details to connect"
+      >
+        <PrimaryButton
+          width="100%"
+          isDisabled={connectDisabled}
+          onClick={connect}
+        >
+          Connect
+        </PrimaryButton>
+      </Tooltip>
     </Stack>
   );
 };
