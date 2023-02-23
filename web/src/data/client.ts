@@ -19,7 +19,7 @@ export type SQLValue =
   | boolean
   | null
   | { [key: string]: SQLValue }
-  | SQLValue[];
+  | Array<SQLValue>;
 
 export type Row = { [key: string]: SQLValue };
 
@@ -61,7 +61,7 @@ export class SQLError extends Error {
 export const QueryOne = async <T = Row>(
   config: ConnectionConfigOptionalDatabase,
   sql: string,
-  ...args: SQLValue[]
+  ...args: Array<SQLValue>
 ): Promise<T> => {
   const rows = await Query<T>(config, sql, ...args);
   if (rows.length !== 1) {
@@ -74,8 +74,8 @@ export const QueryOne = async <T = Row>(
 export const Query = async <T = Row>(
   config: ConnectionConfigOptionalDatabase,
   sql: string,
-  ...args: SQLValue[]
-): Promise<T[]> => {
+  ...args: Array<SQLValue>
+): Promise<Array<T>> => {
   const data = await fetchEndpoint("query/rows", config, sql, ...args);
 
   if (data.results.length !== 1) {
@@ -88,14 +88,16 @@ export const Query = async <T = Row>(
 export const QueryNoDb = <T = Row>(
   config: ConnectionConfigOptionalDatabase,
   sql: string,
-  ...args: SQLValue[]
-): Promise<T[]> => Query({ ...config, database: undefined }, sql, ...args);
+  ...args: Array<SQLValue>
+): Promise<Array<T>> => Query({ ...config, database: undefined }, sql, ...args);
 
-export const QueryTuples = async <T extends [...SQLValue[]] = SQLValue[]>(
+export const QueryTuples = async <
+  T extends [...Array<SQLValue>] = Array<SQLValue>
+>(
   config: ConnectionConfigOptionalDatabase,
   sql: string,
-  ...args: SQLValue[]
-): Promise<T[]> => {
+  ...args: Array<SQLValue>
+): Promise<Array<T>> => {
   const data = await fetchEndpoint("query/tuples", config, sql, ...args);
 
   if (data.results.length !== 1) {
@@ -108,14 +110,14 @@ export const QueryTuples = async <T extends [...SQLValue[]] = SQLValue[]>(
 export const ExecNoDb = (
   config: ConnectionConfigOptionalDatabase,
   sql: string,
-  ...args: SQLValue[]
+  ...args: Array<SQLValue>
 ): Promise<{ lastInsertId: number; rowsAffected: number }> =>
   fetchEndpoint("exec", { ...config, database: undefined }, sql, ...args);
 
 export const Exec = (
   config: ConnectionConfigOptionalDatabase,
   sql: string,
-  ...args: SQLValue[]
+  ...args: Array<SQLValue>
 ): Promise<{ lastInsertId: number; rowsAffected: number }> =>
   fetchEndpoint("exec", config, sql, ...args);
 
@@ -123,7 +125,7 @@ const fetchEndpoint = async (
   endpoint: string,
   config: ConnectionConfigOptionalDatabase,
   sql: string,
-  ...args: SQLValue[]
+  ...args: Array<SQLValue>
 ) => {
   if (DEBUG) {
     console.log("running query", sql, args);

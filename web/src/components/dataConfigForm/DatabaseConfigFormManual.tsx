@@ -1,5 +1,5 @@
 import { SimpleGrid, Stack, Text, Tooltip } from "@chakra-ui/react";
-import { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
@@ -28,10 +28,10 @@ export const DatabaseConfigFormManual = ({
   const [password, setPassword] = useRecoilState(connectionPassword);
   const [database, setDatabase] = useRecoilState(connectionDatabase);
 
-  const [localHost, setLocalHost] = useState(host);
-  const [localUser, setLocalUser] = useState(user);
-  const [localPassword, setLocalPassword] = useState(password);
-  const [localDatabase, setLocalDatabase] = useState(database);
+  const [localHost, setLocalHost] = React.useState(host);
+  const [localUser, setLocalUser] = React.useState(user);
+  const [localPassword, setLocalPassword] = React.useState(password);
+  const [localDatabase, setLocalDatabase] = React.useState(database);
 
   const connect = () => {
     setHost(localHost);
@@ -52,7 +52,7 @@ export const DatabaseConfigFormManual = ({
       <ConfigInput
         label="Database"
         placeholder="martech"
-        required={true}
+        required
         value={localDatabase}
         setValue={setLocalDatabase}
       />
@@ -70,7 +70,7 @@ export const DatabaseConfigFormManual = ({
         label="Host & Port"
         placeholder="http://127.0.0.1:8808"
         value={localHost}
-        required={true}
+        required
         setValue={setLocalHost}
         helpText={
           <Text>
@@ -88,7 +88,7 @@ export const DatabaseConfigFormManual = ({
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
           label="Username"
-          required={true}
+          required
           helpText={
             <Text>
               Fill in the Security credentials of your workspace group.
@@ -100,7 +100,7 @@ export const DatabaseConfigFormManual = ({
         />
         <ConfigInput
           label="Password"
-          required={true}
+          required
           placeholder=""
           value={localPassword}
           setValue={setLocalPassword}

@@ -4,14 +4,14 @@ import {
   FormLabel,
   Input,
 } from "@chakra-ui/react";
-import { ReactNode } from "react";
+import React from "react";
 
 type ConfigInputProps = {
   label: string;
   placeholder: string;
   value: string;
   setValue: (value: string) => void;
-  helpText?: ReactNode;
+  helpText?: React.ReactNode;
   type?: "text" | "password" | "number";
   required?: boolean;
 };

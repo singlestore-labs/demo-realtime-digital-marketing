@@ -5,6 +5,6 @@ declare module "*.sql" {
     statement: string;
   };
 
-  const src: SchemaObject[];
+  const src: Array<SchemaObject>;
   export default src;
 }

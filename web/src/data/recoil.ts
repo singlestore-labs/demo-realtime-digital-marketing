@@ -22,7 +22,7 @@ const localStorageEffect =
   ({ setSelf, onSet, node }) => {
     const key = `recoil.localstorage.${node.key}`;
     const savedValue = localStorage.getItem(key);
-    if (savedValue != null) {
+    if (savedValue !== null) {
       setSelf(decode(savedValue));
     }
 
@@ -139,7 +139,7 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
           return {
             host: "https://" + portalHostnameValue,
             user: username,
-            password: password,
+            password,
             database: portalDatabaseValue,
           };
         }

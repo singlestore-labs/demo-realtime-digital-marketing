@@ -84,7 +84,7 @@ const RealtimeChart = () => {
 
 const SelectCityCheckbox = (props: {
   isUpdating: boolean;
-  totalSelectableCities: City[];
+  totalSelectableCities: Array<City>;
 }) => {
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const { onCreateCity, onRemoveCity } = useUpdateCityList();

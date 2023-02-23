@@ -21,6 +21,7 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
+import React from "react";
 import {
   BsBarChart,
   BsFillBarChartFill,
@@ -42,7 +43,7 @@ import { LinkedinIcon, TwitterIcon } from "@/components/IconLinks";
 export const Nav = () => {
   const { toggleColorMode } = useColorMode();
   const { colorMode } = useColorMode();
-  const navMenu = useDisclosure();
+  const handleNavMenu = useDisclosure();
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   let themeModeIcon = <MoonIcon cursor="pointer" onClick={toggleColorMode} />;
@@ -53,10 +54,10 @@ export const Nav = () => {
   }
 
   let NavButtonIcon = <CloseIcon />;
-  let navClickAction = navMenu.onOpen;
-  if (navMenu.isOpen) {
+  let navClickAction = handleNavMenu.onOpen;
+  if (handleNavMenu.isOpen) {
     NavButtonIcon = <HamburgerIcon />;
-    navClickAction = navMenu.onClose;
+    navClickAction = handleNavMenu.onClose;
   }
 
   const NavLinkActiveButtonStyle = {
@@ -97,7 +98,7 @@ export const Nav = () => {
         as={RouterLink}
         color={useColorModeValue("#553ACF", "#CCC3F9")}
         to={to}
-        onClick={navMenu.onClose}
+        onClick={handleNavMenu.onClose}
         _hover={NavLinkActiveButtonStyle}
         _activeLink={NavLinkActiveButtonStyle}
       >
@@ -143,7 +144,7 @@ export const Nav = () => {
   };
 
   const handleHamburgerNavMenu = () => {
-    if (navMenu.isOpen) {
+    if (handleNavMenu.isOpen) {
       return (
         <Box pb={4} display={{ md: "none" }}>
           <Stack as="nav" spacing={4}>

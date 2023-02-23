@@ -147,7 +147,7 @@ const RoutesBlock = () => {
 const App = () => {
   const loadingFallback = (
     <Center height="100vh">
-      <Loader size="large" centered={true} />
+      <Loader size="large" centered />
     </Center>
   );
 

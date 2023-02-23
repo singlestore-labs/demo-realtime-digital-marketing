@@ -1,11 +1,5 @@
 import { useToast } from "@chakra-ui/react";
-import React, {
-  useCallback,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import React from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
 
@@ -47,7 +41,7 @@ export const useSchemaObjects = (paused = false) => {
 export const useConnectionState = () => {
   // we are using ES6 spread syntax to remove database from config
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { database, ...config } = useRecoilValue(connectionConfig);
+  const { ...config } = useRecoilValue(connectionConfig);
   const connected = useSWR(["isConnected", config], () => isConnected(config));
   const schemaObjs = useSchemaObjects(!connected.data);
   const portalConfig = useRecoilValue(portalConnectionConfig);
@@ -103,7 +97,7 @@ export const useTick = (
 ) => {
   const setTickDurationMs = useSetRecoilState(tickDurationMs(name));
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!enabled) {
       return;
     }
@@ -161,7 +155,7 @@ export const useInvalidateSWRCache = () => {
       "useInvalidateSWRCache requires the cache provider to be a Map instance"
     );
   }
-  return useCallback(async () => {
+  return React.useCallback(async () => {
     for (const [key] of cache) {
       await mutate(key);
     }
@@ -186,7 +180,7 @@ export const useResetSchema = ({
   const setResettingSchema = useSetRecoilState(resettingSchema);
   const invalidateSWRCache = useInvalidateSWRCache();
 
-  return useCallback(async () => {
+  return React.useCallback(async () => {
     // pre schema reset
     const simulatorEnabledBefore = isSimulatorEnabled;
     setSimulatorEnabled(false);
@@ -237,8 +231,8 @@ export const useResetSchema = ({
 };
 
 export const useDebounce = <T>(value: T, delay: number): T => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
+  const [debouncedValue, setDebouncedValue] = React.useState(value);
+  React.useEffect(() => {
     const handler = setTimeout(() => setDebouncedValue(value), delay);
     return () => clearTimeout(handler);
   }, [value, delay]);
@@ -249,7 +243,7 @@ export const useTimer = () => {
   type State = { start?: number; elapsed?: number; isRunning: boolean };
   type Action = { type: "start" } | { type: "stop" };
 
-  const [{ elapsed, isRunning }, dispatch] = useReducer(
+  const [{ elapsed, isRunning }, dispatch] = React.useReducer(
     (state: State, action: Action): State => {
       switch (action.type) {
         case "start":
@@ -260,6 +254,7 @@ export const useTimer = () => {
             // keep around last elapsed value
             elapsed: state.elapsed,
           };
+
         case "stop":
           return {
             elapsed: Math.floor(performance.now()) - (state.start || 0),
@@ -282,15 +277,15 @@ export const useMountedCallback = (
   callback: () => void,
   deps: React.DependencyList
 ) => {
-  const mounted = useRef(false);
-  useEffect(() => {
+  const mounted = React.useRef(false);
+  React.useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
     };
   }, []);
 
-  return useCallback(() => {
+  return React.useCallback(() => {
     if (mounted.current) {
       callback();
     }

@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import DashboardControllerIamge from "@/assets/dashboard-controller-snapshot.svg";
-import GraphicalBackground2 from "@/assets/graphical-background-design-2.svg";
+import GraphicalBackground2 from "@/assets/graphical-background-2.svg";
 import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { DatabaseConfigFormManual } from "@/components/dataConfigForm/DatabaseConfigFormManual";
@@ -104,7 +104,7 @@ export const HomePage: React.FC = () => {
             </TabList>
             <TabPanels padding={0} margin={0}>
               <TabPanel paddingLeft={0} paddingTop={5} margin={0}>
-                <DatabaseConfigFormManual showDatabase={true} />
+                <DatabaseConfigFormManual showDatabase />
               </TabPanel>
             </TabPanels>
           </Tabs>

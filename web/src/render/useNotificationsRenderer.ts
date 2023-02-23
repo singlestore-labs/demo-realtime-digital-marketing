@@ -1,7 +1,7 @@
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
 import { Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import { useCallback, useMemo, useRef } from "react";
+import React from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -78,13 +78,13 @@ class Pulse extends PIXI.Container {
 export const useNotificationsDataKey = () => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
-  return useMemo(
+  return React.useMemo(
     () => ["notifications", config, initialized],
     [config, initialized]
   );
 };
 
-export const useCities = (onSuccess: (cities: City[]) => void) => {
+export const useCities = (onSuccess: (cities: Array<City>) => void) => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
   return useSWR(["cities", config, initialized], () => getCities(config), {
@@ -98,12 +98,12 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   latLngToPixel,
   bounds,
 }) => {
-  const timestampCursor = useRef(toISOStringNoTZ(new Date()));
+  const timestampCursor = React.useRef(toISOStringNoTZ(new Date()));
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 50);
   const swrKey = useNotificationsDataKey();
-  const trackedNotifications = useRef(false);
+  const trackedNotifications = React.useRef(false);
 
   useSWR(
     swrKey,
@@ -135,7 +135,7 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   );
 
   return {
-    update: useCallback(
+    update: React.useCallback(
       (delta) => {
         // iterate in reverse since Pulses remove themselves when invisible
         for (let i = scene.children.length - 1; i >= 0; i--) {

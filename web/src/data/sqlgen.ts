@@ -4,18 +4,18 @@ import { SQLValue } from "@/data/client";
 
 export interface CompiledQuery {
   sql: string;
-  params: SQLValue[];
+  params: Array<SQLValue>;
 }
 
 export type SQLChunk =
   | string
   | {
       sql: string;
-      params?: SQLValue[];
+      params?: Array<SQLValue>;
     };
 
 export type WithStatement = {
-  with: [string, SQLChunk][];
+  with: Array<[string, SQLChunk]>;
   base: SQLChunk;
 };
 
@@ -24,8 +24,8 @@ export type InsertStatement = {
   options?: {
     replace: boolean;
   };
-  columns: string[];
-  tuples: SQLValue[][];
+  columns: Array<string>;
+  tuples: Array<Array<SQLValue>>;
 };
 
 export const compileInsert = (stmt: InsertStatement): CompiledQuery => {
@@ -55,7 +55,7 @@ export const compileChunk = (stmt: SQLChunk): CompiledQuery => {
 export const compileWithStatement = (stmt: WithStatement): CompiledQuery => {
   const { with: fragments, base } = stmt;
 
-  const fragmentsParams: SQLValue[] = [];
+  const fragmentsParams: Array<SQLValue> = [];
   const fragmentsSQL = fragments
     .map(([name, fragment]) => {
       const { sql, params } = compileChunk(fragment);

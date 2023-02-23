@@ -27,7 +27,7 @@ import {
 import { format } from "d3-format";
 import { interpolateBuPu } from "d3-scale-chromatic";
 import { Bounds } from "pigeon-maps";
-import { useState } from "react";
+import React from "react";
 import { BsGearFill } from "react-icons/bs";
 import { HiBell, HiOfficeBuilding, HiRefresh } from "react-icons/hi";
 import { useRecoilValue } from "recoil";
@@ -216,7 +216,7 @@ const StatGrid = () => {
     !overallRateRequests.data ||
     !overallRatePurchases.data
   ) {
-    return <Loader size="small" centered={true} />;
+    return <Loader size="small" centered />;
   }
 
   return (
@@ -251,7 +251,7 @@ const StatGrid = () => {
 const ConversionTable = () => {
   const config = useRecoilValue(connectionConfig);
   const [sortColumn, setSortColumn] =
-    useState<keyof CustomerMetrics>("conversionRate");
+    React.useState<keyof CustomerMetrics>("conversionRate");
 
   const metricsTableData = useSWR(
     ["customerMetrics", config, sortColumn],
@@ -265,7 +265,7 @@ const ConversionTable = () => {
       return (
         <Tr>
           <Td colSpan={4}>
-            <Loader size="small" centered={true} />
+            <Loader size="small" centered />
           </Td>
         </Tr>
       );
@@ -362,7 +362,7 @@ const ConversionTable = () => {
 
 const useConversionCells = (
   bounds: Bounds,
-  callback: (cells: ZoneMetrics[]) => void
+  callback: (cells: Array<ZoneMetrics>) => void
 ) => {
   const config = useRecoilValue(connectionConfig);
   useSWR(

@@ -1,7 +1,7 @@
+import { extendTheme, Theme, theme as origTheme } from "@chakra-ui/react";
+
 import "@fontsource/inter/variable-full.css";
 import "@fontsource/source-code-pro/variable.css";
-
-import { extendTheme, Theme, theme as origTheme } from "@chakra-ui/react";
 
 export const chakraTheme = extendTheme({
   fonts: {

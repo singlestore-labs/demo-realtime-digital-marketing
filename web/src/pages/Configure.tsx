@@ -37,14 +37,7 @@ import {
   useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
-import {
-  ReactElement,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
@@ -101,20 +94,20 @@ const CollapsibleSection = ({
   containerStyle,
   childContainerStyle,
 }: {
-  title: string | ReactElement;
-  childComponent: ReactElement;
+  title: string | React.ReactElement;
+  childComponent: React.ReactElement;
   disabled: boolean;
   buttonStyle: React.CSSProperties;
   containerStyle?: React.CSSProperties;
   childContainerStyle?: React.CSSProperties;
 }) => {
-  const [sectionOpen, setSectionOpen] = useState(!disabled);
+  const [sectionOpen, setSectionOpen] = React.useState(!disabled);
   let acordianIcon = <ChevronUpIcon />;
   if (sectionOpen) {
     acordianIcon = <ChevronDownIcon />;
   }
 
-  useEffect(() => {
+  React.useEffect(() => {
     setSectionOpen(!disabled);
   }, [disabled]);
 
@@ -147,8 +140,8 @@ const Section = ({
   completed: boolean;
   previousStepCompleted: boolean;
   title: string;
-  left: ReactNode;
-  right: ReactNode;
+  left: React.ReactNode;
+  right: React.ReactNode;
 }) => {
   const { colorMode } = useColorMode();
 
@@ -225,7 +218,7 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
       <Section
         completed={connected}
         title="Connect to SingleStore"
-        previousStepCompleted={true}
+        previousStepCompleted
         left={
           <Text>
             Please enter the host and port number for the specific Workspace you
@@ -352,7 +345,9 @@ const SchemaSection = ({
   previousStepCompleted: boolean;
 }) => {
   const schemaObjs = useSchemaObjects();
-  const [selectedSchemaObj, setSelectedSchemaObj] = useState<null | string>();
+  const [selectedSchemaObj, setSelectedSchemaObj] = React.useState<
+    null | string
+  >();
 
   let schemaObjectModal = undefined;
   if (selectedSchemaObj) {
@@ -462,11 +457,11 @@ const PipelinesSection = ({
   useSimulationMonitor(completed && !isResettingSchema);
 
   const [selectedPipeline, setSelectedPipeline] =
-    useState<null | PipelineName>();
+    React.useState<null | PipelineName>();
 
   const [working, workingCtrl] = useBoolean();
 
-  const onEnsurePipelines = useCallback(async () => {
+  const onEnsurePipelines = React.useCallback(async () => {
     workingCtrl.on();
     await ensurePipelinesExist(config, scaleFactor);
     pipelines.mutate();
@@ -489,7 +484,7 @@ const PipelinesSection = ({
 
   const ensurePipelinesButton = (
     <PrimaryButton size="sm" onClick={onEnsurePipelines} disabled={completed}>
-      {(working || completed) && <Loader size="small" centered={true} />}&nbsp;
+      {(working || completed) && <Loader size="small" centered />}&nbsp;
       {pipelineButtonText}
     </PrimaryButton>
   );
@@ -588,7 +583,7 @@ const OffersSection = ({
   const [working, workingCtrl] = useBoolean();
   const tableCounts = useTableCounts(config);
 
-  const onSeedData = useCallback(async () => {
+  const onSeedData = React.useCallback(async () => {
     workingCtrl.on();
     await insertSeedData(config);
     tableCounts.mutate();
@@ -679,12 +674,12 @@ const SegmentationSection = ({
   const config = useRecoilValue(connectionConfig);
   const tableCounts = useTableCounts(config);
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
-  const [warmingUp, setWarmingUp] = useState(false);
-  const timestampCursor = useRef(toISOStringNoTZ(new Date()));
+  const [warmingUp, setWarmingUp] = React.useState(false);
+  const timestampCursor = React.useRef(toISOStringNoTZ(new Date()));
 
   const done = !!tableCounts.data?.subscriber_segments;
 
-  const onClick = useCallback(async () => {
+  const onClick = React.useCallback(async () => {
     startTimer();
     timestampCursor.current = await runUpdateSegments(
       config,
@@ -777,12 +772,12 @@ const MatchingSection = ({
   const { mutate: swrMutate } = useSWRConfig();
 
   const { elapsed, isRunning, startTimer, stopTimer } = useTimer();
-  const [sentNotifications, setSentNotifications] = useState(0);
-  const [warmingUp, setWarmingUp] = useState(false);
+  const [sentNotifications, setSentNotifications] = React.useState(0);
+  const [warmingUp, setWarmingUp] = React.useState(false);
 
   const done = !!tableCounts.data?.notifications;
 
-  const onClick = useCallback(async () => {
+  const onClick = React.useCallback(async () => {
     let numSent = 0;
     let attempts = 0;
 

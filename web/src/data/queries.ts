@@ -45,9 +45,9 @@ export const hasSchema = async (config: ConnectionConfig) => {
 };
 
 type schemaObjInfo = {
-  tables: string[];
-  procedures: string[];
-  functions: string[];
+  tables: Array<string>;
+  procedures: Array<string>;
+  functions: Array<string>;
 };
 
 export const schemaObjects = async (
@@ -197,7 +197,7 @@ export type SegmentConfig = {
 };
 
 export type PipelineName = "locations" | "requests" | "purchases";
-export const pipelineNames: PipelineName[] = [
+export const pipelineNames: Array<PipelineName> = [
   "locations",
   "requests",
   "purchases",
@@ -264,8 +264,10 @@ export const getPipelineSQL = (
     switch (key) {
       case "SCALE_FACTOR":
         return scaleFactor.prefix;
+
       case "PARTITIONS":
         return Math.min(maxPartitions, scaleFactor.partitions).toString();
+
       default:
         throw new Error(`Unknown variable: ${key}`);
     }
@@ -376,7 +378,7 @@ export const checkPlans = async (config: ConnectionConfig) => {
 
 export const estimatedRowCount = <TableName extends string>(
   config: ConnectionConfig,
-  ...tables: TableName[]
+  ...tables: Array<TableName>
 ) => {
   const tablesSQL = tables.map((name) => `"${name}"`).join(",");
 
@@ -417,7 +419,7 @@ export const estimatedRowCount = <TableName extends string>(
 
 export const estimatedRowCountObj = <TableName extends string>(
   config: ConnectionConfig,
-  ...tables: TableName[]
+  ...tables: Array<TableName>
 ) =>
   estimatedRowCount(config, ...tables).then((rows) =>
     rows.reduce((acc, { tableName, count }) => {

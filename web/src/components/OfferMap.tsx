@@ -1,5 +1,6 @@
 import { Omit } from "framer-motion/types/types";
 import { Bounds } from "pigeon-maps";
+import React from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -11,7 +12,7 @@ import { useConnectionState } from "@/view/hooks/hooks";
 
 const MAX_OFFERS = 1000;
 
-const useCells = (bounds: Bounds, callback: (cells: Offer[]) => void) => {
+const useCells = (bounds: Bounds, callback: (cells: Array<Offer>) => void) => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
 

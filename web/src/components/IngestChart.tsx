@@ -9,7 +9,7 @@ import {
 } from "@visx/xychart";
 import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 import { format } from "d3-format";
-import { useCallback, useMemo, useRef } from "react";
+import React from "react";
 import useSWR from "swr";
 
 import { Loader } from "@/components/customcomponents/loader/Loader";
@@ -21,14 +21,14 @@ const SI_FORMAT = format("~s");
 
 export const useIngestChartData = <TableName extends string>(
   config: ConnectionConfig,
-  ...tables: TableName[]
+  ...tables: Array<TableName>
 ) => {
   type ReturnType = { [name in TableName]: Timeseries };
-  const emptyCache = useMemo(
+  const emptyCache = React.useMemo(
     () => tables.reduce((a, n) => ({ ...a, [n]: [] }), {} as ReturnType),
     [tables]
   );
-  const cache = useRef<ReturnType>(emptyCache);
+  const cache = React.useRef<ReturnType>(emptyCache);
 
   const { data } = useSWR(
     ["estimatedRowCount.timeseries", ...tables],
@@ -68,9 +68,9 @@ export const IngestChart = <TableName extends string>({
   ...props
 }: Props<TableName>) => {
   const { colorMode } = useColorMode();
-  const tables = Object.keys(data) as TableName[];
+  const tables = Object.keys(data) as Array<TableName>;
 
-  const renderTooltip = useCallback(
+  const renderTooltip = React.useCallback(
     ({ tooltipData, colorScale }: RenderTooltipParams<TimeseriesPoint>) => {
       if (!colorScale || !tooltipData) {
         return null;
@@ -93,7 +93,7 @@ export const IngestChart = <TableName extends string>({
     [tables]
   );
 
-  const yTickFormat = useCallback(
+  const yTickFormat = React.useCallback(
     (v: number) => SI_FORMAT(v).replace("G", "B"),
     []
   );
@@ -101,7 +101,7 @@ export const IngestChart = <TableName extends string>({
   if (tables.some((name) => data[name].length < 2)) {
     return (
       <Center height={props.height}>
-        <Loader size="small" centered={true} />
+        <Loader size="small" centered />
       </Center>
     );
   }

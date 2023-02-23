@@ -22,7 +22,7 @@ import {
 const getSelectedCitiesFromDatabase = async (
   config: ConnectionConfig,
   setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>,
-  setCities: React.Dispatch<React.SetStateAction<City[]>>,
+  setCities: React.Dispatch<React.SetStateAction<Array<City>>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
   setIsUpdating(true);
@@ -39,7 +39,7 @@ const addCityToDatabase = async (
   config: ConnectionConfig,
   point: [number, number],
   setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>,
-  setCities: React.Dispatch<React.SetStateAction<City[]>>,
+  setCities: React.Dispatch<React.SetStateAction<Array<City>>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
   // The addCityToDatabase will add city with city details in cities table from martech database.
@@ -69,7 +69,7 @@ const removeCityFromDatabase = async (
   config: ConnectionConfig,
   cityId: number,
   setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>,
-  setCities: React.Dispatch<React.SetStateAction<City[]>>,
+  setCities: React.Dispatch<React.SetStateAction<Array<City>>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
   // The removeCityFromDatabase will remove city matching cityID from cities table in martech database.

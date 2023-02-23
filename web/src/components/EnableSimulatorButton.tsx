@@ -6,7 +6,7 @@ import {
   useBoolean,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { useCallback } from "react";
+import React from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 
 import { trackAnalyticsEvent } from "@/analytics";
@@ -26,7 +26,7 @@ export const EnableSimulatorButton = () => {
     () => enablingCtrl.off,
     [enablingCtrl]
   );
-  const onEnableSimulator = useCallback(async () => {
+  const onEnableSimulator = React.useCallback(async () => {
     enablingCtrl.on();
     trackAnalyticsEvent("enable-simulator");
 

@@ -4,7 +4,7 @@ import VENDORS from "@/static-data/vendors.json";
 
 export type Vendor = (typeof VENDORS)[number];
 
-export const randomChoice = <T>(arr: readonly T[]): T =>
+export const randomChoice = <T>(arr: ReadonlyArray<T>): T =>
   arr[Math.floor(Math.random() * arr.length)];
 
 export const randomFloatInRange = (min: number, max: number) =>

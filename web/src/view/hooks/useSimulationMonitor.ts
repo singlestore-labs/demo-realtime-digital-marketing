@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import React from "react";
 import { useRecoilValue } from "recoil";
 
 import {
@@ -19,7 +19,7 @@ export const useSimulationMonitor = (enabled: boolean) => {
   const { initialized } = useConnectionState();
   const { session } = useSession();
 
-  const monitorTick = useCallback(
+  const monitorTick = React.useCallback(
     (ctx: AbortController) => {
       const cfgWithCtx = { ...config, ctx };
       return Promise.all([

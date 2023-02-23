@@ -6,6 +6,7 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
+import React from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -85,5 +86,5 @@ export const Stats = () => {
         />
       </SimpleGrid>
     );
-  } else return <Loader size="small" centered={true} />;
+  } else return <Loader size="small" centered />;
 };

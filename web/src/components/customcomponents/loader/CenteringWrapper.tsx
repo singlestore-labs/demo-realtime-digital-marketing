@@ -1,8 +1,8 @@
-import "@/components/customcomponents/loader/centering-wrapper.scss";
-
 import { Box } from "@chakra-ui/react";
 import classnames from "classnames";
 import * as React from "react";
+
+import "@/components/customcomponents/loader/centering-wrapper.scss";
 
 type Props = {
   className?: string;

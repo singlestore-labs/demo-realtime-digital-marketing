@@ -5,7 +5,7 @@ export type ScaleFactor = {
   partitions: number;
 };
 
-export const ScaleFactors: ScaleFactor[] = [
+export const ScaleFactors: Array<ScaleFactor> = [
   {
     name: "micro",
     maxRows: 1_000_000,

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React from "react";
 import { useLocation } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
@@ -21,18 +21,18 @@ export function useAnalytics() {
   const { connectionType } = useConnectionState();
   const [userID, setUserID] = useRecoilState(userSessionID);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const { pathname } = location;
     trackAnalyticsEvent("change-page", { pathname });
   }, [location]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (connectionType) {
       trackAnalyticsEvent("connection-successful", { connectionType });
     }
   }, [connectionType]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (window.analytics) {
       window.analytics.identify(userID);
     } else {
