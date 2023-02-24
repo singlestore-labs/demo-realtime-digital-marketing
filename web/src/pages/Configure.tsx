@@ -889,6 +889,13 @@ const MatchingSection = ({
 const CompleteToast = () => {
   const database = useRecoilValue(connectionDatabase);
   const navigate = useNavigate();
+  const defaultFontTheme = useColorModeValue("white", "black");
+  const linkStyle: React.CSSProperties = {
+    fontWeight: "bold",
+    color: defaultFontTheme,
+    textDecoration: "underline",
+    cursor: "pointer",
+  }
 
   return (
     <Flex
@@ -900,12 +907,11 @@ const CompleteToast = () => {
       padding="20px 25px 10px 10px"
       gap={5}
       borderRadius="10px"
-      background="#4F34C7"
-      color="white"
+      background={useColorModeValue("#553ACF", "#CCC3F9")}
     >
-      <CheckCircleIcon margin="15px" fontSize="lg" />
+      <CheckCircleIcon color={defaultFontTheme} margin="15px" fontSize="lg" />
       <Box
-        color="white"
+        color={defaultFontTheme}
         style={{ lineHeight: "28px", fontWeight: 400, fontSize: "16px" }}
       >
         <Heading size="sm">Great Job!</Heading>
@@ -913,15 +919,11 @@ const CompleteToast = () => {
         <Text>
           The applications is up and running. Explore it further by:
           <ul style={{ listStylePosition: "inside" }}>
-            <li>
+            <li >
               Adding or removing location from{" "}
               <a
                 onClick={() => navigate("/dashboard")}
-                style={{
-                  fontWeight: "bold",
-                  color: "white",
-                  cursor: "pointer",
-                }}
+                style={linkStyle}
               >
                 Dashboard
               </a>
@@ -930,11 +932,7 @@ const CompleteToast = () => {
               Inspect engagement under{" "}
               <a
                 onClick={() => navigate("/analytics")}
-                style={{
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  color: "white",
-                }}
+                style={linkStyle}
               >
                 Analytics
               </a>
@@ -944,8 +942,7 @@ const CompleteToast = () => {
               <Link
                 href="https://portal.singlestore.com"
                 isExternal
-                color="white"
-                fontWeight="bold"
+                style={linkStyle}
               >
                 {database}
               </Link>{" "}

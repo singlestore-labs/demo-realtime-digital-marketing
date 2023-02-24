@@ -1,4 +1,4 @@
-import { SimpleGrid, Stack, Text, Tooltip } from "@chakra-ui/react";
+import { SimpleGrid, Stack, Text, toast, Tooltip, useToast } from "@chakra-ui/react";
 import React from "react";
 import { Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
@@ -13,6 +13,8 @@ import {
 } from "@/data/recoil";
 
 import { PrimaryButton } from "../customcomponents/Button";
+import useSWR from "swr";
+import { isConnected } from "@/data/queries";
 
 type Props = {
   showDatabase?: boolean;
@@ -27,6 +29,7 @@ export const DatabaseConfigFormManual = ({
   const [user, setUser] = useRecoilState(connectionUser);
   const [password, setPassword] = useRecoilState(connectionPassword);
   const [database, setDatabase] = useRecoilState(connectionDatabase);
+  const toast = useToast();
 
   const [localHost, setLocalHost] = React.useState(host);
   const [localUser, setLocalUser] = React.useState(user);
@@ -34,10 +37,22 @@ export const DatabaseConfigFormManual = ({
   const [localDatabase, setLocalDatabase] = React.useState(database);
 
   const connect = () => {
-    setHost(localHost);
-    setUser(localUser);
-    setPassword(localPassword);
-    setDatabase(localDatabase || "martech");
+    const config = { host: localHost, password: localPassword, user: localUser }
+    isConnected(config).then((connected) => {
+      if (connected) {
+        setHost(localHost);
+        setUser(localUser);
+        setPassword(localPassword);
+        setDatabase(localDatabase || "martech");
+      } else {
+        toast({
+          title: "There was an error connecting to your database. Please check your credentials and try again",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    });
   };
 
   const connectDisabled =

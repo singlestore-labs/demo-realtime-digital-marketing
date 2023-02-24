@@ -26,7 +26,7 @@ import { NotificationsMap } from "@/pages/Dashboard";
 import { HomePage } from "@/pages/HomePage";
 import { useConnectionState } from "@/view/hooks/hooks";
 
-import { redirectToHomePage } from "./data/recoil";
+import { redirectToHomePage, showWelcomeMessage } from "./data/recoil";
 
 const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
   children,
@@ -61,6 +61,7 @@ const RoutesBlock = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { colorMode } = useColorMode();
+  const [welcomeMessage, setwelcomeMessage] = useRecoilState(showWelcomeMessage);
 
   const ToastDescriptionComponent = () => {
     return (
@@ -92,7 +93,7 @@ const RoutesBlock = () => {
 
   React.useEffect(() => {
     // Welcome message toast on successfully connecting to singlestore for the first time.
-    if (!redirect) {
+    if (!redirect && welcomeMessage) {
       toast({
         title: "Hello there!",
         description: <ToastDescriptionComponent />,
@@ -107,6 +108,7 @@ const RoutesBlock = () => {
           zIndex: 10,
         },
       });
+      setwelcomeMessage(false);
     }
   }, [redirect, toast, colorMode]);
 

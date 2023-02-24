@@ -79,7 +79,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
       if (error instanceof SQLError) {
         info = (
           <>
-            <Text textAlign="center">
+            <Text textAlign="center" zIndex={10}>
               An error occurred while running the following query:
             </Text>
             <CodeBlock>{dedent(error.sql)}</CodeBlock>
