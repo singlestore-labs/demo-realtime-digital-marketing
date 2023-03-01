@@ -368,7 +368,6 @@ const StatWrapper = ({
   helpText?: string;
   colSpan?: number;
 }) => {
-
   let helpTextConatiner;
   if (helpText) {
     helpTextConatiner = <StatHelpText>{helpText}</StatHelpText>;
