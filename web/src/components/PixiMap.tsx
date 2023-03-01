@@ -247,10 +247,10 @@ const CitySelectionDropdown: React.FC<{
       setDropdownDisabledMsg("Please configure connection to change map city");
     } else if (selectedCities.length <= 0) {
       setDropdownDisabledMsg(
-        "You need to select atleast one city from dashboard's Locations section"
+        "You need to select at least one city from dashboard's locations section"
       );
     } else if (isUpdating) {
-      setDropdownDisabledMsg("City list is updating please wait");
+      setDropdownDisabledMsg("City list is updating, please wait");
     }
   }, [connected, isUpdating, selectedCities]);
 
@@ -317,13 +317,16 @@ export const PixiMap = <T,>({
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [lastSelectedCityDetails, setLastSelectedCityDetails] =
     React.useState<City>();
-  const [centerValue, setCenterValue] = React.useState<[number, number]>(
-    (lastSelectedCityDetails && [
+
+  let initialPosition = DEFAULT_CENTER;
+  if (lastSelectedCityDetails) {
+    initialPosition = [
       lastSelectedCityDetails.centerLat,
       lastSelectedCityDetails.centerLon,
-    ]) ||
-      DEFAULT_CENTER
-  );
+    ];
+  }
+  const [centerValue, setCenterValue] =
+    React.useState<[number, number]>(initialPosition);
   const [mapZoom, setMapZoom] = React.useState(zoom);
 
   let citySelectionDropdown;
@@ -336,6 +339,17 @@ export const PixiMap = <T,>({
       />
     );
   }
+
+  const handleBoundsChange = ({
+    center,
+    zoom,
+  }: {
+    center: [number, number];
+    zoom: number;
+  }) => {
+    setMapZoom(zoom);
+    setCenterValue(center);
+  };
 
   React.useEffect(() => {
     setLastSelectedCityDetails(
@@ -360,13 +374,11 @@ export const PixiMap = <T,>({
           dprs={[1, 2]}
           provider={stamenProvider("toner-lite")}
           attribution={stamenAttribution}
-          maxZoom={20}
-          onBoundsChanged={({ center, zoom }) => {
-            setCenterValue(center);
-            setMapZoom(zoom);
-          }}
+          maxZoom={18}
+          minZoom={5}
+          onBoundsChanged={handleBoundsChange}
           center={defaultCenter || centerValue}
-          zoom={mapZoom}
+          defaultZoom={mapZoom}
         >
           <RequiresInitLayer useRenderer={useRenderer} options={options} />
         </Map>

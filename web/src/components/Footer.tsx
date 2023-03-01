@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { GithubIcon, LinkedinIcon, TwitterIcon } from "./IconLinks";
 
 const SocialMediaSection = () => {
-  const handleRedirects = (
+  const handleRedirect = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
     window.open(e.currentTarget.value, "_blank");
@@ -15,16 +15,16 @@ const SocialMediaSection = () => {
     <Flex direction="row" gap={8} fontWeight="bold" fontSize="0.85em">
       <Flex direction="row" gap={1} justifyContent="center" alignItems="center">
         <Text>Repository</Text>
-        <GithubIcon size="sm" onClick={handleRedirects} />
+        <GithubIcon size="sm" onClick={handleRedirect} />
       </Flex>
 
       <Flex direction="row" gap={1} justifyContent="center" alignItems="center">
         <Text>Share on</Text>
-        <TwitterIcon size="sm" onClick={handleRedirects} />
+        <TwitterIcon size="sm" onClick={handleRedirect} />
         <LinkedinIcon
           aria-label="Github Repo"
           size="sm"
-          onClick={handleRedirects}
+          onClick={handleRedirect}
         />
       </Flex>
     </Flex>

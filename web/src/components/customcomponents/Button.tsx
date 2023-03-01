@@ -1,4 +1,4 @@
-import { Button, ButtonProps, useColorMode } from "@chakra-ui/react";
+import { Button, ButtonProps, useColorModeValue } from "@chakra-ui/react";
 import * as React from "react";
 
 // To make primaryt consistant everywhere we will not allow user to change color theme.
@@ -9,18 +9,11 @@ type customButtonProps = Omit<
 >;
 
 export const PrimaryButton = (props: customButtonProps) => {
-  const { colorMode } = useColorMode();
-  let background = "#ECE8FD";
-  let color = "#553ACF";
-  if (colorMode === "dark") {
-    background = "#2F206E";
-    color = "#ECE8FD";
-  }
   return (
     <Button
       style={{
-        color,
-        background,
+        color: useColorModeValue("#553ACF", "#ECE8FD"),
+        background: useColorModeValue("#ECE8FD", "#2F206E"),
       }}
       {...props}
     />

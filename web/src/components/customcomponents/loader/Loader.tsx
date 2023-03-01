@@ -15,7 +15,6 @@ type Props = {
 };
 
 function SvgSmall() {
-  // must match up with the variables in loading.scss!
   const svgSize = 16;
   const strokeWidth = 2;
 

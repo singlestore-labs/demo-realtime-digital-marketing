@@ -93,7 +93,7 @@ const CollapsibleSection = ({
   containerStyle,
   childContainerStyle,
 }: {
-  title: string | React.ReactElement;
+  title: React.ReactNode;
   childComponent: React.ReactElement;
   disabled: boolean;
   buttonStyle: React.CSSProperties;
@@ -960,7 +960,7 @@ const CompleteToast = () => {
   );
 };
 
-export const Overview = () => {
+export const Configure = () => {
   const config = useRecoilValue(connectionConfig);
   const scaleFactor = useRecoilValue(configScaleFactor);
   const { connected, initialized } = useConnectionState();

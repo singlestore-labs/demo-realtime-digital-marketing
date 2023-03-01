@@ -1,13 +1,18 @@
 import { Box, Text, useColorModeValue } from "@chakra-ui/react";
 import * as React from "react";
+import { useRecoilState } from "recoil";
 
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
+import { connectionDatabase } from "@/data/recoil";
 
 export const SetupDatabaseButton: React.FC = () => {
+  const [databaseName] = useRecoilState(connectionDatabase);
+
   return (
     <Box>
       <Text>
-        Setup database from configuration page to use the application.
+        You don't have database ${databaseName}. Please setup the schema for
+        this application.
       </Text>
       <br />
       <ResetSchemaButton

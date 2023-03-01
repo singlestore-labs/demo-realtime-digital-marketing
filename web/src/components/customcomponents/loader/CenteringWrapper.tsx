@@ -10,8 +10,6 @@ type Props = {
   children: React.ReactNode;
 };
 
-// Wraps an element such as a FeatureCard on pages that display only one or a few prominently centered components as
-// content.
 export class CenteringWrapper extends React.Component<Props> {
   render() {
     const { className, vertical, children } = this.props;

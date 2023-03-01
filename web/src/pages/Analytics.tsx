@@ -351,7 +351,7 @@ export const AnalyticsDashboard = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   return (
-    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="5%">
+    <Container maxW={isSmallScreen ? undefined : "75%"} mt={10} mb="5%">
       <DashboardContainerChild />
     </Container>
   );

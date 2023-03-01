@@ -137,13 +137,13 @@ export const Nav = () => {
     </>
   );
 
-  const handleLinkRedirects = (
+  const handleLinkRedirect = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
     window.open(e.currentTarget.value, "_blank");
   };
 
-  const handleHamburgerNavMenu = () => {
+  const renderHamburgerNavMenu = () => {
     if (handleNavMenu.isOpen) {
       return (
         <Box pb={4} display={{ md: "none" }}>
@@ -172,7 +172,7 @@ export const Nav = () => {
       >
         <Container
           maxW="inherit"
-          padding={!isSmallScreen ? "0 12.5% 0 12.5%" : undefined}
+          padding={isSmallScreen ? undefined : "0 12.5% 0 12.5%"}
         >
           <Flex
             h={16}
@@ -229,7 +229,7 @@ export const Nav = () => {
                       background="transparent"
                       _hover={{ background: "transparent" }}
                       size="md"
-                      onClick={handleLinkRedirects}
+                      onClick={handleLinkRedirect}
                     />
                   </MenuItem>
                   <MenuItem p={0} m={0} width="100%" justifyContent="center">
@@ -237,7 +237,7 @@ export const Nav = () => {
                       background="transparent"
                       _hover={{ background: "transparent" }}
                       size="md"
-                      onClick={handleLinkRedirects}
+                      onClick={handleLinkRedirect}
                     />
                   </MenuItem>
                 </MenuList>
@@ -251,7 +251,7 @@ export const Nav = () => {
             </Flex>
           </Flex>
 
-          {handleHamburgerNavMenu()}
+          {renderHamburgerNavMenu()}
         </Container>
       </Box>
     </>

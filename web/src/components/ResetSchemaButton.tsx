@@ -43,7 +43,7 @@ export const ResetSchemaButton = (props: Props) => {
   const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
   const { skipSeedData, resetDataOnly, disabled, ...restProps } = props;
 
-  let resetButtonChild: string | React.ReactElement = "Create Database";
+  let resetButtonChild: React.ReactNode = "Create Database";
   if (resettingSchema) {
     resetButtonChild = <Loader size="small" />;
   } else if (initialized) {

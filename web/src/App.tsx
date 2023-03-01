@@ -17,7 +17,7 @@ import { Loader } from "@/components/customcomponents/loader/Loader";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/navBar/Nav";
 import { AnalyticsDashboard } from "@/pages/Analytics";
-import { Overview } from "@/pages/Configure";
+import { Configure } from "@/pages/Configure";
 import { NotificationsMap } from "@/pages/Dashboard";
 import { HomePage } from "@/pages/HomePage";
 import { useConnectionState } from "@/view/hooks/hooks";
@@ -100,9 +100,7 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
   return (
     <>
       <WelcomeMessageToast />
-      <Nav />
       {children}
-      <Footer />
     </>
   );
 };
@@ -120,16 +118,7 @@ const RoutesBlock = () => {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/configure"
-          element={
-            <>
-              <Nav />
-              <Overview />
-              <Footer />
-            </>
-          }
-        />
+        <Route path="/configure" element={<Configure />} />
         <Route
           path="/analytics"
           element={
@@ -141,6 +130,22 @@ const RoutesBlock = () => {
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Box>
+  );
+};
+
+const NavAndFootersWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { connected } = useConnectionState();
+
+  if (!connected) {
+    return <>{children}</>;
+  }
+
+  return (
+    <>
+      <Nav />
+      {children}
+      <Footer />
+    </>
   );
 };
 
@@ -160,9 +165,9 @@ const App = () => {
     <React.Suspense fallback={loadingFallback}>
       <Analytics>
         <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
-          {/* <LayoutContainer> */}
-          <RoutesBlock />
-          {/* </LayoutContainer> */}
+          <NavAndFootersWrapper>
+            <RoutesBlock />
+          </NavAndFootersWrapper>
         </Flex>
       </Analytics>
     </React.Suspense>

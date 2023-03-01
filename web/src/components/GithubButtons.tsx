@@ -2,27 +2,28 @@ import { Flex, useColorModeValue } from "@chakra-ui/react";
 import * as React from "react";
 import { BsGithub } from "react-icons/bs";
 
-export interface IPropTypes {
+export interface GithubStargazerProps {
   owner: string;
   repo: string;
   color?: string;
 }
 
-export const GithubStargazer: React.FC<IPropTypes> = ({ owner, repo }) => {
+export const GithubStargazer: React.FC<GithubStargazerProps> = ({
+  owner,
+  repo,
+}) => {
   const [stargazersCount, setStargazersCount] = React.useState(0);
 
-  const handleFlexRedirects = () => {
+  const handleFlexRedirect = () => {
     window.open(`https://github.com/${owner}/${repo}`, "_blank");
   };
 
-  React.useEffect(() => {
-    const getCount = async () => {
-      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
-      const resJson = await res.json();
-      setStargazersCount(resJson.stargazers_count);
-    };
-    getCount();
-  }, [owner, repo]);
+  const getStarCount = async () => {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+    const resJson = await res.json();
+    setStargazersCount(resJson.stargazers_count);
+  };
+  getStarCount();
 
   return (
     <Flex
@@ -31,7 +32,7 @@ export const GithubStargazer: React.FC<IPropTypes> = ({ owner, repo }) => {
       gap={0}
       margin={0}
       padding={0}
-      onClick={handleFlexRedirects}
+      onClick={handleFlexRedirect}
     >
       <Flex
         gap={0}
