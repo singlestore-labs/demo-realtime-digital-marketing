@@ -29,7 +29,6 @@ import {
   ModalHeader,
   ModalOverlay,
   SimpleGrid,
-  Spinner,
   Stack,
   Text,
   useBoolean,
@@ -37,7 +36,7 @@ import {
   useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
@@ -144,6 +143,12 @@ const Section = ({
   right: React.ReactNode;
 }) => {
   const { colorMode } = useColorMode();
+  const activeSection = completed || previousStepCompleted;
+
+  let sectionIcon = <CheckCircleIcon />;
+  if (!completed) {
+    sectionIcon = <WarningIcon />;
+  }
 
   const collapsibleSectionStyle = {
     opacity: 1,
@@ -151,17 +156,6 @@ const Section = ({
     background: "transparent",
     color: "#E6E5EA",
   };
-
-  if (!completed && !previousStepCompleted) {
-    collapsibleSectionStyle.opacity = 0.4;
-  }
-
-  let sectionIcon = <CheckCircleIcon />;
-
-  if (!completed) {
-    sectionIcon = <WarningIcon />;
-  }
-
   if (colorMode === "light") {
     collapsibleSectionStyle.border = "1px solid #ECE8FD";
     if (completed) {
@@ -181,6 +175,10 @@ const Section = ({
       collapsibleSectionStyle.background = "#2F206E";
       collapsibleSectionStyle.color = "#CCC3F9";
     }
+  }
+
+  if (!activeSection) {
+    collapsibleSectionStyle.opacity = 0.4;
   }
 
   return (
@@ -205,8 +203,8 @@ const Section = ({
       }}
       childContainerStyle={{
         padding: "10px",
-        opacity: previousStepCompleted ? 1 : 0.5,
-        pointerEvents: previousStepCompleted ? undefined : "none",
+        opacity: activeSection ? 1 : 0.5,
+        pointerEvents: activeSection ? undefined : "none",
       }}
     />
   );
@@ -217,7 +215,7 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
     <>
       <Section
         completed={connected}
-        title="Connect to SingleStore"
+        title="Connect to SingleStoreDB"
         previousStepCompleted
         left={
           <Text>
@@ -372,6 +370,7 @@ const SchemaSection = ({
               A schema includes a database, tables and views to store all the
               data. Use the tags to create the schema.
             </Text>
+            <br />
             <ConfigHeader configInitialized={initialized} />
           </>
         }
@@ -440,7 +439,7 @@ const usePipelineStatus = (
   );
   const completed =
     !!pipelines.data &&
-    !!pipelines.data.length &&
+    pipelines.data.length > 0 &&
     pipelines.data.every((p) => !p.needsUpdate);
   return { pipelines, completed };
 };
@@ -528,9 +527,17 @@ const PipelinesSection = ({
           {" "}
           SingleStore.{" "}
         </Link>
-        You can view the schema of each pipeline via the following buttons:
+        Pipelines and{" "}
+        <Link href="https://aws.amazon.com/s3/" target="_blank">
+          AWS S3
+        </Link>
+        .
+        <br />
+        <br />
+        View the pipelines for the following schemas:
       </Text>
-      <SimpleGrid columns={[1, 3, 3]} gap={1}>
+      <br />
+      <SimpleGrid columns={[1, 3, 3]} gap={3}>
         {pipelineNames.map((name) => (
           <SchemaItem
             key={name}
@@ -612,15 +619,15 @@ const OffersSection = ({
     );
   } else {
     loadButton = (
-      <PrimaryButton onClick={onSeedData} disabled={working}>
-        {working && <Spinner mr={2} />}
+      <PrimaryButton onClick={onSeedData} disabled={working} gap={2}>
+        {working && <Loader size="small" />}
         {loadButtonText}
       </PrimaryButton>
     );
     loadOffersButton = (
       <Text>
         <br />
-        {`Press the "load offers" button on the right to create some
+        {`Press the "load offers" button to create some
           sample offers in New York City.`}
       </Text>
     );
@@ -642,6 +649,7 @@ const OffersSection = ({
           </Text>
           {loadOffersButton}
           {mapInfoContent}
+          <br />
           {loadButton}
         </>
       }
@@ -735,18 +743,24 @@ const SegmentationSection = ({
             the last day” or “visited the grocery store in the last week”. While
             segments could be evaluated dynamically when matching offers to
             subscribers, this would waste compute time since segment memberships
-            rarely change. Instead SingleStore periodically caches the mapping
-            between subscribers and segments for faster results.
+            rarely change.
             <br />
-            Click the button to run the update interactively, or run the
-            following query in your favorite SQL client:
+            <br />
+            Instead SingleStore periodically caches the mapping between
+            subscribers and segments for faster results.
+            <br />
+            <br />
+            Run the following query to match subscribers to segments.
           </Text>
           <br />
           <PrimaryButton disabled={isRunning} onClick={onClick}>
             {isRunning && <Loader size="small" />}&nbsp;
-            {isRunning ? " running..." : "Match subscribers to segments"}
+            {isRunning ? " running..." : "Match them"}
           </PrimaryButton>
+          <br />
+          <br />
           {workEstimate}
+          <br />
           {warmingAlert}
         </>
       }
@@ -841,20 +855,16 @@ const MatchingSection = ({
       left={
         <>
           <Text>
-            {`
-              Now that we have offers and have assigned subscribers to segments,
-              we are finally able to deliver ads to subscribers as push
-              notifications. In this demo, rather than actually sending
-              notifications we will insert them into a table called
-              "notifications".`}
+            With offers and subscriber segments defined, let’s deliver ads as
+            push notifications. For this demo, notifications are inserted into a
+            table called “notifications”.
             <br />
-            {`
-              Click the button to generate notifications interactively, or run the
-              following query in your favorite SQL client:`}
+            <br />
+            Run the following query to generate notifications.
           </Text>
           <br />
-          <PrimaryButton disabled={isRunning} onClick={onClick}>
-            {isRunning && <Spinner mr={2} />}
+          <PrimaryButton disabled={isRunning} onClick={onClick} gap={2}>
+            {isRunning && <Loader size="small" />}
             {isRunning ? "...running" : "Generate notifications"}
           </PrimaryButton>
         </>
@@ -879,6 +889,7 @@ const MatchingSection = ({
             />
           </Flex>
           {workEstimate}
+          <br />
           {warmingAlert}
         </Flex>
       }
@@ -895,7 +906,7 @@ const CompleteToast = () => {
     color: defaultFontTheme,
     textDecoration: "underline",
     cursor: "pointer",
-  }
+  };
 
   return (
     <Flex
@@ -919,21 +930,15 @@ const CompleteToast = () => {
         <Text>
           The applications is up and running. Explore it further by:
           <ul style={{ listStylePosition: "inside" }}>
-            <li >
+            <li>
               Adding or removing location from{" "}
-              <a
-                onClick={() => navigate("/dashboard")}
-                style={linkStyle}
-              >
+              <a onClick={() => navigate("/dashboard")} style={linkStyle}>
                 Dashboard
               </a>
             </li>
             <li>
               Inspect engagement under{" "}
-              <a
-                onClick={() => navigate("/analytics")}
-                style={linkStyle}
-              >
+              <a onClick={() => navigate("/analytics")} style={linkStyle}>
                 Analytics
               </a>
             </li>
@@ -992,7 +997,7 @@ export const Overview = () => {
       ),
     },
     {
-      completed: tableCounts ? tableCounts.offers > 0 : false,
+      completed: (tableCounts && tableCounts.offers > 0) || false,
       component: (
         <OffersSection
           key="offers"
@@ -1001,21 +1006,23 @@ export const Overview = () => {
       ),
     },
     {
-      completed: tableCounts ? tableCounts.subscriber_segments > 0 : false,
+      completed: (tableCounts && tableCounts.subscriber_segments > 0) || false,
       component: (
         <SegmentationSection
           key="segmentation"
-          previousStepCompleted={tableCounts ? tableCounts.offers > 0 : false}
+          previousStepCompleted={
+            (tableCounts && tableCounts.offers > 0) || false
+          }
         />
       ),
     },
     {
-      completed: tableCounts ? tableCounts.notifications > 0 : false,
+      completed: (tableCounts && tableCounts.notifications > 0) || false,
       component: (
         <MatchingSection
           key="matching"
           previousStepCompleted={
-            tableCounts ? tableCounts.subscriber_segments > 0 : false
+            (tableCounts && tableCounts.subscriber_segments > 0) || false
           }
         />
       ),
@@ -1044,12 +1051,9 @@ export const Overview = () => {
         <Stack spacing={2}>
           <Heading fontSize="md">Application set up</Heading>
           <Text size="xs" overflowWrap="break-word">
-            Connect to a SingleStoreDB workspace to see how{" "}
-            <Link href="https://portal.singlestore.com" isExternal>
-              SingleStoreDB
-            </Link>{" "}
-            can power the Real-time Digital Marketing applications. If you have
-            any questions or issues, please file an issue on the{" "}
+            Connect to a SingleStoreDB workspace to see how we power the
+            Real-time Digital Marketing applications. If you have any questions
+            or issues, please file an issue on the{" "}
             <Link
               href="https://github.com/singlestore-labs/demo-realtime-digital-marketing"
               isExternal

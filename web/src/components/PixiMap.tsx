@@ -180,7 +180,8 @@ const CitySelectionDropdown: React.FC<{
   const { colorMode } = useColorMode();
   const [isUpdating] = useRecoilState(isUpdatingCities);
   const { connected } = useConnectionState();
-  const [, setLastSelectedCityId] = useRecoilState(selectedCity);
+  const [_lastSelectedCityId, setLastSelectedCityId] =
+    useRecoilState(selectedCity);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
   const [dropdownDisabled, setDropdownDisabled] =
@@ -291,13 +292,14 @@ const CitySelectionDropdown: React.FC<{
 };
 
 export type PixiMapProps<T> = {
+  options: T;
   useRenderer: UsePixiRenderer<T>;
   height?: number | string;
   selectionDropdownTop?: React.CSSProperties["top"];
   selectionDropdownLeft?: React.CSSProperties["left"];
   defaultCenter?: [number, number] | undefined;
   showCitySelectionDropDown?: boolean;
-  options: T;
+  zoom?: number;
 } & BoxProps;
 
 export const PixiMap = <T,>({
@@ -307,6 +309,7 @@ export const PixiMap = <T,>({
   showCitySelectionDropDown = true,
   defaultCenter,
   useRenderer,
+  zoom = DEFAULT_ZOOM,
   options,
   ...rest
 }: PixiMapProps<T>) => {
@@ -321,7 +324,7 @@ export const PixiMap = <T,>({
     ]) ||
       DEFAULT_CENTER
   );
-  const [zoom, setZoom] = React.useState(DEFAULT_ZOOM);
+  const [mapZoom, setMapZoom] = React.useState(zoom);
 
   let citySelectionDropdown;
   if (showCitySelectionDropDown) {
@@ -360,10 +363,10 @@ export const PixiMap = <T,>({
           maxZoom={20}
           onBoundsChanged={({ center, zoom }) => {
             setCenterValue(center);
-            setZoom(zoom);
+            setMapZoom(zoom);
           }}
           center={defaultCenter || centerValue}
-          zoom={zoom}
+          zoom={mapZoom}
         >
           <RequiresInitLayer useRenderer={useRenderer} options={options} />
         </Map>

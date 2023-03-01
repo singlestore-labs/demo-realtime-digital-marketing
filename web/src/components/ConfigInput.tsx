@@ -4,7 +4,7 @@ import {
   FormLabel,
   Input,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 
 type ConfigInputProps = {
   label: string;

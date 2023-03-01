@@ -1,5 +1,5 @@
 import { FormControl, FormLabel, Select } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { useRecoilState } from "recoil";
 
 import { configScaleFactor } from "@/data/recoil";

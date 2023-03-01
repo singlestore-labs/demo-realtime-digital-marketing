@@ -1,7 +1,7 @@
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
 import { Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import React from "react";
+import * as React from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 

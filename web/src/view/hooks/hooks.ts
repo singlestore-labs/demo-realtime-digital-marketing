@@ -1,5 +1,5 @@
 import { useToast } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import useSWR, { useSWRConfig } from "swr";
 
@@ -195,11 +195,17 @@ export const useResetSchema = ({
           toast.update(id, {
             title,
             status,
-            duration: status === "success" ? 2000 : null,
+            duration: status === "success" ? 2000 : 7000,
             isClosable: true,
           });
         } else {
-          toast({ id, title, status, duration: null });
+          toast({
+            id,
+            title,
+            status,
+            isClosable: true,
+            duration: status === "success" ? 2000 : 7000,
+          });
         }
       },
       includeSeedData,

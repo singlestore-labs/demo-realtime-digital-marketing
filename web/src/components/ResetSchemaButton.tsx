@@ -13,10 +13,11 @@ import {
   useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { useRecoilValue } from "recoil";
 
 import { Loader } from "@/components/customcomponents/loader/Loader";
+import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 import { connectionDatabase } from "@/data/recoil";
 import {
   useConnectionState,
@@ -34,8 +35,9 @@ export type Props = HTMLChakraProps<"button"> &
   };
 
 export const ResetSchemaButton = (props: Props) => {
+  const { updateCityList } = useUpdateCityList();
   const { connected, initialized } = useConnectionState();
-  const handleResetSchemaDialog = useDisclosure();
+  const { onOpen, onClose, isOpen } = useDisclosure();
   const [resettingSchema, resettingSchemaCtrl] = useBoolean();
   const database = useRecoilValue(connectionDatabase);
   const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
@@ -49,11 +51,15 @@ export const ResetSchemaButton = (props: Props) => {
   }
 
   const onResetSchema = useResetSchema({
-    before: React.useCallback(() => resettingSchemaCtrl.on(), [resettingSchemaCtrl]),
+    before: React.useCallback(
+      () => resettingSchemaCtrl.on(),
+      [resettingSchemaCtrl]
+    ),
     after: useMountedCallback(() => {
       resettingSchemaCtrl.off();
-      handleResetSchemaDialog.onClose();
-    }, [handleResetSchemaDialog, resettingSchemaCtrl]),
+      updateCityList();
+      onClose();
+    }, [onClose, resettingSchemaCtrl]),
     includeSeedData: !skipSeedData,
     resetDataOnly: !!resetDataOnly,
   });
@@ -62,13 +68,13 @@ export const ResetSchemaButton = (props: Props) => {
     <>
       <Button
         disabled={!connected || disabled}
-        onClick={handleResetSchemaDialog.onOpen}
+        onClick={onOpen}
         {...restProps}
       />
 
       <AlertDialog
-        isOpen={handleResetSchemaDialog.isOpen}
-        onClose={handleResetSchemaDialog.onClose}
+        isOpen={isOpen}
+        onClose={onClose}
         closeOnEsc={false}
         closeOnOverlayClick={false}
         leastDestructiveRef={cancelResetSchemaBtn}
@@ -88,7 +94,7 @@ export const ResetSchemaButton = (props: Props) => {
                 border="0.5px solid"
                 color={useColorModeValue("#553ACF", "#ECE8FD")}
                 ref={cancelResetSchemaBtn}
-                onClick={handleResetSchemaDialog.onClose}
+                onClick={onClose}
                 disabled={resettingSchema}
               >
                 Cancel

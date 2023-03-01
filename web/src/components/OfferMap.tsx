@@ -1,6 +1,6 @@
 import { Omit } from "framer-motion/types/types";
 import { Bounds } from "pigeon-maps";
-import React from "react";
+import * as React from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 

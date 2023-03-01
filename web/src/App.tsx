@@ -1,9 +1,11 @@
+import { CheckCircleIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   Box,
   Center,
   Flex,
+  Heading,
   Text,
-  useColorMode,
+  useColorModeValue,
   useToast,
 } from "@chakra-ui/react";
 import * as React from "react";
@@ -28,6 +30,65 @@ import { useConnectionState } from "@/view/hooks/hooks";
 
 import { redirectToHomePage, showWelcomeMessage } from "./data/recoil";
 
+const WelcomeMessageToast = () => {
+  const [_welcomeMessage, setwelcomeMessage] =
+    useRecoilState(showWelcomeMessage);
+  const toast = useToast();
+  const defaultFontTheme = useColorModeValue("white", "black");
+
+  const ToastDescriptionComponent = () => {
+    return (
+      <Text style={{ fontWeight: 400, fontSize: "16px" }}>
+        <Heading size="sm">Hello there!</Heading>
+        This is a demo application for an international marketing company
+        serving simulated customer offers to millions of subscribers. You can:
+        <ul style={{ listStylePosition: "inside", listStyleType: "initial" }}>
+          <li>Add or remove locations from Dashboard</li>
+          <li>Inspect engagement under Analytics</li>
+          <li>Change schema settings with Configure</li>
+        </ul>
+      </Text>
+    );
+  };
+
+  const ToastBlock = () => (
+    <Flex
+      direction="row"
+      justifyContent="center"
+      position="relative"
+      alignItems="center"
+      gap="12px"
+      padding="18px"
+      color={defaultFontTheme}
+      borderRadius="10px"
+      background={useColorModeValue("#553ACF", "#CCC3F9")}
+    >
+      <CloseIcon
+        fontSize="xx-small"
+        position="absolute"
+        top="23px"
+        right="23px"
+        cursor="pointer"
+        onClick={() => toast.close("welcomeToast")}
+      />
+      <CheckCircleIcon color={defaultFontTheme} margin="15px" fontSize="lg" />
+      <ToastDescriptionComponent />
+    </Flex>
+  );
+
+  // Welcome message toast on successfully connecting to singlestore for the first time.
+  toast({
+    id: "welcomeToast",
+    duration: 9000,
+    isClosable: true,
+    position: "bottom",
+    render: () => <ToastBlock />,
+  });
+  setwelcomeMessage(false);
+
+  return <></>;
+};
+
 const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
   children,
 }) => {
@@ -37,16 +98,25 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
   if (redirect) {
     return <Navigate to="/" />;
   }
-  return children;
+  return <>{children}</>;
 };
 
 const LayoutContainer = ({ children }: { children: React.ReactElement }) => {
   const redirect = useRecoilValue(redirectToHomePage);
+  const [showFirstWelcome] = useRecoilState(showWelcomeMessage);
+
+  let welcomeMessage = undefined;
+  if (!redirect && showFirstWelcome) {
+    welcomeMessage = <WelcomeMessageToast />;
+  }
+
   if (redirect) {
     return children;
   }
+
   return (
     <>
+      {welcomeMessage}
       <Nav />
       {children}
       <Footer />
@@ -59,27 +129,10 @@ const RoutesBlock = () => {
   const { connected } = useConnectionState();
   const location = useLocation();
   const navigate = useNavigate();
-  const toast = useToast();
-  const { colorMode } = useColorMode();
-  const [welcomeMessage, setwelcomeMessage] = useRecoilState(showWelcomeMessage);
-
-  const ToastDescriptionComponent = () => {
-    return (
-      <Text style={{ lineHeight: "28px", fontWeight: 400, fontSize: "16px" }}>
-        This is a demo application for an international marketing company
-        serving simulated customer offers to millions of subscribers. You can:
-        <ul style={{ listStylePosition: "inside", listStyleType: "initial" }}>
-          <li>Add or remove locations from Dashboard</li>
-          <li>Inspect engagement under Analytics</li>
-          <li>Change schema settings with Configure</li>
-        </ul>
-      </Text>
-    );
-  };
 
   React.useEffect(() => {
     // We will redirect to Home page '/' if user loaded the website for first time in browser and configuration is not set.
-    // Once connection is successful to singlestore it will autoredirect to appropriate page that user was trying to open.
+    // Once the connection to singlestore is successful, it will autoredirect to appropriate page that user was trying to open.
     if (location.pathname !== "/" && !connected && redirect) {
       navigate({
         pathname: "/",
@@ -90,27 +143,6 @@ const RoutesBlock = () => {
       setRedirect(false);
     }
   }, [connected, location.pathname, navigate, redirect, setRedirect]);
-
-  React.useEffect(() => {
-    // Welcome message toast on successfully connecting to singlestore for the first time.
-    if (!redirect && welcomeMessage) {
-      toast({
-        title: "Hello there!",
-        description: <ToastDescriptionComponent />,
-        status: "info",
-        duration: 9000,
-        isClosable: true,
-        containerStyle: {
-          borderRadius: "6px",
-          background: colorMode === "light" ? "#553ACF" : "#CCC3F9",
-          position: "absolute",
-          bottom: "15%",
-          zIndex: 10,
-        },
-      });
-      setwelcomeMessage(false);
-    }
-  }, [redirect, toast, colorMode]);
 
   return (
     <Box flex="1" paddingTop="3px">

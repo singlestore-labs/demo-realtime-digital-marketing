@@ -3,7 +3,7 @@ import {
   IconButtonProps,
   useColorModeValue,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { BsLinkedin } from "react-icons/bs";
 import { VscGithub, VscGithubInverted, VscTwitter } from "react-icons/vsc";
 

@@ -9,7 +9,7 @@ import {
 } from "@visx/xychart";
 import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 import { format } from "d3-format";
-import React from "react";
+import * as React from "react";
 import useSWR from "swr";
 
 import { Loader } from "@/components/customcomponents/loader/Loader";

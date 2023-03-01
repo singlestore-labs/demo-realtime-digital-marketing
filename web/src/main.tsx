@@ -1,5 +1,5 @@
 import { ChakraProvider, IToast, useToast } from "@chakra-ui/react";
-import React, { ReactNode } from "react";
+import * as React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter } from "react-router-dom";
 import { RecoilRoot, useRecoilValue } from "recoil";
@@ -10,7 +10,7 @@ import { ClientErrorBoundary, ErrorBoundary } from "@/components/ErrorHandler";
 import { chakraTheme } from "@/components/theme";
 import { resettingSchema } from "@/data/recoil";
 
-const SWRWrapper = ({ children }: { children: ReactNode }) => {
+const SWRWrapper = ({ children }: { children: React.ReactNode }) => {
   const isResettingSchema = useRecoilValue(resettingSchema);
   const toast = useToast();
   const handleError = (err: Error) => {

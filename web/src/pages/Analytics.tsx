@@ -25,15 +25,15 @@ import {
   useMediaQuery,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
-import { interpolateBuPu } from "d3-scale-chromatic";
+import { interpolatePurples } from "d3-scale-chromatic";
 import { Bounds } from "pigeon-maps";
-import React from "react";
+import * as React from "react";
+import { IconType } from "react-icons";
 import { BsGearFill } from "react-icons/bs";
 import { HiBell, HiOfficeBuilding, HiRefresh } from "react-icons/hi";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
-import { ConnectToSingleStoreButton } from "@/components/ConnectToSinglestoreButton";
 import { Loader } from "@/components/customcomponents/loader/Loader";
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/HeatMap";
@@ -84,7 +84,7 @@ const NotificationZoneMap = () => {
               <Progress
                 colorScheme="transparent"
                 height={2}
-                bgGradient="linear(to-r, rgba(127, 17, 224, 1), white)"
+                bgGradient="linear(to-r, rgba(127, 17, 224, 1) 0%, white 120%)"
                 value={90}
               />
             </Box>
@@ -103,7 +103,7 @@ const NotificationZoneMap = () => {
         <Heatmap
           height={400}
           useCells={useConversionCells}
-          colorInterpolater={interpolateBuPu}
+          colorInterpolater={interpolatePurples}
           getCellConfig={({ conversionRate, wktPolygon }: ZoneMetrics) => ({
             value: conversionRate,
             wktPolygon,
@@ -121,72 +121,35 @@ const DashboardContainerChild = () => {
   useSimulator(enabled);
 
   if (!connected) {
-    return <ConnectToSingleStoreButton />;
-  } else if (!initialized) {
+    window.location.href = "/";
+  }
+
+  if (!initialized) {
     return <SetupDatabaseButton />;
   } else if (!enabled) {
     return <EnableSimulatorButton />;
-  } else
-    return (
-      <Stack gap={10}>
-        <Stack spacing={3}>
-          <Stack spacing={2}>
-            <Heading fontSize="md">Engagement</Heading>
-            <Text overflowWrap="break-word">
-              Conversion rate with subscribers
-            </Text>
-          </Stack>
-          <NotificationZoneMap />
+  }
+  return (
+    <Stack gap={10}>
+      <Stack spacing={3}>
+        <Stack spacing={2}>
+          <Heading fontSize="md">Engagement</Heading>
+          <Text overflowWrap="break-word">
+            Conversion rate with subscribers
+          </Text>
         </Stack>
-        <Stack spacing={3}>
-          <Stack spacing={2}>
-            <Heading fontSize="md">Top Performing Customers</Heading>
-            <Text overflowWrap="break-word">
-              Companies with the highest conversion rate
-            </Text>
-          </Stack>
-          <ConversionTable />
-        </Stack>
+        <NotificationZoneMap />
       </Stack>
-    );
-};
-
-export const AnalyticsDashboard = () => {
-  const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
-
-  return (
-    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="5%">
-      <DashboardContainerChild />
-    </Container>
-  );
-};
-
-const StatWrapper = ({
-  statLabel,
-  statNumber,
-  helpText,
-  colSpan,
-}: {
-  statLabel: string;
-  statNumber: string;
-  helpText?: string;
-  colSpan?: number;
-}) => {
-  return (
-    <GridItem
-      padding="20px"
-      background={useColorModeValue("#ECE8FD", "#2F206E")}
-      borderRadius="15px"
-      colSpan={colSpan || 1}
-    >
-      <Stat>
-        <StatLabel>{statLabel}</StatLabel>
-        <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
-          {statNumber}
-        </StatNumber>
-        {helpText ? <StatHelpText>{helpText}</StatHelpText> : undefined}
-      </Stat>
-    </GridItem>
+      <Stack spacing={3}>
+        <Stack spacing={2}>
+          <Heading fontSize="md">Top Performing Customers</Heading>
+          <Text overflowWrap="break-word">
+            Companies with the highest conversion rate
+          </Text>
+        </Stack>
+        <ConversionTable />
+      </Stack>
+    </Stack>
   );
 };
 
@@ -259,6 +222,7 @@ const ConversionTable = () => {
     { refreshInterval: 1000 }
   );
   const activeColor = useColorModeValue("#553ACF", "#CCC3F9");
+  const cellLeftPadding = "10px";
 
   const getTableBody = () => {
     if (metricsTableData.isValidating && !metricsTableData.data) {
@@ -273,9 +237,11 @@ const ConversionTable = () => {
     return metricsTableData.data?.map((c) => (
       <Tr key={c.customer}>
         <Td>{c.customer}</Td>
-        <Td paddingLeft="10px">{formatStat(c.totalNotifications)}</Td>
-        <Td paddingLeft="10px">{formatStat(c.totalConversions)}</Td>
-        <Td paddingLeft="10px">
+        <Td paddingLeft={cellLeftPadding}>
+          {formatStat(c.totalNotifications)}
+        </Td>
+        <Td paddingLeft={cellLeftPadding}>{formatStat(c.totalConversions)}</Td>
+        <Td paddingLeft={cellLeftPadding}>
           <Box
             background="white"
             display="inline-block"
@@ -299,58 +265,64 @@ const ConversionTable = () => {
     ));
   };
 
+  const THContentWrapper = ({
+    sortColumnValue,
+    icon,
+    title,
+  }: {
+    sortColumnValue: React.SetStateAction<keyof CustomerMetrics>;
+    icon: IconType;
+    title: string;
+  }) => {
+    return (
+      <Th
+        onClick={() => setSortColumn(sortColumnValue)}
+        _hover={{ color: activeColor }}
+        padding={0}
+        color={sortColumnValue === sortColumn ? activeColor : undefined}
+        cursor="pointer"
+      >
+        <Box
+          justifyContent="left"
+          gap={2}
+          alignItems="center"
+          padding={cellLeftPadding}
+          display="flex"
+        >
+          <Icon as={icon} />
+          {title}
+          {sortColumnValue === sortColumn ? <ChevronDownIcon /> : undefined}
+        </Box>
+      </Th>
+    );
+  };
+
   return (
     <Box overflowX="auto">
       <TableContainer>
         <Table size="sm" variant="striped">
           <Thead background={useColorModeValue("#ECE8FD", "#2F206E")}>
             <Tr>
-              <Th
-                onClick={() => setSortColumn("customer")}
-                _hover={{ color: activeColor }}
-                color={sortColumn === "customer" ? activeColor : undefined}
-                padding="10px 10px 10px 10px"
-                cursor="pointer"
-              >
-                <Icon as={HiOfficeBuilding} /> Company
-                {sortColumn === "customer" && <ChevronDownIcon />}
-              </Th>
-              <Th
-                onClick={() => setSortColumn("totalNotifications")}
-                _hover={{ color: activeColor }}
-                color={
-                  sortColumn === "totalNotifications" ? activeColor : undefined
-                }
-                cursor="pointer"
-                padding="10px 10px 10px 0px"
-              >
-                <Icon as={HiBell} /> Total Notifications
-                {sortColumn === "totalNotifications" && <ChevronDownIcon />}
-              </Th>
-              <Th
-                onClick={() => setSortColumn("totalConversions")}
-                _hover={{ color: activeColor }}
-                color={
-                  sortColumn === "totalConversions" ? activeColor : undefined
-                }
-                cursor="pointer"
-                padding="10px 10px 10px 0px"
-              >
-                <Icon as={HiRefresh} /> Total Conversions
-                {sortColumn === "totalConversions" && <ChevronDownIcon />}
-              </Th>
-              <Th
-                onClick={() => setSortColumn("conversionRate")}
-                _hover={{ color: activeColor }}
-                color={
-                  sortColumn === "conversionRate" ? activeColor : undefined
-                }
-                cursor="pointer"
-                padding="10px 10px 10px 0px"
-              >
-                <Icon as={BsGearFill} /> Conversion Rate
-                {sortColumn === "conversionRate" && <ChevronDownIcon />}
-              </Th>
+              <THContentWrapper
+                sortColumnValue="customer"
+                icon={HiOfficeBuilding}
+                title="Company"
+              />
+              <THContentWrapper
+                sortColumnValue="totalNotifications"
+                icon={HiBell}
+                title="Total Notifications"
+              />
+              <THContentWrapper
+                sortColumnValue="totalConversions"
+                icon={HiRefresh}
+                title="Total Conversions"
+              />
+              <THContentWrapper
+                sortColumnValue="conversionRate"
+                icon={BsGearFill}
+                title="Conversion Rate"
+              />
             </Tr>
           </Thead>
           <Tbody>{getTableBody()}</Tbody>
@@ -372,5 +344,44 @@ const useConversionCells = (
       refreshInterval: 1000,
       onSuccess: callback,
     }
+  );
+};
+
+export const AnalyticsDashboard = () => {
+  const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
+
+  return (
+    <Container maxW={!isSmallScreen ? "75%" : undefined} mt={10} mb="5%">
+      <DashboardContainerChild />
+    </Container>
+  );
+};
+
+const StatWrapper = ({
+  statLabel,
+  statNumber,
+  helpText,
+  colSpan,
+}: {
+  statLabel: string;
+  statNumber: string;
+  helpText?: string;
+  colSpan?: number;
+}) => {
+  return (
+    <GridItem
+      padding="20px"
+      background={useColorModeValue("#ECE8FD", "#2F206E")}
+      borderRadius="15px"
+      colSpan={colSpan || 1}
+    >
+      <Stat>
+        <StatLabel>{statLabel}</StatLabel>
+        <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
+          {statNumber}
+        </StatNumber>
+        {helpText ? <StatHelpText>{helpText}</StatHelpText> : undefined}
+      </Stat>
+    </GridItem>
   );
 };

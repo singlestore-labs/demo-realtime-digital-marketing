@@ -6,7 +6,7 @@ import {
   useBoolean,
   useColorModeValue,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 
 import { trackAnalyticsEvent } from "@/analytics";

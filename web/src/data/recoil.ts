@@ -33,7 +33,6 @@ const localStorageEffect =
     });
   };
 
-
 const searchParamEffect =
   (searchParam: string): AtomEffect<string | null> =>
   ({ setSelf }) => {
@@ -47,8 +46,8 @@ const searchParamEffect =
 export const showWelcomeMessage = atom({
   key: "showWelcomeMessage",
   default: true,
-  effects: [localStorageEffect()]
-})
+  effects: [localStorageEffect()],
+});
 
 export const userSessionID = atom({
   key: "userID",

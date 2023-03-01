@@ -21,7 +21,7 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import {
   BsBarChart,
   BsFillBarChartFill,
@@ -65,7 +65,7 @@ export const Nav = () => {
     color: useColorModeValue("#FFFFFF", "#2F206E"),
   };
 
-  const LinksIntenralComponent = ({
+  const LinksInternalComponent = ({
     NavLinkTitle,
     IconElement,
   }: {
@@ -102,7 +102,7 @@ export const Nav = () => {
         _hover={NavLinkActiveButtonStyle}
         _activeLink={NavLinkActiveButtonStyle}
       >
-        <LinksIntenralComponent
+        <LinksInternalComponent
           NavLinkTitle={NavLinkTitle}
           IconElement={IconElement}
         />
@@ -165,7 +165,7 @@ export const Nav = () => {
         justifyContent="center"
         alignItems="center"
         alignContent="center"
-        boxShadow={useColorModeValue("0 2px 2px #ddddde", undefined)}
+        boxShadow={useColorModeValue("0 2px 2px #DDDDDE", undefined)}
         zIndex={5}
         paddingLeft="1rem"
         paddingRight="1rem"

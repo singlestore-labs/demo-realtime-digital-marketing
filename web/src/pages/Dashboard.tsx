@@ -16,7 +16,6 @@ import * as React from "react";
 import { BsEye, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 
-import { ConnectToSingleStoreButton } from "@/components/ConnectToSinglestoreButton";
 import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { PixiMap } from "@/components/PixiMap";
@@ -53,7 +52,7 @@ const RealtimeChart = () => {
         <Stack spacing={3}>
           <Stack spacing={2}>
             <Heading size="md">Key Metrics</Heading>
-            <Text>Serving ads real-time to sumulate Subscribers</Text>
+            <Text>Serving ads real-time to simulate subscribers</Text>
           </Stack>
         </Stack>
         <Stats />
@@ -114,11 +113,15 @@ const SelectCityCheckbox = (props: {
   };
 
   const CityNameConatiner: React.FC<{ city: City }> = ({ city }) => {
-    if (lastSelectedCityId === city.id && selectedCities.length) {
+    if (lastSelectedCityId === city.id && selectedCities.length > 0) {
       return (
         <>
           <Text>{city.name}</Text>
-          <BsEye size="1.2em" />
+          <span
+            style={{ display: "inline", position: "absolute", right: "0px" }}
+          >
+            <BsEye size="1.2em" />
+          </span>
         </>
       );
     }
@@ -130,11 +133,11 @@ const SelectCityCheckbox = (props: {
       onCreateCity(city.centerLat, city.centerLon);
       setLastSelectedCityId(city.id);
     } else {
-      const noOfSelectedCities = selectedCities.length;
-      if (noOfSelectedCities <= 0) {
-        setLastSelectedCityId(-1);
-      } else {
+      const numOfSelectedCities = selectedCities.length;
+      if (numOfSelectedCities > 0) {
         setLastSelectedCityId(getNewSelectedCityAfterDeletion(city));
+      } else {
+        setLastSelectedCityId(-1);
       }
       onRemoveCity(city.id);
     }
@@ -185,7 +188,7 @@ const StatsWrapper = () => {
       ...selectableCitiesData,
       ...unknownSelectedCities,
     ]);
-    if (lastSelectedCityId === -1 && selectedCities.length) {
+    if (lastSelectedCityId === -1 && selectedCities.length > 0) {
       setLastSelectedCityId(selectedCities[0].id);
     }
   }, [selectedCities, lastSelectedCityId, setLastSelectedCityId]);
@@ -227,10 +230,12 @@ export const NotificationsMap = () => {
   useSimulator(enabled && connected && initialized);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
-  let inner;
   if (!connected) {
-    inner = <ConnectToSingleStoreButton />;
-  } else if (!initialized) {
+    window.location.href = "/";
+  }
+
+  let inner;
+  if (!initialized) {
     inner = <SetupDatabaseButton />;
   } else if (!enabled) {
     inner = <EnableSimulatorButton />;
@@ -253,13 +258,14 @@ export const NotificationsMap = () => {
           selectionDropdownLeft={isSmallScreen ? undefined : "31.5%"}
           selectionDropdownTop={isSmallScreen ? undefined : "1vw"}
           useRenderer={useNotificationsRenderer}
+          zoom={13}
           options={{}}
         />
       </Box>
       <Stack
         spacing={4}
         position={isSmallScreen ? "relative" : "absolute"}
-        boxShadow="0px 3px 2px 0px #ddddde"
+        boxShadow="0px 3px 2px 0px #DDDDDE"
         background={useColorModeValue("white", "gray.800")}
         left={0}
         top={0}

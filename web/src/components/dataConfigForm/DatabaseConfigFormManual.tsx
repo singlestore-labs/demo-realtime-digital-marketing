@@ -1,10 +1,11 @@
-import { SimpleGrid, Stack, Text, toast, Tooltip, useToast } from "@chakra-ui/react";
-import React from "react";
+import { SimpleGrid, Stack, Text, Tooltip, useToast } from "@chakra-ui/react";
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { ConfigInput } from "@/components/ConfigInput";
 import { ScaleFactorSelector } from "@/components/ScaleFactorSelector";
+import { isConnected } from "@/data/queries";
 import {
   connectionDatabase,
   connectionHost,
@@ -13,8 +14,6 @@ import {
 } from "@/data/recoil";
 
 import { PrimaryButton } from "../customcomponents/Button";
-import useSWR from "swr";
-import { isConnected } from "@/data/queries";
 
 type Props = {
   showDatabase?: boolean;
@@ -37,7 +36,11 @@ export const DatabaseConfigFormManual = ({
   const [localDatabase, setLocalDatabase] = React.useState(database);
 
   const connect = () => {
-    const config = { host: localHost, password: localPassword, user: localUser }
+    const config = {
+      host: localHost,
+      password: localPassword,
+      user: localUser,
+    };
     isConnected(config).then((connected) => {
       if (connected) {
         setHost(localHost);
@@ -46,7 +49,8 @@ export const DatabaseConfigFormManual = ({
         setDatabase(localDatabase || "martech");
       } else {
         toast({
-          title: "There was an error connecting to your database. Please check your credentials and try again",
+          title:
+            "There was an error connecting to your database. Please check your credentials and try again",
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -56,9 +60,7 @@ export const DatabaseConfigFormManual = ({
   };
 
   const connectDisabled =
-    localHost === "" ||
-    localUser === "" ||
-    localPassword === "";
+    localHost === "" || localUser === "" || localPassword === "";
 
   let databaseInput;
   if (showDatabase) {
@@ -103,11 +105,7 @@ export const DatabaseConfigFormManual = ({
         <ConfigInput
           label="Username"
           required
-          helpText={
-            <Text>
-              Fill in the Security credentials of your workspace group.
-            </Text>
-          }
+          helpText="Fill in the Security credentials of your workspace group."
           placeholder="admin"
           value={localUser}
           setValue={setLocalUser}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { SetterOrUpdater, useRecoilState, useRecoilValue } from "recoil";
 
 import { trackAnalyticsEvent } from "@/analytics";
 import { ConnectionConfig } from "@/data/client";
@@ -17,18 +17,27 @@ import {
   errorUpdatingCities,
   isUpdatingCities,
   selectedCities,
+  selectedCity,
 } from "../recoil";
 
 const getSelectedCitiesFromDatabase = async (
   config: ConnectionConfig,
+  selectCityHook: [number, SetterOrUpdater<number>],
   setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>,
   setCities: React.Dispatch<React.SetStateAction<Array<City>>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
+  const [lastSelectedCityId, setLastSelectedCityId] = selectCityHook;
   setIsUpdating(true);
   try {
     const cities = await getCities(config);
     setCities(cities);
+    const doesLastSelectedCityExist = cities.find(
+      (c) => c.id === lastSelectedCityId
+    );
+    if (!doesLastSelectedCityExist) {
+      setLastSelectedCityId((cities[0] && cities[0].id) || -1);
+    }
   } catch (error) {
     setError(error as Error);
   }
@@ -38,6 +47,7 @@ const getSelectedCitiesFromDatabase = async (
 const addCityToDatabase = async (
   config: ConnectionConfig,
   point: [number, number],
+  selectCityHook: [number, SetterOrUpdater<number>],
   setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>,
   setCities: React.Dispatch<React.SetStateAction<Array<City>>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
@@ -58,6 +68,7 @@ const addCityToDatabase = async (
   await seedCityWithOffers(config, cityConfig, ScaleFactors[0]);
   await getSelectedCitiesFromDatabase(
     config,
+    selectCityHook,
     setIsUpdating,
     setCities,
     setError
@@ -68,6 +79,7 @@ const addCityToDatabase = async (
 const removeCityFromDatabase = async (
   config: ConnectionConfig,
   cityId: number,
+  selectCityHook: [number, SetterOrUpdater<number>],
   setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>,
   setCities: React.Dispatch<React.SetStateAction<Array<City>>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
@@ -80,6 +92,7 @@ const removeCityFromDatabase = async (
   trackAnalyticsEvent("remove-city");
   await getSelectedCitiesFromDatabase(
     config,
+    selectCityHook,
     setIsUpdating,
     setCities,
     setError
@@ -96,15 +109,17 @@ export interface CityListHookReturnType {
 export const useUpdateCityList = (): CityListHookReturnType => {
   // The useUpdateCityList hook provides functionality to add or remove cities from cities database.
   // The RTDM will fetch data that will be related to only this cities after update
-  const [, setSelectedCities] = useRecoilState(selectedCities);
-  const [, setError] = useRecoilState(errorUpdatingCities);
-  const [, setIsUpdating] = useRecoilState(isUpdatingCities);
+  const [_selectedCities, setSelectedCities] = useRecoilState(selectedCities);
+  const [_error, setError] = useRecoilState(errorUpdatingCities);
+  const [_isUpdating, setIsUpdating] = useRecoilState(isUpdatingCities);
+  const selectCityHook = useRecoilState(selectedCity);
   const config = useRecoilValue(connectionConfig);
 
   const onCreateCity = async (lat: number, lon: number) => {
     await addCityToDatabase(
       config,
       [lat, lon],
+      selectCityHook,
       setIsUpdating,
       setSelectedCities,
       setError
@@ -114,6 +129,7 @@ export const useUpdateCityList = (): CityListHookReturnType => {
     await removeCityFromDatabase(
       config,
       cityId,
+      selectCityHook,
       setIsUpdating,
       setSelectedCities,
       setError
@@ -123,6 +139,7 @@ export const useUpdateCityList = (): CityListHookReturnType => {
   const updateCityList = async () => {
     await getSelectedCitiesFromDatabase(
       config,
+      selectCityHook,
       setIsUpdating,
       setSelectedCities,
       setError

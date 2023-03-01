@@ -1,5 +1,5 @@
 import { SimpleGrid, Stack, Text } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
@@ -27,7 +27,7 @@ export const DatabaseConfigForm = ({
   const [database, setDatabase] = useRecoilState(connectionDatabase);
 
   let databaseInput;
-  if (showDatabase) {
+  if (showDatabase === true) {
     databaseInput = (
       <ConfigInput
         label="Database"
@@ -39,7 +39,7 @@ export const DatabaseConfigForm = ({
   }
 
   let scaleFactor;
-  if (showScaleFactor) {
+  if (showScaleFactor === true) {
     scaleFactor = <ScaleFactorSelector />;
   }
 
@@ -66,11 +66,7 @@ export const DatabaseConfigForm = ({
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
           label="Username"
-          helpText={
-            <Text>
-              Fill in the Security credentials of your workspace group.
-            </Text>
-          }
+          helpText="Fill in the Security credentials of your workspace group."
           placeholder="admin"
           value={user}
           setValue={setUser}

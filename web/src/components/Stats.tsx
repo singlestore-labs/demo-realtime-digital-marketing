@@ -6,7 +6,7 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
-import React from "react";
+import * as React from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -57,34 +57,36 @@ export const Stats = () => {
   );
   const formatStat = format(".4~s");
 
-  if (tableCounts.data) {
-    return (
-      <SimpleGrid spacing={2} minChildWidth="25%">
-        <StatWrapper
-          statLabel="offeres"
-          statNumber={formatStat(tableCounts.data.offers)}
-        />
-        <StatWrapper
-          statLabel="Cities"
-          statNumber={formatStat(tableCounts.data.cities)}
-        />
-        <StatWrapper
-          statLabel="Subscribers"
-          statNumber={formatStat(tableCounts.data.subscribers)}
-        />
-        <StatWrapper
-          statLabel="Segments"
-          statNumber={formatStat(tableCounts.data.segments)}
-        />
-        <StatWrapper
-          statLabel="Segmentation"
-          statNumber={formatMs(updateSegmentsDuration)}
-        />
-        <StatWrapper
-          statLabel="Matching"
-          statNumber={formatMs(matchingDuration)}
-        />
-      </SimpleGrid>
-    );
-  } else return <Loader size="small" centered />;
+  if (!tableCounts.data) {
+    return <Loader size="small" centered />;
+  }
+
+  return (
+    <SimpleGrid spacing={2} minChildWidth="25%">
+      <StatWrapper
+        statLabel="offeres"
+        statNumber={formatStat(tableCounts.data.offers)}
+      />
+      <StatWrapper
+        statLabel="Cities"
+        statNumber={formatStat(tableCounts.data.cities)}
+      />
+      <StatWrapper
+        statLabel="Subscribers"
+        statNumber={formatStat(tableCounts.data.subscribers)}
+      />
+      <StatWrapper
+        statLabel="Segments"
+        statNumber={formatStat(tableCounts.data.segments)}
+      />
+      <StatWrapper
+        statLabel="Segmentation"
+        statNumber={formatMs(updateSegmentsDuration)}
+      />
+      <StatWrapper
+        statLabel="Matching"
+        statNumber={formatMs(matchingDuration)}
+      />
+    </SimpleGrid>
+  );
 };
