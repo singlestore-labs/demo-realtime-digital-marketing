@@ -185,7 +185,7 @@ const StatGrid = () => {
   return (
     <Grid gap={2} templateColumns="repeat(2, 1fr)">
       <StatWrapper
-        statLabel="offers"
+        statLabel="Offers"
         statNumber={formatStat(tableCounts.data.offers)}
         colSpan={2}
       />
@@ -373,7 +373,7 @@ const StatWrapper = ({
   if (helpText) {
     helpTextConatiner = <StatHelpText>{helpText}</StatHelpText>;
   }
-  
+
   return (
     <GridItem
       padding="20px"
