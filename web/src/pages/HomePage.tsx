@@ -17,7 +17,6 @@ import {
 } from "@chakra-ui/react";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { useRecoilState } from "recoil";
 
 import DashboardControllerIamge from "@/assets/dashboard-controller-snapshot.svg";
 import GraphicalBackground2 from "@/assets/graphical-background-2.svg";
@@ -25,12 +24,10 @@ import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { DatabaseConfigFormManual } from "@/components/dataConfigForm/DatabaseConfigFormManual";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
-import { redirectToHomePage } from "@/data/recoil";
 import { useConnectionState } from "@/view/hooks/hooks";
 
 export const HomePage: React.FC = () => {
   const { connected } = useConnectionState();
-  const [redirect, setRedirect] = useRecoilState(redirectToHomePage);
   const navigate = useNavigate();
   const fontColor = useColorModeValue("#553ACF", "#CCC3F9");
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
@@ -38,22 +35,10 @@ export const HomePage: React.FC = () => {
 
   React.useEffect(() => {
     if (connected) {
-      setRedirect(false);
-    }
-  }, [connected, setRedirect]);
-
-  React.useEffect(() => {
-    if (!redirect) {
       updateCityList();
-      const urlSearchParams = new URLSearchParams(location.search.slice(1));
-      const redirectLink = urlSearchParams.get("redirect");
-      if (redirectLink) {
-        navigate(redirectLink);
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     }
-  }, [redirect, navigate, updateCityList]);
+  }, [connected, navigate, updateCityList]);
 
   return (
     <Grid

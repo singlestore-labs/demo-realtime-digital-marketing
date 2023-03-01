@@ -9,14 +9,8 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import * as React from "react";
-import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useRecoilState } from "recoil";
 
 import { useAnalytics } from "@/analytics";
 import { Loader } from "@/components/customcomponents/loader/Loader";
@@ -28,12 +22,13 @@ import { NotificationsMap } from "@/pages/Dashboard";
 import { HomePage } from "@/pages/HomePage";
 import { useConnectionState } from "@/view/hooks/hooks";
 
-import { redirectToHomePage, showWelcomeMessage } from "./data/recoil";
+import { showWelcomeMessage } from "./data/recoil";
 
 const WelcomeMessageToast = () => {
-  const [_welcomeMessage, setwelcomeMessage] =
+  const [welcomeMessage, setwelcomeMessage] =
     useRecoilState(showWelcomeMessage);
   const toast = useToast();
+  const { connected } = useConnectionState();
   const defaultFontTheme = useColorModeValue("white", "black");
 
   const ToastDescriptionComponent = () => {
@@ -77,13 +72,15 @@ const WelcomeMessageToast = () => {
   );
 
   // Welcome message toast on successfully connecting to singlestore for the first time.
-  toast({
-    id: "welcomeToast",
-    duration: 9000,
-    isClosable: true,
-    position: "bottom",
-    render: () => <ToastBlock />,
-  });
+  if (connected && welcomeMessage) {
+    toast({
+      id: "welcomeToast",
+      duration: 9000,
+      isClosable: true,
+      position: "bottom",
+      render: () => <ToastBlock />,
+    });
+  }
   setwelcomeMessage(false);
 
   return <></>;
@@ -94,29 +91,15 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
 }) => {
   // Private routes will ensure user is connected to singlestore before using the route.
   // Will redirect to connection page in case user in not connected.
-  const redirect = useRecoilValue(redirectToHomePage);
-  if (redirect) {
+  const { connected } = useConnectionState();
+
+  if (!connected) {
     return <Navigate to="/" />;
-  }
-  return <>{children}</>;
-};
-
-const LayoutContainer = ({ children }: { children: React.ReactElement }) => {
-  const redirect = useRecoilValue(redirectToHomePage);
-  const [showFirstWelcome] = useRecoilState(showWelcomeMessage);
-
-  let welcomeMessage = undefined;
-  if (!redirect && showFirstWelcome) {
-    welcomeMessage = <WelcomeMessageToast />;
-  }
-
-  if (redirect) {
-    return children;
   }
 
   return (
     <>
-      {welcomeMessage}
+      <WelcomeMessageToast />
       <Nav />
       {children}
       <Footer />
@@ -125,25 +108,6 @@ const LayoutContainer = ({ children }: { children: React.ReactElement }) => {
 };
 
 const RoutesBlock = () => {
-  const [redirect, setRedirect] = useRecoilState(redirectToHomePage); // To ensure connection configuration when RTDM App is loaded for the first time.
-  const { connected } = useConnectionState();
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  React.useEffect(() => {
-    // We will redirect to Home page '/' if user loaded the website for first time in browser and configuration is not set.
-    // Once the connection to singlestore is successful, it will autoredirect to appropriate page that user was trying to open.
-    if (location.pathname !== "/" && !connected && redirect) {
-      navigate({
-        pathname: "/",
-        search: `?redirect=${location.pathname}`,
-      });
-    }
-    if (connected) {
-      setRedirect(false);
-    }
-  }, [connected, location.pathname, navigate, redirect, setRedirect]);
-
   return (
     <Box flex="1" paddingTop="3px">
       <Routes>
@@ -159,9 +123,11 @@ const RoutesBlock = () => {
         <Route
           path="/configure"
           element={
-            <PrivateRoute>
+            <>
+              <Nav />
               <Overview />
-            </PrivateRoute>
+              <Footer />
+            </>
           }
         />
         <Route
@@ -194,9 +160,9 @@ const App = () => {
     <React.Suspense fallback={loadingFallback}>
       <Analytics>
         <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
-          <LayoutContainer>
-            <RoutesBlock />
-          </LayoutContainer>
+          {/* <LayoutContainer> */}
+          <RoutesBlock />
+          {/* </LayoutContainer> */}
         </Flex>
       </Analytics>
     </React.Suspense>
