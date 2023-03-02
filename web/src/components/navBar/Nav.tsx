@@ -38,7 +38,7 @@ import { NavLink as RouterLink } from "react-router-dom";
 import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { GithubStargazer } from "@/components/GithubButtons";
-import { LinkedinIcon, TwitterIcon } from "@/components/IconLinks";
+import { LinkedinIconButton, TwitterIconButton } from "@/components/IconLinks";
 
 export const Nav = () => {
   const { toggleColorMode } = useColorMode();
@@ -225,7 +225,7 @@ export const Nav = () => {
                 </MenuButton>
                 <MenuList p={0} minW={0}>
                   <MenuItem p={0} m={0} width="100%" justifyContent="center">
-                    <TwitterIcon
+                    <TwitterIconButton
                       background="transparent"
                       _hover={{ background: "transparent" }}
                       size="md"
@@ -233,7 +233,7 @@ export const Nav = () => {
                     />
                   </MenuItem>
                   <MenuItem p={0} m={0} width="100%" justifyContent="center">
-                    <LinkedinIcon
+                    <LinkedinIconButton
                       background="transparent"
                       _hover={{ background: "transparent" }}
                       size="md"

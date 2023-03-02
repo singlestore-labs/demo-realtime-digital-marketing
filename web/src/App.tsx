@@ -129,7 +129,7 @@ const Analytics = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const NavAndFootersWrapper = ({ children }: { children: React.ReactNode }) => {
+const LayoutContainer = ({ children }: { children: React.ReactNode }) => {
   const { connected } = useConnectionState();
 
   if (!connected) {
@@ -184,9 +184,9 @@ const App = () => {
     <React.Suspense fallback={loadingFallback}>
       <Analytics>
         <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
-          <NavAndFootersWrapper>
+          <LayoutContainer>
             <RoutesBlock />
-          </NavAndFootersWrapper>
+          </LayoutContainer>
         </Flex>
       </Analytics>
     </React.Suspense>

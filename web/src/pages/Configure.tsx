@@ -212,7 +212,6 @@ const Section = ({
 
 const ConnectionSection = ({ connected }: { connected: boolean }) => {
   return (
-    <>
       <Section
         completed={connected}
         title="Connect to SingleStoreDB"
@@ -232,7 +231,6 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
         }
         right={<DatabaseConfigForm />}
       />
-    </>
   );
 };
 

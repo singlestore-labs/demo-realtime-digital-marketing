@@ -53,7 +53,7 @@ const addCityToDatabase = async (
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
   // The addCityToDatabase will add city with city details in cities table from martech database.
-  // This is will also set new list after the update in selectedCities state
+  // This will also automatically update selectedCities in recoil after the new city is added.
 
   setIsUpdating(true);
   const city = await lookupClosestCity(config, point[1], point[0]);
@@ -85,7 +85,7 @@ const removeCityFromDatabase = async (
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
   // The removeCityFromDatabase will remove city matching cityID from cities table in martech database.
-  // This is will also set new list after the update in selectedCities state
+  // // This will also automatically update selectedCities in recoil after the city is removed.
 
   setIsUpdating(true);
   await removeCity(config, cityId);
@@ -108,7 +108,7 @@ export interface CityListHookReturnType {
 
 export const useUpdateCityList = (): CityListHookReturnType => {
   // The useUpdateCityList hook provides functionality to add or remove cities from cities database.
-  // The RTDM will fetch data that will be related to only this cities after update
+  // The RTDM will only fetch analytical data that will are related to city from the cities database.
   const [_selectedCities, setSelectedCities] = useRecoilState(selectedCities);
   const [_error, setError] = useRecoilState(errorUpdatingCities);
   const [_isUpdating, setIsUpdating] = useRecoilState(isUpdatingCities);

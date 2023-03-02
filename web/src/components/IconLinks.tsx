@@ -12,14 +12,14 @@ type CustomeIconProps = Omit<
   "Background" | "icon" | "value" | "aria-label"
 >;
 
-export const TwitterIcon = (props: CustomeIconProps) => {
+export const TwitterIconButton = (props: CustomeIconProps) => {
   const url = `https://digital-marketing.labs.singlestore.com/`;
   const text = `Exciting MarTech demo application from SingleStoreDB showcasing its unique capabilities! As a demo app, it gives you a taste of what's possible when using SingleStoreDB for your own projects. \
 	#SingleStoreDB #database #digitalmarketing #appdevelopment `;
 
   return (
     <IconButton
-      aria-label="Github Repo"
+      aria-label="Twitter share"
       background={useColorModeValue(undefined, "black")}
       icon={<VscTwitter size="1em" />}
       value={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
@@ -30,12 +30,12 @@ export const TwitterIcon = (props: CustomeIconProps) => {
   );
 };
 
-export const LinkedinIcon = (props: CustomeIconProps) => {
+export const LinkedinIconButton = (props: CustomeIconProps) => {
   const url = "https://digital-marketing.labs.singlestore.com/";
 
   return (
     <IconButton
-      aria-label="Github Repo"
+      aria-label="Linkedin share"
       background={useColorModeValue(undefined, "black")}
       icon={<BsLinkedin size="1em" />}
       value={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
@@ -46,7 +46,7 @@ export const LinkedinIcon = (props: CustomeIconProps) => {
   );
 };
 
-export const GithubIcon = (props: CustomeIconProps) => {
+export const GithubIconButton = (props: CustomeIconProps) => {
   const url =
     "https://github.com/singlestore-labs/demo-realtime-digital-marketing";
   const gitHubIconButton = useColorModeValue(

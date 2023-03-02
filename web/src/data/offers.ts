@@ -50,7 +50,7 @@ export const createCity = (config: ConnectionConfig, city: CityConfig) =>
 export const removeCity = (config: ConnectionConfig, cityId: number) =>
   Exec(config, "DELETE FROM cities WHERE city_id = ?", cityId);
 
-export const SegmentKinds = <const>["olc_8", "purchase", "request"];
+export const SegmentKinds = ["olc_8", "purchase", "request"] as const;
 export type SegmentKind = (typeof SegmentKinds)[number];
 
 export const SegmentIntervals = <const>[
