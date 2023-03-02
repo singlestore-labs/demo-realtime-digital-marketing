@@ -25,7 +25,7 @@ import {
   useMediaQuery,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
-import { interpolatePurples } from "d3-scale-chromatic";
+import { interpolateBuPu } from "d3-scale-chromatic";
 import { Bounds } from "pigeon-maps";
 import * as React from "react";
 import { IconType } from "react-icons";
@@ -103,7 +103,7 @@ const NotificationZoneMap = () => {
         <Heatmap
           height={400}
           useCells={useConversionCells}
-          colorInterpolater={interpolatePurples}
+          colorInterpolater={interpolateBuPu}
           getCellConfig={({ conversionRate, wktPolygon }: ZoneMetrics) => ({
             value: conversionRate,
             wktPolygon,
