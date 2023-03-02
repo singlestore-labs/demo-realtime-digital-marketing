@@ -108,7 +108,7 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
 const ConfigureRoute = () => {
   // Configure route is always displayed.
   // Nav and footer are not shown when not connected on this page.
-  // We manually add them if user is not connected to singlestore DB after configure page is loaded. 
+  // We manually add them if user is not connected to singlestore DB after configure page is loaded.
   const { connected } = useConnectionState();
 
   if (connected) {
