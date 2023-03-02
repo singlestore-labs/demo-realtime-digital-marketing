@@ -1,4 +1,3 @@
-// Fixes issue with ESLint not resolving the plugins based on the extended configs
 // Please refer to https://github.com/eslint/eslint/issues/3458#issuecomment-648719715
 require("@rushstack/eslint-config/patch/modern-module-resolution");
 
