@@ -212,25 +212,25 @@ const Section = ({
 
 const ConnectionSection = ({ connected }: { connected: boolean }) => {
   return (
-      <Section
-        completed={connected}
-        title="Connect to SingleStoreDB"
-        previousStepCompleted
-        left={
-          <Text>
-            Please enter the host and port number for the specific Workspace you
-            want to connect to. Then enter the Workspace Group username and
-            password credentials.{" "}
-            <Link
-              href="https://docs.singlestore.com/managed-service/en/reference/data-api.html"
-              isExternal
-            >
-              Know more
-            </Link>
-          </Text>
-        }
-        right={<DatabaseConfigForm />}
-      />
+    <Section
+      completed={connected}
+      title="Connect to SingleStoreDB"
+      previousStepCompleted
+      left={
+        <Text>
+          Please enter the host and port number for the specific Workspace you
+          want to connect to. Then enter the Workspace Group username and
+          password credentials.{" "}
+          <Link
+            href="https://docs.singlestore.com/managed-service/en/reference/data-api.html"
+            isExternal
+          >
+            Know more
+          </Link>
+        </Text>
+      }
+      right={<DatabaseConfigForm />}
+    />
   );
 };
 

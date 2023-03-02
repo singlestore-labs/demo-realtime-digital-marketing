@@ -2,7 +2,11 @@ import { Box, Flex, Text, useColorModeValue } from "@chakra-ui/react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { GithubIconButton, LinkedinIconButton, TwitterIconButton } from "./IconLinks";
+import {
+  GithubIconButton,
+  LinkedinIconButton,
+  TwitterIconButton,
+} from "./IconLinks";
 
 const SocialMediaSection = () => {
   const handleRedirect = (
@@ -33,27 +37,27 @@ const SocialMediaSection = () => {
 
 export const Footer = () => {
   return (
-      <Box
-        bg={useColorModeValue("#ECE8FD", "#2F206E")}
+    <Box
+      bg={useColorModeValue("#ECE8FD", "#2F206E")}
+      justifyContent="center"
+      alignItems="center"
+      zIndex={5}
+      fontSize="0.85em"
+      padding="10px"
+    >
+      <Flex
+        direction="column"
         justifyContent="center"
+        gap={1}
         alignItems="center"
-        zIndex={5}
-        fontSize="0.85em"
-        padding="10px"
       >
-        <Flex
-          direction="column"
-          justifyContent="center"
-          gap={1}
-          alignItems="center"
-        >
-          <Text>
-            Real-time Digital Marketing is a demo application running on{" "}
-            <Link to="https://singlestore.com"> SingleStoreDB</Link>
-          </Text>
+        <Text>
+          Real-time Digital Marketing is a demo application running on{" "}
+          <Link to="https://singlestore.com"> SingleStoreDB</Link>
+        </Text>
 
-          <SocialMediaSection />
-        </Flex>
-      </Box>
+        <SocialMediaSection />
+      </Flex>
+    </Box>
   );
 };
