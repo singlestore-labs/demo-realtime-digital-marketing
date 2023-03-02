@@ -342,14 +342,14 @@ const SchemaSection = ({
 }) => {
   const schemaObjs = useSchemaObjects();
   const [selectedSchemaObj, setSelectedSchemaObj] = React.useState<
-    null | string
-  >();
+    undefined | string
+  >(undefined);
 
   let schemaObjectModal = undefined;
   if (selectedSchemaObj) {
     schemaObjectModal = (
       <SchemaObjectModal
-        onClose={() => setSelectedSchemaObj(null)}
+        onClose={() => setSelectedSchemaObj(undefined)}
         schemaObjectName={selectedSchemaObj}
       />
     );
@@ -453,8 +453,9 @@ const PipelinesSection = ({
   const isResettingSchema = useRecoilValue(resettingSchema);
   useSimulationMonitor(completed && !isResettingSchema);
 
-  const [selectedPipeline, setSelectedPipeline] =
-    React.useState<null | PipelineName>();
+  const [selectedPipeline, setSelectedPipeline] = React.useState<
+    undefined | PipelineName
+  >(undefined);
 
   const [working, workingCtrl] = useBoolean();
 
@@ -506,7 +507,7 @@ const PipelinesSection = ({
   if (selectedPipeline) {
     showPipelineModal = (
       <ShowPipelineModal
-        onClose={() => setSelectedPipeline(null)}
+        onClose={() => setSelectedPipeline(undefined)}
         name={selectedPipeline}
         scaleFactor={scaleFactor}
       />

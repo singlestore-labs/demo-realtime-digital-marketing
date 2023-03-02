@@ -315,8 +315,9 @@ export const PixiMap = <T,>({
 }: PixiMapProps<T>) => {
   const [lastSelectedCityId] = useRecoilState(selectedCity);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
-  const [lastSelectedCityDetails, setLastSelectedCityDetails] =
-    React.useState<City>();
+  const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState<
+    City | undefined
+  >(undefined);
 
   let initialPosition = DEFAULT_CENTER;
   if (lastSelectedCityDetails) {
