@@ -105,32 +105,28 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
   );
 };
 
-const RoutesBlock = () => {
+const ConfigureRoute = () => {
+  // Configure route is always displayed.
+  // Nav and footer are not shown when not connected on this page.
+  // We manually add them if user is not connected to singlestore DB after configure page is loaded. 
+  const { connected } = useConnectionState();
+
+  if (connected) {
+    return <Configure />;
+  }
+
   return (
-    <Box flex="1" paddingTop="3px">
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <NotificationsMap />
-            </PrivateRoute>
-          }
-        />
-        <Route path="/configure" element={<Configure />} />
-        <Route
-          path="/analytics"
-          element={
-            <PrivateRoute>
-              <AnalyticsDashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </Box>
+    <>
+      <Nav />
+      <Configure />
+      <Footer />
+    </>
   );
+};
+
+const Analytics = ({ children }: { children: React.ReactNode }) => {
+  useAnalytics();
+  return <>{children}</>;
 };
 
 const NavAndFootersWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -149,17 +145,40 @@ const NavAndFootersWrapper = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+const RoutesBlock = () => {
+  return (
+    <Box flex="1" paddingTop="3px">
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <NotificationsMap />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/configure" element={<ConfigureRoute />} />
+        <Route
+          path="/analytics"
+          element={
+            <PrivateRoute>
+              <AnalyticsDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </Box>
+  );
+};
+
 const App = () => {
   const loadingFallback = (
     <Center height="100vh">
       <Loader size="large" centered />
     </Center>
   );
-
-  const Analytics = ({ children }: { children: React.ReactNode }) => {
-    useAnalytics();
-    return <>{children}</>;
-  };
 
   return (
     <React.Suspense fallback={loadingFallback}>
