@@ -1434,7 +1434,7 @@
     estree-walker "^2.0.1"
     picomatch "^2.2.2"
 
-"@rushstack/eslint-config@^3.2.0":
+"@rushstack/eslint-config@3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@rushstack/eslint-config/-/eslint-config-3.2.0.tgz#8a11617ef054dcbfe108e914c6bcf75dd04c82ff"
   integrity sha512-vMFObB/LzlwsVRp1wpUKYCd2OWqFjklg7rm4zu+/GYG1gPDc80uBv3KiROYpW93QVAg1CyNhQY1KbTCMT/I9ZA==
@@ -1490,7 +1490,7 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@singlestore/eslint-plugin-react-hooks-disable-import@^1.0.0":
+"@singlestore/eslint-plugin-react-hooks-disable-import@1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@singlestore/eslint-plugin-react-hooks-disable-import/-/eslint-plugin-react-hooks-disable-import-1.0.0.tgz#c466d4e8f79da2e10dd2e4f09ee43111da0e958d"
   integrity sha512-bI/HndkFX7qYh2YpQ9KxHoYjoBjDSXilzrdoDO6ul2th9anCH3oXYIhLm8SGDZGFYRrKp93UVheQ2mSInWpYtw==
@@ -3302,7 +3302,7 @@ eslint-plugin-simple-import-sort@10.0.0:
   resolved "https://registry.yarnpkg.com/eslint-plugin-simple-import-sort/-/eslint-plugin-simple-import-sort-10.0.0.tgz#cc4ceaa81ba73252427062705b64321946f61351"
   integrity sha512-AeTvO9UCMSNzIHRkg8S6c3RPy5YEwKWSQPx3DYghLedo2ZQxowPFLGDN1AZ2evfg6r6mjBSZSLxLFsWSu3acsw==
 
-eslint-plugin-switch-case@^1.1.2:
+eslint-plugin-switch-case@1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/eslint-plugin-switch-case/-/eslint-plugin-switch-case-1.1.2.tgz#a622db0c4c440828526b6f26f000d71e74850032"
   integrity sha512-mhDdJ6WX5LKv0PccziefBGPhIryJamgd3vTNqhEZUBeTGUeGdsgttwU/68xOViyScwr8RqCwTGC2Pd1cPYGNRg==
