@@ -345,7 +345,7 @@ const SchemaSection = ({
     undefined | string
   >(undefined);
 
-  let schemaObjectModal = undefined;
+  let schemaObjectModal;
   if (selectedSchemaObj) {
     schemaObjectModal = (
       <SchemaObjectModal
@@ -353,6 +353,19 @@ const SchemaSection = ({
         schemaObjectName={selectedSchemaObj}
       />
     );
+  }
+
+  let SchemaObjectComponent;
+  if (schemaObjs.data) {
+    SchemaObjectComponent = Object.keys(schemaObjs.data)
+      .sort()
+      .map((name) => (
+        <SchemaItem
+          key={name}
+          name={name}
+          onClick={() => setSelectedSchemaObj(name)}
+        />
+      ));
   }
 
   return (
@@ -376,16 +389,7 @@ const SchemaSection = ({
           <Flex direction="column" gap={3}>
             <Heading size="sm">Tags</Heading>
             <SimpleGrid columns={[1, 3, 3]} gap={1}>
-              {schemaObjs.data &&
-                Object.keys(schemaObjs.data)
-                  .sort()
-                  .map((name) => (
-                    <SchemaItem
-                      key={name}
-                      name={name}
-                      onClick={() => setSelectedSchemaObj(name)}
-                    />
-                  ))}
+              {SchemaObjectComponent}
             </SimpleGrid>
           </Flex>
         }
@@ -503,7 +507,7 @@ const PipelinesSection = ({
     sectionRight = <Center h={220}>{ensurePipelinesButton}</Center>;
   }
 
-  let showPipelineModal = undefined;
+  let showPipelineModal;
   if (selectedPipeline) {
     showPipelineModal = (
       <ShowPipelineModal
@@ -597,11 +601,13 @@ const OffersSection = ({
   }, [config, tableCounts, workingCtrl]);
 
   const done = !!tableCounts.data?.offers;
-  const loadButtonText = working
-    ? "loading..."
-    : done
-    ? "loaded offers!"
-    : "load offers";
+
+  let loadButtonText = "load offers";
+  if (working) {
+    loadButtonText = "loading...";
+  } else if (done) {
+    loadButtonText = "loaded offers!";
+  }
 
   let loadOffersButton;
   let mapInfoContent;
@@ -612,8 +618,9 @@ const OffersSection = ({
       <Text>
         <br />
         The map to your right displays a polygon representing each offer's
-        activation zone. Hover over a polygon to see it's exact boundary. There
-        are ${tableCounts.data?.offers} offers in the database.
+        activation zone. Hover over a polygon to see it's exact boundary.
+        Currently, There are ${tableCounts.data?.offers || 0} offers in the
+        database.
       </Text>
     );
   } else {
@@ -696,7 +703,14 @@ const SegmentationSection = ({
 
     tableCounts.mutate();
 
-    setWarmingUp((elapsed || 0) > 1000 && (await checkPlans(config)));
+    let isWarmingUp;
+    if (elapsed && elapsed > 1000) {
+      isWarmingUp = await checkPlans(config);
+    }
+
+    if (isWarmingUp) {
+      setWarmingUp(isWarmingUp);
+    }
   }, [startTimer, config, stopTimer, tableCounts, elapsed]);
 
   let workEstimate;
@@ -707,14 +721,12 @@ const SegmentationSection = ({
     const estRows = formatNumber(locations + requests + purchases);
     const seg = formatNumber(segments);
     const memberships = formatNumber(subscriber_segments);
+    
     workEstimate = (
       <Text>
-        {`
-          The last update evaluated ${estRows} rows against ${seg} segments
-          producing ${memberships} segment memberships.
-          
-          **This process took ${durationFormatted}**.
-        `}
+        The last update evaluated {estRows} rows against {seg} segments
+        producing {memberships} segment memberships.
+        <b>This process took {durationFormatted}.</b>
       </Text>
     );
   }
@@ -727,6 +739,16 @@ const SegmentationSection = ({
         Queries are still warming up. Please wait for a little bit and then try
         again.
       </Alert>
+    );
+  }
+
+  let MatchingButtonText: React.ReactNode = "Match them";
+  if(isRunning) {
+    MatchingButtonText = (
+      <>
+        <Loader size="small" />&nbsp;
+        running...
+      </>
     );
   }
 
@@ -753,8 +775,7 @@ const SegmentationSection = ({
           </Text>
           <br />
           <PrimaryButton disabled={isRunning} onClick={onClick}>
-            {isRunning && <Loader size="small" />}&nbsp;
-            {isRunning ? " running..." : "Match them"}
+            {MatchingButtonText}
           </PrimaryButton>
           <br />
           <br />
@@ -805,7 +826,14 @@ const MatchingSection = ({
     tableCounts.mutate();
     swrMutate(notificationsDataKey);
 
-    setWarmingUp((elapsed || 0) > 1000 && (await checkPlans(config)));
+    let isWarmingUp;
+    if (elapsed && elapsed > 1000) {
+      isWarmingUp = await checkPlans(config);
+    }
+
+    if (isWarmingUp) {
+      setWarmingUp(isWarmingUp);
+    }
   }, [
     stopTimer,
     tableCounts,

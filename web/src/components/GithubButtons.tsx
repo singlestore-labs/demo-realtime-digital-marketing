@@ -4,22 +4,22 @@ import { BsGithub } from "react-icons/bs";
 
 export interface GithubStargazerProps {
   owner: string;
-  repo: string;
+  repoName: string;
   color?: string;
 }
 
 export const GithubStargazer: React.FC<GithubStargazerProps> = ({
   owner,
-  repo,
+  repoName,
 }) => {
   const [stargazersCount, setStargazersCount] = React.useState(0);
 
   const handleFlexRedirect = () => {
-    window.open(`https://github.com/${owner}/${repo}`, "_blank");
+    window.open(`https://github.com/${owner}/${repoName}`, "_blank");
   };
 
   const getStarCount = async () => {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}`);
     const resJson = await res.json();
     setStargazersCount(resJson.stargazers_count);
   };

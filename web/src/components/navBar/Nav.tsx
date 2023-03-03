@@ -246,7 +246,7 @@ export const Nav = () => {
               <GithubStargazer
                 color="black"
                 owner="singlestore-labs"
-                repo="demo-realtime-digital-marketing"
+                repoName="demo-realtime-digital-marketing"
               />
             </Flex>
           </Flex>

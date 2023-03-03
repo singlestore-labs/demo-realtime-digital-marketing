@@ -169,8 +169,8 @@ const RequiresInitLayer = <T,>({
 };
 
 const CitySelectionDropdown: React.FC<{
-  selectionDropdownLeft: string | number;
-  selectionDropdownTop: string | number;
+  selectionDropdownLeft?: string | number;
+  selectionDropdownTop?: string | number;
   lastSelectedCityDetails: City | undefined;
 }> = ({
   lastSelectedCityDetails,
@@ -263,7 +263,6 @@ const CitySelectionDropdown: React.FC<{
       background={useColorModeValue("#553ACF", "#CCC3F9")}
       color={fontColor}
       boxShadow="1px 6px 6px grey"
-      width="-webkit-fit-content"
       justifyContent="space-between"
       gap={1}
       padding="0px 2px 0px 10px"

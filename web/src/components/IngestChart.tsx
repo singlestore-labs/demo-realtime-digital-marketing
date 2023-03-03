@@ -52,7 +52,12 @@ export const useIngestChartData = <TableName extends string>(
     },
     { refreshInterval: 1000 }
   );
-  return data ?? emptyCache;
+
+  if (data) {
+    return data;
+  }
+  
+  return emptyCache;
 };
 
 type Props<TableName extends string> = {
