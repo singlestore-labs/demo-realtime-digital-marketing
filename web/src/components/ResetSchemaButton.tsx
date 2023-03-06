@@ -43,11 +43,11 @@ export const ResetSchemaButton = (props: Props) => {
   const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
   const { skipSeedData, resetDataOnly, disabled, ...restProps } = props;
 
-  let resetButtonChild: React.ReactNode = "Create Database";
+  let resetButtonContent: React.ReactNode = "Create Database";
   if (resettingSchema) {
-    resetButtonChild = <Loader size="small" />;
+    resetButtonContent = <Loader size="small" />;
   } else if (initialized) {
-    resetButtonChild = "Recreate database";
+    resetButtonContent = "Recreate database";
   }
 
   const onResetSchema = useResetSchema({
@@ -104,7 +104,7 @@ export const ResetSchemaButton = (props: Props) => {
                 onClick={onResetSchema}
                 ml={3}
               >
-                {resetButtonChild}
+                {resetButtonContent}
               </PrimaryButton>
             </AlertDialogFooter>
           </AlertDialogContent>

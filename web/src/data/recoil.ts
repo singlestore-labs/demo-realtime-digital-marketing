@@ -138,7 +138,7 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
         const { username, password } = JSON.parse(decodedCredentials);
         if (username && password) {
           return {
-            host: "https://" + portalHostnameValue,
+            host: `https://${portalHostnameValue}`,
             user: username,
             password,
             database: portalDatabaseValue,

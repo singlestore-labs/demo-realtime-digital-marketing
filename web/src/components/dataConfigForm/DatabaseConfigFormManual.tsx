@@ -1,6 +1,5 @@
-import { SimpleGrid, Stack, Text, Tooltip, useToast } from "@chakra-ui/react";
+import { Link,SimpleGrid, Stack, Text, Tooltip, useToast } from "@chakra-ui/react";
 import * as React from "react";
-import { Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { ConfigInput } from "@/components/ConfigInput";
@@ -42,11 +41,15 @@ export const DatabaseConfigFormManual = ({
       user: localUser,
     };
     isConnected(config).then((connected) => {
+      let database = "martech";
+      if (localDatabase) {
+        database = localDatabase;
+      }
       if (connected) {
         setHost(localHost);
         setUser(localUser);
         setPassword(localPassword);
-        setDatabase(localDatabase || "martech");
+        setDatabase(database);
       } else {
         toast({
           title:
@@ -80,8 +83,14 @@ export const DatabaseConfigFormManual = ({
     scaleFactor = <ScaleFactorSelector />;
   }
 
+  const handleEnterKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key.toLowerCase() === "enter") {
+      connect();
+    }
+  };
+
   return (
-    <Stack spacing={4}>
+    <Stack spacing={4} onKeyDown={handleEnterKeyPress}>
       <ConfigInput
         label="Host & Port"
         placeholder="http://127.0.0.1:8808"
@@ -92,8 +101,8 @@ export const DatabaseConfigFormManual = ({
           <Text>
             The protocol (http, https), host, and port for the SingleStore{" "}
             <Link
-              to="https://docs.singlestore.com/docs/http-api/"
-              target="_blank"
+              href="https://docs.singlestore.com/docs/http-api/"
+              isExternal
             >
               Data API
             </Link>

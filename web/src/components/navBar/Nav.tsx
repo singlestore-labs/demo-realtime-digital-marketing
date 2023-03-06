@@ -157,7 +157,6 @@ export const Nav = () => {
   };
 
   return (
-    <>
       <Box
         bg={useColorModeValue("#ECE8FD", "#2F206E")}
         borderBottomRadius="10px"
@@ -187,7 +186,6 @@ export const Nav = () => {
               display={{ md: "none" }}
               onClick={navClickAction}
             />
-
             <HStack as="nav" spacing={2} display={{ base: "none", md: "flex" }}>
               <Wrap display="inline-block">
                 <WrapItem>
@@ -213,7 +211,6 @@ export const Nav = () => {
             >
               {links}
             </HStack>
-
             <Flex alignItems="center" justifyContent="right" gap={7}>
               <Menu>
                 <MenuButton alignItems="center">
@@ -250,10 +247,8 @@ export const Nav = () => {
               />
             </Flex>
           </Flex>
-
           {renderHamburgerNavMenu()}
         </Container>
       </Box>
-    </>
   );
 };

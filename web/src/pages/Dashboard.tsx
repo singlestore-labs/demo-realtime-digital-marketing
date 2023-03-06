@@ -112,20 +112,21 @@ const SelectCityCheckbox = (props: {
     return undefined;
   };
 
-  const CityNameConatiner: React.FC<{ city: City }> = ({ city }) => {
+  const CityNameContainer: React.FC<{ city: City }> = ({ city }) => {
+    let selectedCityIndicator;
     if (lastSelectedCityId === city.id && selectedCities.length > 0) {
-      return (
-        <>
-          <Text>{city.name}</Text>
-          <span
-            style={{ display: "inline", position: "absolute", right: "0px" }}
-          >
-            <BsEye size="1.2em" />
-          </span>
-        </>
+      selectedCityIndicator = (
+        <span style={{ display: "inline", position: "absolute", right: "0px" }}>
+          <BsEye size="1.2em" />
+        </span>
       );
     }
-    return <Text>{city.name}</Text>;
+    return (
+        <>
+          <Text>{city.name}</Text>
+          {selectedCityIndicator}
+        </>
+    );
   };
 
   const setCheckItem = (city: City, checkStatus: boolean) => {
@@ -153,7 +154,7 @@ const SelectCityCheckbox = (props: {
           zIndex={10}
           colorScheme="purple"
           isChecked={
-            selectedCities.map((c) => c.id).includes(city.id) ? true : false
+            selectedCities.map((c) => c.id).includes(city.id)
           }
           onChange={(e) => setCheckItem(city, e.target.checked)}
         >
@@ -163,7 +164,7 @@ const SelectCityCheckbox = (props: {
             gap={1}
             color={getCheckedFontColor(city)}
           >
-            <CityNameConatiner city={city} />
+            <CityNameContainer city={city} />
           </Flex>
         </Checkbox>
       ))}
@@ -234,13 +235,13 @@ export const NotificationsMap = () => {
     window.location.href = "/";
   }
 
-  let inner;
+  let mapStatisticsContainer;
   if (!initialized) {
-    inner = <SetupDatabaseButton />;
+    mapStatisticsContainer = <SetupDatabaseButton />;
   } else if (!enabled) {
-    inner = <EnableSimulatorButton />;
+    mapStatisticsContainer = <EnableSimulatorButton />;
   } else {
-    inner = <StatsWrapper />;
+    mapStatisticsContainer = <StatsWrapper />;
   }
 
   return (
@@ -275,7 +276,7 @@ export const NotificationsMap = () => {
         borderBottomRightRadius="10px"
         padding="36px 48px 36px 48px"
       >
-        {inner}
+        {mapStatisticsContainer}
       </Stack>
     </Flex>
   );

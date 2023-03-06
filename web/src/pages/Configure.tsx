@@ -101,9 +101,9 @@ const CollapsibleSection = ({
   childContainerStyle?: React.CSSProperties;
 }) => {
   const [sectionOpen, setSectionOpen] = React.useState(!disabled);
-  let acordianIcon = <ChevronUpIcon />;
+  let accordionIcon = <ChevronDownIcon />;
   if (sectionOpen) {
-    acordianIcon = <ChevronDownIcon />;
+    accordionIcon = <ChevronUpIcon />;
   }
 
   React.useEffect(() => {
@@ -120,7 +120,7 @@ const CollapsibleSection = ({
         onClick={() => setSectionOpen(!sectionOpen)}
       >
         {title}
-        {acordianIcon}
+        {accordionIcon}
       </Button>
       <div style={childContainerStyle}>
         <Collapse in={sectionOpen}>{childComponent}</Collapse>
@@ -477,17 +477,16 @@ const PipelinesSection = ({
     tables.some((name) => data[name].length < 2) ||
     tables.every((name) => timeseriesIsEmpty(data[name]));
 
-  let pipelineButtonText = "Create Pipeline";
+  let pipelineButtonLabel = <>Create Pipeline</>;
   if (working) {
-    pipelineButtonText = "Creating Pipeline";
+    pipelineButtonLabel = <><Loader size="small" centered />{" "}Creating Pipeline</>;
   } else if (completed) {
-    pipelineButtonText = "Waiting for data...";
+    pipelineButtonLabel = <><Loader size="small" centered />{" "}Waiting for data...</>;
   }
 
   const ensurePipelinesButton = (
     <PrimaryButton size="sm" onClick={onEnsurePipelines} disabled={completed}>
-      {(working || completed) && <Loader size="small" centered />}&nbsp;
-      {pipelineButtonText}
+      {pipelineButtonLabel}
     </PrimaryButton>
   );
 
@@ -524,13 +523,13 @@ const PipelinesSection = ({
         The application simulates streams for location, request and purchase
         history from simulated subscribers using{" "}
         <Link
-          href="https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html) Pipelines and [AWS S3](https://aws.amazon.com/s3/"
+          href="https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html"
           target="_blank"
         >
           {" "}
-          SingleStore.{" "}
+          SingleStoreDB Pipelines{" "}
         </Link>
-        Pipelines and{" "}
+        and{" "}
         <Link href="https://aws.amazon.com/s3/" target="_blank">
           AWS S3
         </Link>
@@ -602,11 +601,11 @@ const OffersSection = ({
 
   const done = !!tableCounts.data?.offers;
 
-  let loadButtonText = "load offers";
+  let loadButtonText = "Load offers";
   if (working) {
-    loadButtonText = "loading...";
+    loadButtonText = "Loading...";
   } else if (done) {
-    loadButtonText = "loaded offers!";
+    loadButtonText = "Loaded offers!";
   }
 
   let loadOffersButton;
@@ -633,8 +632,8 @@ const OffersSection = ({
     loadOffersButton = (
       <Text>
         <br />
-        {`Press the "load offers" button to create some
-          sample offers in New York City.`}
+        Press the "Load offers" button to create some
+          sample offers in New York City.
       </Text>
     );
   }
@@ -787,7 +786,7 @@ const SegmentationSection = ({
       right={
         <Flex direction="column" gap={4} padding="10px">
           <Code padding="5px">
-            {`    select count(*) from dynamic_subscriber_segments(date_sub_dynamic(now(), "minute"), now());`}
+            {`select count(*) from dynamic_subscriber_segments(date_sub_dynamic(now(), "minute"), now());`}
           </Code>
         </Flex>
       }
@@ -854,11 +853,9 @@ const MatchingSection = ({
     const sentNotifs = formatNumber(sentNotifications);
     workEstimate = (
       <Text>
-        {`
-          The last update evaluated up to ${estRows} notification opportunities
-          against ${memberships} segment memberships generating ${sentNotifs}
-          notifications. This process took ${durationFormatted}.
-        `}
+          The last update evaluated up to {estRows} notification opportunities
+          against {memberships} segment memberships generating {sentNotifs}
+          notifications. This process took {durationFormatted}.
       </Text>
     );
   }
@@ -871,6 +868,16 @@ const MatchingSection = ({
         Queries are still warming up. Please wait for a little bit and then try
         again.
       </Alert>
+    );
+  }
+
+  let notificationButtonLabel = <>Generate notifications</>;
+  if (isRunning) {
+    notificationButtonLabel = (
+      <>
+      <Loader size="small" />{" "}
+      running...
+      </>
     );
   }
 
@@ -891,14 +898,13 @@ const MatchingSection = ({
           </Text>
           <br />
           <PrimaryButton disabled={isRunning} onClick={onClick} gap={2}>
-            {isRunning && <Loader size="small" />}
-            {isRunning ? "...running" : "Generate notifications"}
+            {notificationButtonLabel}
           </PrimaryButton>
         </>
       }
       right={
         <Flex direction="column" gap={4} padding="10px">
-          <Code padding="5px">{`    select * from match_offers_to_subscribers("second");`}</Code>
+          <Code padding="5px">{`select * from match_offers_to_subscribers("second");`}</Code>
           <Flex
             direction="column"
             gap={4}

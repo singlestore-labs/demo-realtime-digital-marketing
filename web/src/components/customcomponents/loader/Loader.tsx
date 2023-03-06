@@ -227,7 +227,7 @@ export function Loader({
     messageNode = <span className="message">{message}</span>;
   }
 
-  const inner = (
+  const loaderContent = (
     <span className={innerClasses}>
       {svg}
       {messageNode}
@@ -235,8 +235,8 @@ export function Loader({
   );
 
   if (centered) {
-    return <CenteringWrapper className={classes}>{inner}</CenteringWrapper>;
+    return <CenteringWrapper className={classes}>{loaderContent}</CenteringWrapper>;
   }
 
-  return <span className={classes}>{inner}</span>;
+  return <span className={classes}>{loaderContent}</span>;
 }

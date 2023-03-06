@@ -85,7 +85,7 @@ const removeCityFromDatabase = async (
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
   // The removeCityFromDatabase will remove city matching cityID from cities table in martech database.
-  // // This will also automatically update selectedCities in recoil after the city is removed.
+  // This will also automatically update selectedCities in recoil after the city is removed.
 
   setIsUpdating(true);
   await removeCity(config, cityId);

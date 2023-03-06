@@ -1,6 +1,5 @@
-import { SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { Link,SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import * as React from "react";
-import { Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { ConfigInput } from "@/components/ConfigInput";
@@ -27,7 +26,7 @@ export const DatabaseConfigForm = ({
   const [database, setDatabase] = useRecoilState(connectionDatabase);
 
   let databaseInput;
-  if (showDatabase === true) {
+  if (showDatabase) {
     databaseInput = (
       <ConfigInput
         label="Database"
@@ -39,7 +38,7 @@ export const DatabaseConfigForm = ({
   }
 
   let scaleFactor;
-  if (showScaleFactor === true) {
+  if (showScaleFactor) {
     scaleFactor = <ScaleFactorSelector />;
   }
 
@@ -54,8 +53,8 @@ export const DatabaseConfigForm = ({
           <Text>
             The protocol (http, https), host, and port for the SingleStore{" "}
             <Link
-              to="https://docs.singlestore.com/docs/http-api/"
-              target="_blank"
+              href="https://docs.singlestore.com/docs/http-api"
+              isExternal
             >
               Data API
             </Link>

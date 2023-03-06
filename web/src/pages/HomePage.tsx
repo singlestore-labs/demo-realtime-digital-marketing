@@ -18,7 +18,7 @@ import {
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 
-import DashboardControllerIamge from "@/assets/dashboard-controller-snapshot.svg";
+import DashboardControllerImage from "@/assets/dashboard-controller-snapshot.svg";
 import GraphicalBackground2 from "@/assets/graphical-background-2.svg";
 import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
@@ -112,7 +112,7 @@ export const HomePage: React.FC = () => {
           width="100%"
           alignItems="center"
         >
-          <Image width="80%" objectFit="cover" src={DashboardControllerIamge} />
+          <Image width="80%" objectFit="cover" src={DashboardControllerImage} />
         </Flex>
       </GridItem>
     </Grid>

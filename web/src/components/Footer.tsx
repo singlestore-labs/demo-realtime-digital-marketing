@@ -1,6 +1,5 @@
-import { Box, Flex, Text, useColorModeValue } from "@chakra-ui/react";
+import { Box, Flex, Link,Text, useColorModeValue } from "@chakra-ui/react";
 import * as React from "react";
-import { Link } from "react-router-dom";
 
 import {
   GithubIconButton,
@@ -53,7 +52,7 @@ export const Footer = () => {
       >
         <Text>
           Real-time Digital Marketing is a demo application running on{" "}
-          <Link to="https://singlestore.com"> SingleStoreDB</Link>
+          <Link href="https://singlestore.com"> SingleStoreDB</Link>
         </Text>
 
         <SocialMediaSection />

@@ -368,9 +368,9 @@ const StatWrapper = ({
   helpText?: string;
   colSpan?: number;
 }) => {
-  let helpTextConatiner;
+  let helpTextContainer;
   if (helpText) {
-    helpTextConatiner = <StatHelpText>{helpText}</StatHelpText>;
+    helpTextContainer = <StatHelpText>{helpText}</StatHelpText>;
   }
 
   return (
@@ -385,7 +385,7 @@ const StatWrapper = ({
         <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
           {statNumber}
         </StatNumber>
-        {helpTextConatiner}
+        {helpTextContainer}
       </Stat>
     </GridItem>
   );
