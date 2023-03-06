@@ -157,98 +157,98 @@ export const Nav = () => {
   };
 
   return (
-      <Box
-        bg={useColorModeValue("#ECE8FD", "#2F206E")}
-        borderBottomRadius="10px"
-        borderTop={0}
-        justifyContent="center"
-        alignItems="center"
-        alignContent="center"
-        boxShadow={useColorModeValue("0 2px 2px #DDDDDE", undefined)}
-        zIndex={5}
-        paddingLeft="1rem"
-        paddingRight="1rem"
+    <Box
+      bg={useColorModeValue("#ECE8FD", "#2F206E")}
+      borderBottomRadius="10px"
+      borderTop={0}
+      justifyContent="center"
+      alignItems="center"
+      alignContent="center"
+      boxShadow={useColorModeValue("0 2px 2px #DDDDDE", undefined)}
+      zIndex={5}
+      paddingLeft="1rem"
+      paddingRight="1rem"
+    >
+      <Container
+        maxW="inherit"
+        padding={isSmallScreen ? undefined : "0 12.5% 0 12.5%"}
       >
-        <Container
-          maxW="inherit"
-          padding={isSmallScreen ? undefined : "0 12.5% 0 12.5%"}
+        <Flex
+          h={16}
+          justifyContent="space-between"
+          alignItems="center"
+          padding={0}
         >
-          <Flex
-            h={16}
-            justifyContent="space-between"
+          <IconButton
+            size="md"
+            icon={NavButtonIcon}
+            aria-label="Open Menu"
+            display={{ md: "none" }}
+            onClick={navClickAction}
+          />
+          <HStack as="nav" spacing={2} display={{ base: "none", md: "flex" }}>
+            <Wrap display="inline-block">
+              <WrapItem>
+                <Avatar
+                  size="sm"
+                  background={useColorModeValue("#553ACF", "#CCC3F9")}
+                  color={useColorModeValue("white", "#2F206E")}
+                  name="Singlestore"
+                  src={logo}
+                />
+              </WrapItem>
+            </Wrap>
+            <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
+              {isSmallScreen ? "Martech" : "Real-time Digital Marketing"}
+            </Heading>
+          </HStack>
+          <HStack
+            as="nav"
+            spacing={4}
             alignItems="center"
-            padding={0}
+            justifyContent="right"
+            display={{ base: "none", md: "flex" }}
           >
-            <IconButton
-              size="md"
-              icon={NavButtonIcon}
-              aria-label="Open Menu"
-              display={{ md: "none" }}
-              onClick={navClickAction}
+            {links}
+          </HStack>
+          <Flex alignItems="center" justifyContent="right" gap={7}>
+            <Menu>
+              <MenuButton alignItems="center">
+                <Icon
+                  aria-label="Github Repo"
+                  as={useColorModeValue(BsShare, BsShareFill)}
+                  cursor="pointer"
+                />
+              </MenuButton>
+              <MenuList p={0} minW={0}>
+                <MenuItem p={0} m={0} width="100%" justifyContent="center">
+                  <TwitterIconButton
+                    background="transparent"
+                    _hover={{ background: "transparent" }}
+                    size="md"
+                    onClick={handleLinkRedirect}
+                  />
+                </MenuItem>
+                <MenuItem p={0} m={0} width="100%" justifyContent="center">
+                  <LinkedinIconButton
+                    background="transparent"
+                    _hover={{ background: "transparent" }}
+                    size="md"
+                    onClick={handleLinkRedirect}
+                  />
+                </MenuItem>
+              </MenuList>
+            </Menu>
+            {themeModeIcon}
+            <GithubStargazer
+              color="black"
+              owner="singlestore-labs"
+              repoName="demo-realtime-digital-marketing"
             />
-            <HStack as="nav" spacing={2} display={{ base: "none", md: "flex" }}>
-              <Wrap display="inline-block">
-                <WrapItem>
-                  <Avatar
-                    size="sm"
-                    background={useColorModeValue("#553ACF", "#CCC3F9")}
-                    color={useColorModeValue("white", "#2F206E")}
-                    name="Singlestore"
-                    src={logo}
-                  />
-                </WrapItem>
-              </Wrap>
-              <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
-                {isSmallScreen ? "Martech" : "Real-time Digital Marketing"}
-              </Heading>
-            </HStack>
-            <HStack
-              as="nav"
-              spacing={4}
-              alignItems="center"
-              justifyContent="right"
-              display={{ base: "none", md: "flex" }}
-            >
-              {links}
-            </HStack>
-            <Flex alignItems="center" justifyContent="right" gap={7}>
-              <Menu>
-                <MenuButton alignItems="center">
-                  <Icon
-                    aria-label="Github Repo"
-                    as={useColorModeValue(BsShare, BsShareFill)}
-                    cursor="pointer"
-                  />
-                </MenuButton>
-                <MenuList p={0} minW={0}>
-                  <MenuItem p={0} m={0} width="100%" justifyContent="center">
-                    <TwitterIconButton
-                      background="transparent"
-                      _hover={{ background: "transparent" }}
-                      size="md"
-                      onClick={handleLinkRedirect}
-                    />
-                  </MenuItem>
-                  <MenuItem p={0} m={0} width="100%" justifyContent="center">
-                    <LinkedinIconButton
-                      background="transparent"
-                      _hover={{ background: "transparent" }}
-                      size="md"
-                      onClick={handleLinkRedirect}
-                    />
-                  </MenuItem>
-                </MenuList>
-              </Menu>
-              {themeModeIcon}
-              <GithubStargazer
-                color="black"
-                owner="singlestore-labs"
-                repoName="demo-realtime-digital-marketing"
-              />
-            </Flex>
           </Flex>
-          {renderHamburgerNavMenu()}
-        </Container>
-      </Box>
+        </Flex>
+        {renderHamburgerNavMenu()}
+      </Container>
+    </Box>
   );
 };

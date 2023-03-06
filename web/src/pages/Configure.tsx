@@ -479,9 +479,17 @@ const PipelinesSection = ({
 
   let pipelineButtonLabel = <>Create Pipeline</>;
   if (working) {
-    pipelineButtonLabel = <><Loader size="small" centered />{" "}Creating Pipeline</>;
+    pipelineButtonLabel = (
+      <>
+        <Loader size="small" centered /> Creating Pipeline
+      </>
+    );
   } else if (completed) {
-    pipelineButtonLabel = <><Loader size="small" centered />{" "}Waiting for data...</>;
+    pipelineButtonLabel = (
+      <>
+        <Loader size="small" centered /> Waiting for data...
+      </>
+    );
   }
 
   const ensurePipelinesButton = (
@@ -632,8 +640,8 @@ const OffersSection = ({
     loadOffersButton = (
       <Text>
         <br />
-        Press the "Load offers" button to create some
-          sample offers in New York City.
+        Press the "Load offers" button to create some sample offers in New York
+        City.
       </Text>
     );
   }
@@ -720,7 +728,7 @@ const SegmentationSection = ({
     const estRows = formatNumber(locations + requests + purchases);
     const seg = formatNumber(segments);
     const memberships = formatNumber(subscriber_segments);
-    
+
     workEstimate = (
       <Text>
         The last update evaluated {estRows} rows against {seg} segments
@@ -742,11 +750,11 @@ const SegmentationSection = ({
   }
 
   let MatchingButtonText: React.ReactNode = "Match them";
-  if(isRunning) {
+  if (isRunning) {
     MatchingButtonText = (
       <>
-        <Loader size="small" />&nbsp;
-        running...
+        <Loader size="small" />
+        &nbsp; running...
       </>
     );
   }
@@ -853,9 +861,9 @@ const MatchingSection = ({
     const sentNotifs = formatNumber(sentNotifications);
     workEstimate = (
       <Text>
-          The last update evaluated up to {estRows} notification opportunities
-          against {memberships} segment memberships generating {sentNotifs}
-          notifications. This process took {durationFormatted}.
+        The last update evaluated up to {estRows} notification opportunities
+        against {memberships} segment memberships generating {sentNotifs}
+        notifications. This process took {durationFormatted}.
       </Text>
     );
   }
@@ -875,8 +883,7 @@ const MatchingSection = ({
   if (isRunning) {
     notificationButtonLabel = (
       <>
-      <Loader size="small" />{" "}
-      running...
+        <Loader size="small" /> running...
       </>
     );
   }

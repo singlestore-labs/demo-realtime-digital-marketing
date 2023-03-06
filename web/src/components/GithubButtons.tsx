@@ -19,7 +19,9 @@ export const GithubStargazer: React.FC<GithubStargazerProps> = ({
   };
 
   const getStarCount = async () => {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}`);
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repoName}`
+    );
     const resJson = await res.json();
     setStargazersCount(resJson.stargazers_count);
   };

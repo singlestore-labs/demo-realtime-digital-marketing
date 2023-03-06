@@ -1,4 +1,4 @@
-import { Link,SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { Link, SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import * as React from "react";
 import { useRecoilState } from "recoil";
 
@@ -52,10 +52,7 @@ export const DatabaseConfigForm = ({
         helpText={
           <Text>
             The protocol (http, https), host, and port for the SingleStore{" "}
-            <Link
-              href="https://docs.singlestore.com/docs/http-api"
-              isExternal
-            >
+            <Link href="https://docs.singlestore.com/docs/http-api" isExternal>
               Data API
             </Link>
             .

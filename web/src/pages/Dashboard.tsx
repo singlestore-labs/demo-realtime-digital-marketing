@@ -122,10 +122,10 @@ const SelectCityCheckbox = (props: {
       );
     }
     return (
-        <>
-          <Text>{city.name}</Text>
-          {selectedCityIndicator}
-        </>
+      <>
+        <Text>{city.name}</Text>
+        {selectedCityIndicator}
+      </>
     );
   };
 
@@ -153,9 +153,7 @@ const SelectCityCheckbox = (props: {
           key={city.id}
           zIndex={10}
           colorScheme="purple"
-          isChecked={
-            selectedCities.map((c) => c.id).includes(city.id)
-          }
+          isChecked={selectedCities.map((c) => c.id).includes(city.id)}
           onChange={(e) => setCheckItem(city, e.target.checked)}
         >
           <Flex

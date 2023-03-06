@@ -1,4 +1,4 @@
-import { Box, Flex, Link,Text, useColorModeValue } from "@chakra-ui/react";
+import { Box, Flex, Link, Text, useColorModeValue } from "@chakra-ui/react";
 import * as React from "react";
 
 import {

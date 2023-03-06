@@ -235,7 +235,9 @@ export function Loader({
   );
 
   if (centered) {
-    return <CenteringWrapper className={classes}>{loaderContent}</CenteringWrapper>;
+    return (
+      <CenteringWrapper className={classes}>{loaderContent}</CenteringWrapper>
+    );
   }
 
   return <span className={classes}>{loaderContent}</span>;

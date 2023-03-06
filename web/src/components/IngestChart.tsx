@@ -56,7 +56,7 @@ export const useIngestChartData = <TableName extends string>(
   if (data) {
     return data;
   }
-  
+
   return emptyCache;
 };
 
