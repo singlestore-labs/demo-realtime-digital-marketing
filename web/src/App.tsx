@@ -99,27 +99,10 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
 
   return (
     <>
-      <WelcomeMessageToast />
-      {children}
-    </>
-  );
-};
-
-const ConfigureRoute = () => {
-  // Configure route is always displayed.
-  // Nav and footer are not shown when not connected on this page.
-  // We manually add them if user is not connected to singlestore DB after configure page is loaded.
-  const { connected } = useConnectionState();
-
-  if (connected) {
-    return <Configure />;
-  }
-
-  return (
-    <>
-      <Nav />
-      <Configure />
-      <Footer />
+      <LayoutContainer>
+        <WelcomeMessageToast />
+        {children}
+      </LayoutContainer>
     </>
   );
 };
@@ -130,16 +113,12 @@ const Analytics = ({ children }: { children: React.ReactNode }) => {
 };
 
 const LayoutContainer = ({ children }: { children: React.ReactNode }) => {
-  const { connected } = useConnectionState();
-
-  if (!connected) {
-    return <>{children}</>;
-  }
-
   return (
     <>
       <Nav />
-      {children}
+      <Box flex="1" paddingTop="3px">
+        {children}
+      </Box>
       <Footer />
     </>
   );
@@ -147,29 +126,34 @@ const LayoutContainer = ({ children }: { children: React.ReactNode }) => {
 
 const RoutesBlock = () => {
   return (
-    <Box flex="1" paddingTop="3px">
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <NotificationsMap />
-            </PrivateRoute>
-          }
-        />
-        <Route path="/configure" element={<ConfigureRoute />} />
-        <Route
-          path="/analytics"
-          element={
-            <PrivateRoute>
-              <AnalyticsDashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </Box>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <NotificationsMap />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/configure"
+        element={
+          <LayoutContainer>
+            <Configure />
+          </LayoutContainer>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <PrivateRoute>
+            <AnalyticsDashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   );
 };
 
@@ -184,9 +168,7 @@ const App = () => {
     <React.Suspense fallback={loadingFallback}>
       <Analytics>
         <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
-          <LayoutContainer>
-            <RoutesBlock />
-          </LayoutContainer>
+          <RoutesBlock />
         </Flex>
       </Analytics>
     </React.Suspense>
