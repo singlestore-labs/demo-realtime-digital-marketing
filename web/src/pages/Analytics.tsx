@@ -25,7 +25,7 @@ import {
   useMediaQuery,
 } from "@chakra-ui/react";
 import { format } from "d3-format";
-import { interpolateBuPu } from "d3-scale-chromatic";
+import { interpolateRgb } from "d3-interpolate";
 import { Bounds } from "pigeon-maps";
 import * as React from "react";
 import { IconType } from "react-icons";
@@ -84,7 +84,7 @@ const NotificationZoneMap = () => {
               <Progress
                 colorScheme="transparent"
                 height={2}
-                bgGradient="linear(to-r, rgba(127, 17, 224, 1) 0%, white 120%)"
+                bgGradient="linear(to-r, rgba(79, 52, 199, 1) 0%, rgba(232, 230, 245) 100%)"
                 value={90}
               />
             </Box>
@@ -103,7 +103,7 @@ const NotificationZoneMap = () => {
         <Heatmap
           height={400}
           useCells={useConversionCells}
-          colorInterpolater={interpolateBuPu}
+          colorInterpolater={interpolateRgb("#E8E6F5", "#4F34C7")}
           getCellConfig={({ conversionRate, wktPolygon }: ZoneMetrics) => ({
             value: conversionRate,
             wktPolygon,
