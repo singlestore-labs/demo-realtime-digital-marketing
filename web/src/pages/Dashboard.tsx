@@ -94,7 +94,7 @@ const SelectCityCheckbox = (props: {
   const getNewSelectedCityAfterDeletion = (city: City): number => {
     const cityIndex = selectedCities.findIndex((c) => c.id === city.id);
     if (cityIndex === 0 && selectedCities.length > 1) {
-        return selectableCitiesData[1].id;
+      return selectableCitiesData[1].id;
     }
     return -1;
   };

@@ -10,28 +10,26 @@ type Props = {
   children: React.ReactNode;
 };
 
-export class CenteringWrapper extends React.Component<Props> {
-  render() {
-    const { className, vertical, children } = this.props;
+export const CenteringWrapper = (props: Props) => {
+  const { className, vertical, children } = props;
 
-    const classes = classnames(
-      "single-common-components-centering-wrapper",
-      "single-common-components-centering-wrapper.vertical",
-      className,
-      {
-        vertical,
-      }
-    );
+  const classes = classnames(
+    "single-common-components-centering-wrapper",
+    "single-common-components-centering-wrapper.vertical",
+    className,
+    {
+      vertical,
+    }
+  );
 
-    return (
-      <Box
-        height="inherit"
-        justifyContent="center"
-        alignItems="center"
-        className={classes}
-      >
-        {children}
-      </Box>
-    );
-  }
-}
+  return (
+    <Box
+      height="inherit"
+      justifyContent="center"
+      alignItems="center"
+      className={classes}
+    >
+      {children}
+    </Box>
+  );
+};

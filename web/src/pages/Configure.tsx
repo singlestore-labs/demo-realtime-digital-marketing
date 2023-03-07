@@ -481,13 +481,15 @@ const PipelinesSection = ({
   if (working) {
     pipelineButtonLabel = (
       <>
-        <Loader size="small" centered />&nbsp;Creating Pipeline
+        <Loader size="small" centered />
+        &nbsp;Creating Pipeline
       </>
     );
   } else if (completed) {
     pipelineButtonLabel = (
       <>
-        <Loader size="small" centered />&nbsp;Waiting for data...
+        <Loader size="small" centered />
+        &nbsp;Waiting for data...
       </>
     );
   }
@@ -950,63 +952,63 @@ const CompleteToast = () => {
 
   return (
     <Flex
-        width="100%"
-        alignItems="center"
-        justifyContent="center"
-        backgroundImage={GraphicalBackground}
-        backgroundSize="100% 100%"
-        backgroundPosition="center"
-        backgroundRepeat="no-repeat"
-        minHeight="250px"
-      >
-    <Flex
-      maxWidth="50%"
-      direction="row"
-      justifyContent="center"
+      width="100%"
       alignItems="center"
-      margin="50px"
-      padding="20px 25px 10px 10px"
-      gap={5}
-      borderRadius="10px"
-      background={useColorModeValue("#553ACF", "#CCC3F9")}
+      justifyContent="center"
+      backgroundImage={GraphicalBackground}
+      backgroundSize="100% 100%"
+      backgroundPosition="center"
+      backgroundRepeat="no-repeat"
+      minHeight="250px"
     >
-      <CheckCircleIcon color={defaultFontTheme} margin="15px" fontSize="lg" />
-      <Box
-        color={defaultFontTheme}
-        style={{ lineHeight: "28px", fontWeight: 400, fontSize: "16px" }}
+      <Flex
+        maxWidth="50%"
+        direction="row"
+        justifyContent="center"
+        alignItems="center"
+        margin="50px"
+        padding="20px 25px 10px 10px"
+        gap={5}
+        borderRadius="10px"
+        background={useColorModeValue("#553ACF", "#CCC3F9")}
       >
-        <Heading size="sm">Great Job!</Heading>
+        <CheckCircleIcon color={defaultFontTheme} margin="15px" fontSize="lg" />
+        <Box
+          color={defaultFontTheme}
+          style={{ lineHeight: "28px", fontWeight: 400, fontSize: "16px" }}
+        >
+          <Heading size="sm">Great Job!</Heading>
 
-        <Text>
-          The applications is up and running. Explore it further by:
-          <ul style={{ listStylePosition: "inside" }}>
-            <li>
-              Adding or removing location from{" "}
-              <a onClick={() => navigate("/dashboard")} style={linkStyle}>
-                Dashboard
-              </a>
-            </li>
-            <li>
-              Inspect engagement under{" "}
-              <a onClick={() => navigate("/analytics")} style={linkStyle}>
-                Analytics
-              </a>
-            </li>
-            <li>
-              Explore the{" "}
-              <Link
-                href="https://portal.singlestore.com"
-                isExternal
-                style={linkStyle}
-              >
-                {database}
-              </Link>{" "}
-              database in SingleStore Customer Portal
-            </li>
-          </ul>
-        </Text>
-      </Box>
-    </Flex>
+          <Text>
+            The applications is up and running. Explore it further by:
+            <ul style={{ listStylePosition: "inside" }}>
+              <li>
+                Adding or removing location from{" "}
+                <a onClick={() => navigate("/dashboard")} style={linkStyle}>
+                  Dashboard
+                </a>
+              </li>
+              <li>
+                Inspect engagement under{" "}
+                <a onClick={() => navigate("/analytics")} style={linkStyle}>
+                  Analytics
+                </a>
+              </li>
+              <li>
+                Explore the{" "}
+                <Link
+                  href="https://portal.singlestore.com"
+                  isExternal
+                  style={linkStyle}
+                >
+                  {database}
+                </Link>{" "}
+                database in SingleStore Customer Portal
+              </li>
+            </ul>
+          </Text>
+        </Box>
+      </Flex>
     </Flex>
   );
 };
@@ -1128,8 +1130,7 @@ export const Configure = () => {
       </Flex>
       {sections}
 
-      
-        {completeToast}
+      {completeToast}
     </Container>
   );
 };
