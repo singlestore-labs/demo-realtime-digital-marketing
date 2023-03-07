@@ -10,9 +10,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-export const CenteringWrapper = (props: Props) => {
-  const { className, vertical, children } = props;
-
+export const CenteringWrapper = ({ className, vertical, children }: Props) => {
   const classes = classnames(
     "single-common-components-centering-wrapper",
     "single-common-components-centering-wrapper.vertical",
