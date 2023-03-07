@@ -481,13 +481,13 @@ const PipelinesSection = ({
   if (working) {
     pipelineButtonLabel = (
       <>
-        <Loader size="small" centered />{" "}Creating Pipeline
+        <Loader size="small" centered />&nbsp;Creating Pipeline
       </>
     );
   } else if (completed) {
     pipelineButtonLabel = (
       <>
-        <Loader size="small" centered />{" "}Waiting for data...
+        <Loader size="small" centered />&nbsp;Waiting for data...
       </>
     );
   }
@@ -950,6 +950,16 @@ const CompleteToast = () => {
 
   return (
     <Flex
+        width="100%"
+        alignItems="center"
+        justifyContent="center"
+        backgroundImage={GraphicalBackground}
+        backgroundSize="100% 100%"
+        backgroundPosition="center"
+        backgroundRepeat="no-repeat"
+        minHeight="250px"
+      >
+    <Flex
       maxWidth="50%"
       direction="row"
       justifyContent="center"
@@ -996,6 +1006,7 @@ const CompleteToast = () => {
           </ul>
         </Text>
       </Box>
+    </Flex>
     </Flex>
   );
 };
@@ -1117,18 +1128,8 @@ export const Configure = () => {
       </Flex>
       {sections}
 
-      <Flex
-        width="100%"
-        alignItems="center"
-        justifyContent="center"
-        backgroundImage={GraphicalBackground}
-        backgroundSize="100% 100%"
-        backgroundPosition="center"
-        backgroundRepeat="no-repeat"
-        minHeight="250px"
-      >
+      
         {completeToast}
-      </Flex>
     </Container>
   );
 };
