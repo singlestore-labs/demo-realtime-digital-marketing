@@ -39,6 +39,16 @@ export const isConnected = async (config: ConnectionConfigOptionalDatabase) => {
   }
 };
 
+export const connectToDB = async (config: ConnectionConfigOptionalDatabase) => {
+  try {
+    await ExecNoDb(config, "SELECT 1");
+    return true;
+  } catch (e) {
+    const error = e as SQLError;
+    return error;
+  }
+};
+
 export const hasSchema = async (config: ConnectionConfig) => {
   const objects = await schemaObjects(config);
   return Object.values(objects).every((x) => x);

@@ -51,7 +51,7 @@ export const Footer = () => {
         alignItems="center"
       >
         <Text>
-          Real-time Digital Marketing is a demo application running on{" "}
+          Real-Time Digital Marketing is a demo application running on{" "}
           <Link href="https://singlestore.com"> SingleStoreDB</Link>
         </Text>
 

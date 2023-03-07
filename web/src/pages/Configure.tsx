@@ -481,13 +481,13 @@ const PipelinesSection = ({
   if (working) {
     pipelineButtonLabel = (
       <>
-        <Loader size="small" centered /> Creating Pipeline
+        <Loader size="small" centered />{" "}Creating Pipeline
       </>
     );
   } else if (completed) {
     pipelineButtonLabel = (
       <>
-        <Loader size="small" centered /> Waiting for data...
+        <Loader size="small" centered />{" "}Waiting for data...
       </>
     );
   }
@@ -1089,10 +1089,10 @@ export const Configure = () => {
     >
       <Flex gap={5} justifyContent="space-between" marginBottom="50px">
         <Stack spacing={2}>
-          <Heading fontSize="md">Application set up</Heading>
+          <Heading fontSize="md">Setting up Your Application</Heading>
           <Text size="xs" overflowWrap="break-word">
             Connect to a SingleStoreDB workspace to see how we power the
-            Real-time Digital Marketing applications. If you have any questions
+            real-time Digital Marketing applications. If you have any questions
             or issues, please file an issue on the{" "}
             <Link
               href="https://github.com/singlestore-labs/demo-realtime-digital-marketing"

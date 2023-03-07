@@ -11,7 +11,7 @@ import { useRecoilState } from "recoil";
 
 import { ConfigInput } from "@/components/ConfigInput";
 import { ScaleFactorSelector } from "@/components/ScaleFactorSelector";
-import { isConnected } from "@/data/queries";
+import { connectToDB } from "@/data/queries";
 import {
   connectionDatabase,
   connectionHost,
@@ -47,20 +47,20 @@ export const DatabaseConfigFormManual = ({
       password: localPassword,
       user: localUser,
     };
-    isConnected(config).then((connected) => {
+    connectToDB(config).then((connected) => {
       let database = "martech";
       if (localDatabase) {
         database = localDatabase;
       }
-      if (connected) {
+      if (connected === true) {
         setHost(localHost);
         setUser(localUser);
         setPassword(localPassword);
         setDatabase(database);
       } else {
         toast({
-          title:
-            "There was an error connecting to your database. Please check your credentials and try again",
+          title: "An error occured",
+          description: `${connected.message}`,
           status: "error",
           duration: 3000,
           isClosable: true,

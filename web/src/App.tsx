@@ -34,13 +34,13 @@ const WelcomeMessageToast = () => {
   const ToastDescriptionComponent = () => {
     return (
       <Text style={{ fontWeight: 400, fontSize: "16px" }}>
-        <Heading size="sm">Hello there!</Heading>
+        <Heading size="sm">Hello!</Heading>
         This is a demo application for an international marketing company
         serving simulated customer offers to millions of subscribers. You can:
         <ul style={{ listStylePosition: "inside", listStyleType: "initial" }}>
-          <li>Add or remove locations from Dashboard</li>
-          <li>Inspect engagement under Analytics</li>
-          <li>Change schema settings with Configure</li>
+          <li>Add or remove locations from dashboard</li>
+          <li>Inspect engagement under "Analytics"</li>
+          <li>Change schema settings with "Configure"</li>
         </ul>
       </Text>
     );

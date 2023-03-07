@@ -199,7 +199,7 @@ export const Nav = () => {
               </WrapItem>
             </Wrap>
             <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
-              {isSmallScreen ? "Martech" : "Real-time Digital Marketing"}
+              {isSmallScreen ? "Martech" : "Real-Time Digital Marketing"}
             </Heading>
           </HStack>
           <HStack
