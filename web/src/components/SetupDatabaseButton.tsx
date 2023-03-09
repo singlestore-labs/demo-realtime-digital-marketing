@@ -20,7 +20,7 @@ export const SetupDatabaseButton: React.FC = () => {
         color={useColorModeValue("#553ACF", "#ECE8FD")}
         size="sm"
       >
-        Setup database
+        Setup Database
       </ResetSchemaButton>
     </Box>
   );

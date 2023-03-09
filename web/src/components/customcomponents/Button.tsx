@@ -2,7 +2,7 @@ import { Button, ButtonProps, useColorModeValue } from "@chakra-ui/react";
 import * as React from "react";
 
 // To make the primary button consistant everywhere we will not allow user to change color theme.
-// To have custom button we can directly use Button component.
+// To have custom theme button we can directly use Button component.
 type customButtonProps = Omit<
   ButtonProps,
   "color" | "background" | "colorSchema"

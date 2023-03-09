@@ -30,8 +30,11 @@ const getSelectedCitiesFromDatabase = async (
   const [lastSelectedCityId, setLastSelectedCityId] = selectCityHook;
   setIsUpdating(true);
   try {
+    // Fetch cities from database in singlestoreDB.
     const cities = await getCities(config);
     setCities(cities);
+
+    // Update lastSelectedCityId in case it is not found in selected cities from database.
     const doesLastSelectedCityExist = cities.find(
       (c) => c.id === lastSelectedCityId
     );
@@ -52,7 +55,7 @@ const addCityToDatabase = async (
   setCities: React.Dispatch<React.SetStateAction<Array<City>>>,
   setError: React.Dispatch<React.SetStateAction<Error | undefined>>
 ) => {
-  // The addCityToDatabase will add city with city details in cities table from martech database.
+  // The addCityToDatabase will add city along with city details in cities table from martech database.
   // This will also automatically update selectedCities in recoil after the new city is added.
 
   setIsUpdating(true);

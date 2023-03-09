@@ -1,4 +1,5 @@
 import {
+  Box,
   Link,
   SimpleGrid,
   Stack,
@@ -20,6 +21,7 @@ import {
 } from "@/data/recoil";
 
 import { PrimaryButton } from "../customcomponents/Button";
+import { Loader } from "../customcomponents/loader/Loader";
 
 type Props = {
   showDatabase?: boolean;
@@ -30,11 +32,12 @@ export const DatabaseConfigFormManual = ({
   showDatabase,
   showScaleFactor,
 }: Props) => {
+  const toast = useToast();
+  const [loading, setLoading] = React.useState(false);
   const [host, setHost] = useRecoilState(connectionHost);
   const [user, setUser] = useRecoilState(connectionUser);
   const [password, setPassword] = useRecoilState(connectionPassword);
   const [database, setDatabase] = useRecoilState(connectionDatabase);
-  const toast = useToast();
 
   const [localHost, setLocalHost] = React.useState(host);
   const [localUser, setLocalUser] = React.useState(user);
@@ -42,12 +45,14 @@ export const DatabaseConfigFormManual = ({
   const [localDatabase, setLocalDatabase] = React.useState(database);
 
   const connect = () => {
+    setLoading(true);
     const config = {
       host: localHost,
       password: localPassword,
       user: localUser,
     };
     connectToDB(config).then((connected) => {
+      setLoading(false);
       let database = "martech";
       if (localDatabase) {
         database = localDatabase;
@@ -88,6 +93,16 @@ export const DatabaseConfigFormManual = ({
   let scaleFactor;
   if (showScaleFactor) {
     scaleFactor = <ScaleFactorSelector />;
+  }
+
+  let connectButtonConatiner = <>Connect</>;
+  if (loading) {
+    connectButtonConatiner = (
+      <Box display="flex">
+        <Loader size="small" />
+        &nbsp;Connecting...
+      </Box>
+    );
   }
 
   const handleEnterKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -143,10 +158,11 @@ export const DatabaseConfigFormManual = ({
       >
         <PrimaryButton
           width="100%"
+          alignItems="center"
           isDisabled={connectDisabled}
           onClick={connect}
         >
-          Connect
+          {connectButtonConatiner}
         </PrimaryButton>
       </Tooltip>
     </Stack>

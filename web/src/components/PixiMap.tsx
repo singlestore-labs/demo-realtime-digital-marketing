@@ -186,7 +186,6 @@ const CitySelectionDropdown: React.FC<{
   const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
   const [dropdownDisabled, setDropdownDisabled] =
     React.useState<boolean>(false);
-
   const options = selectedCities.map((c) => ({ label: c.name, value: c }));
 
   let fontColor = "white";
@@ -249,7 +248,7 @@ const CitySelectionDropdown: React.FC<{
       );
     } else if (selectedCities.length <= 0) {
       setDropdownDisabledMsg(
-        "You need to select at least one city from dashboard's locations section."
+        "You need to select at least one city from the available locations on the Dashboard page"
       );
     } else if (isUpdating) {
       setDropdownDisabledMsg("City list is updating, please wait.");
@@ -319,6 +318,7 @@ export const PixiMap = <T,>({
   const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState<
     City | undefined
   >(undefined);
+  const [mapZoom, setMapZoom] = React.useState(zoom);
 
   let initialPosition = DEFAULT_CENTER;
   if (lastSelectedCityDetails) {
@@ -329,7 +329,6 @@ export const PixiMap = <T,>({
   }
   const [centerValue, setCenterValue] =
     React.useState<[number, number]>(initialPosition);
-  const [mapZoom, setMapZoom] = React.useState(zoom);
 
   let citySelectionDropdown;
   if (showCitySelectionDropDown) {

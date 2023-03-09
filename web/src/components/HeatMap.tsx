@@ -43,7 +43,8 @@ class HeatmapCell extends PIXI.Container {
     this.polygon = new PIXI.Graphics();
     this.addChild(this.polygon);
 
-    // Adding extra color opacity to avoid extreme white color that is not clearly visible
+    // White color may not be visible due to light background of the map.
+    // Adding extra color opacity to avoid pure white color.
     const color = colorScale(config.value + 0.01);
     this.color = colorToRGBNumber(color);
     this.hoverColor = colorToRGBNumber(color.darker(1));

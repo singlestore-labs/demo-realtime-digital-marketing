@@ -40,18 +40,86 @@ import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { GithubStargazer } from "@/components/GithubButtons";
 import { LinkedinIconButton, TwitterIconButton } from "@/components/IconLinks";
 
-export const Nav = () => {
-  const { toggleColorMode } = useColorMode();
-  const { colorMode } = useColorMode();
-  const handleNavMenu = useDisclosure();
+export const SinglestoreBrandLogo = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
+  return (
+    <HStack as="nav" spacing={2} display={{ base: "none", md: "flex" }}>
+      <Wrap display="inline-block">
+        <WrapItem>
+          <Avatar
+            size="sm"
+            background={useColorModeValue("#553ACF", "#CCC3F9")}
+            color={useColorModeValue("white", "#2F206E")}
+            name="Singlestore"
+            src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDrak)}
+          />
+        </WrapItem>
+      </Wrap>
+      <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
+        {isSmallScreen ? "Martech" : "Real-Time Digital Marketing"}
+      </Heading>
+    </HStack>
+  );
+};
+
+export const NavTools = () => {
+  const { toggleColorMode } = useColorMode();
+  const { colorMode } = useColorMode();
+
   let themeModeIcon = <MoonIcon cursor="pointer" onClick={toggleColorMode} />;
-  let logo = SinglestoreLogo;
   if (colorMode === "dark") {
     themeModeIcon = <SunIcon cursor="pointer" onClick={toggleColorMode} />;
-    logo = SingleStoreLogoDrak;
   }
+
+  const handleLinkRedirect = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    window.open(e.currentTarget.value, "_blank");
+  };
+
+  return (
+    <Flex alignItems="center" justifyContent="right" gap={7}>
+      <Menu>
+        <MenuButton alignItems="center">
+          <Icon
+            aria-label="Github Repo"
+            as={useColorModeValue(BsShare, BsShareFill)}
+            cursor="pointer"
+          />
+        </MenuButton>
+        <MenuList p={0} minW={0}>
+          <MenuItem p={0} m={0} width="100%" justifyContent="center">
+            <TwitterIconButton
+              background="transparent"
+              _hover={{ background: "transparent" }}
+              size="md"
+              onClick={handleLinkRedirect}
+            />
+          </MenuItem>
+          <MenuItem p={0} m={0} width="100%" justifyContent="center">
+            <LinkedinIconButton
+              background="transparent"
+              _hover={{ background: "transparent" }}
+              size="md"
+              onClick={handleLinkRedirect}
+            />
+          </MenuItem>
+        </MenuList>
+      </Menu>
+      {themeModeIcon}
+      <GithubStargazer
+        color="black"
+        owner="singlestore-labs"
+        repoName="demo-realtime-digital-marketing"
+      />
+    </Flex>
+  );
+};
+
+export const Nav = () => {
+  const handleNavMenu = useDisclosure();
+  const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   let NavButtonIcon = <CloseIcon />;
   let navClickAction = handleNavMenu.onOpen;
@@ -137,12 +205,6 @@ export const Nav = () => {
     </>
   );
 
-  const handleLinkRedirect = (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    window.open(e.currentTarget.value, "_blank");
-  };
-
   const renderHamburgerNavMenu = () => {
     if (handleNavMenu.isOpen) {
       return (
@@ -183,25 +245,10 @@ export const Nav = () => {
             size="md"
             icon={NavButtonIcon}
             aria-label="Open Menu"
-            display={{ md: "none" }}
+            display={{ md: "none", lg: "none" }}
             onClick={navClickAction}
           />
-          <HStack as="nav" spacing={2} display={{ base: "none", md: "flex" }}>
-            <Wrap display="inline-block">
-              <WrapItem>
-                <Avatar
-                  size="sm"
-                  background={useColorModeValue("#553ACF", "#CCC3F9")}
-                  color={useColorModeValue("white", "#2F206E")}
-                  name="Singlestore"
-                  src={logo}
-                />
-              </WrapItem>
-            </Wrap>
-            <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
-              {isSmallScreen ? "Martech" : "Real-Time Digital Marketing"}
-            </Heading>
-          </HStack>
+          <SinglestoreBrandLogo />
           <HStack
             as="nav"
             spacing={4}
@@ -211,41 +258,7 @@ export const Nav = () => {
           >
             {links}
           </HStack>
-          <Flex alignItems="center" justifyContent="right" gap={7}>
-            <Menu>
-              <MenuButton alignItems="center">
-                <Icon
-                  aria-label="Github Repo"
-                  as={useColorModeValue(BsShare, BsShareFill)}
-                  cursor="pointer"
-                />
-              </MenuButton>
-              <MenuList p={0} minW={0}>
-                <MenuItem p={0} m={0} width="100%" justifyContent="center">
-                  <TwitterIconButton
-                    background="transparent"
-                    _hover={{ background: "transparent" }}
-                    size="md"
-                    onClick={handleLinkRedirect}
-                  />
-                </MenuItem>
-                <MenuItem p={0} m={0} width="100%" justifyContent="center">
-                  <LinkedinIconButton
-                    background="transparent"
-                    _hover={{ background: "transparent" }}
-                    size="md"
-                    onClick={handleLinkRedirect}
-                  />
-                </MenuItem>
-              </MenuList>
-            </Menu>
-            {themeModeIcon}
-            <GithubStargazer
-              color="black"
-              owner="singlestore-labs"
-              repoName="demo-realtime-digital-marketing"
-            />
-          </Flex>
+          <NavTools />
         </Flex>
         {renderHamburgerNavMenu()}
       </Container>
