@@ -11,7 +11,7 @@ export const SetupDatabaseButton: React.FC = () => {
   return (
     <Box>
       <Text>
-        You don't have database {databaseName}. Please setup the schema for this
+        You don't have {databaseName} database. Please setup the schema for this
         application.
       </Text>
       <br />

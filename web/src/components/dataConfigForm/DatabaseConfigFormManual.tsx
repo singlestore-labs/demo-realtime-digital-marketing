@@ -95,9 +95,9 @@ export const DatabaseConfigFormManual = ({
     scaleFactor = <ScaleFactorSelector />;
   }
 
-  let connectButtonConatiner = <>Connect</>;
+  let connectButtonContainer = <>Connect</>;
   if (loading) {
-    connectButtonConatiner = (
+    connectButtonContainer = (
       <Box display="flex">
         <Loader size="small" />
         &nbsp;Connecting...
@@ -162,7 +162,7 @@ export const DatabaseConfigFormManual = ({
           isDisabled={connectDisabled}
           onClick={connect}
         >
-          {connectButtonConatiner}
+          {connectButtonContainer}
         </PrimaryButton>
       </Tooltip>
     </Stack>
