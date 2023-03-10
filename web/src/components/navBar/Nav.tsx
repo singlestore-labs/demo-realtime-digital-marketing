@@ -83,7 +83,6 @@ export const NavTools = () => {
       <Menu>
         <MenuButton alignItems="center">
           <Icon
-            aria-label="Github Repo"
             as={useColorModeValue(BsShare, BsShareFill)}
             cursor="pointer"
           />
