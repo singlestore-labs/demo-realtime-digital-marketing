@@ -233,7 +233,18 @@ const ConversionTable = () => {
           </Td>
         </Tr>
       );
+    } else if (!metricsTableData.data) {
+      return (
+        <Tr>
+          <Td colSpan={4}>
+            <Text display="flex" justifyContent="center" width="100%">
+              No data
+            </Text>
+          </Td>
+        </Tr>
+      );
     }
+
     return metricsTableData.data?.map((c) => (
       <Tr key={c.customer}>
         <Td>{c.customer}</Td>

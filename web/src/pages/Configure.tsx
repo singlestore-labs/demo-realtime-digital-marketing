@@ -628,8 +628,9 @@ const OffersSection = ({
       <Text>
         <br />
         The map to your right displays a polygon representing each offer's
-        activation zone. Currently, There are ${tableCounts.data?.offers || 0} offers
-        in the database.
+        activation zone. Currently, There are ${tableCounts.data?.offers ||
+          0}{" "}
+        offers in the database.
       </Text>
     );
   } else {
