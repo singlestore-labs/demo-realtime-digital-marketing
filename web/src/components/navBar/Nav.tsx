@@ -35,7 +35,7 @@ import {
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { NavLink as RouterLink } from "react-router-dom";
 
-import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
+import SingleStoreLogoDark from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { GithubStargazer } from "@/components/GithubButtons";
 import { LinkedinIconButton, TwitterIconButton } from "@/components/IconLinks";
@@ -52,7 +52,7 @@ export const SinglestoreBrandLogo = () => {
             background={useColorModeValue("#553ACF", "#CCC3F9")}
             color={useColorModeValue("white", "#2F206E")}
             name="Singlestore"
-            src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDrak)}
+            src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDark)}
           />
         </WrapItem>
       </Wrap>

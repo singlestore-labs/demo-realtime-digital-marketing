@@ -30,7 +30,7 @@ const getSelectedCitiesFromDatabase = async (
   const [lastSelectedCityId, setLastSelectedCityId] = selectCityHook;
   setIsUpdating(true);
   try {
-    // Fetch cities from database in singlestoreDB.
+    // Fetch cities from database in SinglestoreDB.
     const cities = await getCities(config);
     setCities(cities);
 

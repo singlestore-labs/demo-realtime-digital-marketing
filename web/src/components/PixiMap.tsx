@@ -244,7 +244,7 @@ const CitySelectionDropdown: React.FC<{
     setDropdownDisabled(selectedCities.length <= 0 || isUpdating || !connected);
     if (!connected) {
       setDropdownDisabledMsg(
-        "Please connect to singlestoreDB to change map city."
+        "Please connect to SinglestoreDB to change map city."
       );
     } else if (selectedCities.length <= 0) {
       setDropdownDisabledMsg(

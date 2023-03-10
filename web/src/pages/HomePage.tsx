@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 
 import DashboardControllerImage from "@/assets/dashboard-controller-snapshot.svg";
 import GraphicalBackground2 from "@/assets/graphical-background-2.svg";
-import SingleStoreLogoDrak from "@/assets/singlestore-logo-dark.svg";
+import SingleStoreLogoDark from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { DatabaseConfigFormManual } from "@/components/dataConfigForm/DatabaseConfigFormManual";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
@@ -52,7 +52,7 @@ export const HomePage: React.FC = () => {
         <Stack spacing={4}>
           <Heading>
             <Image
-              src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDrak)}
+              src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDark)}
             />
           </Heading>
           <Heading>
