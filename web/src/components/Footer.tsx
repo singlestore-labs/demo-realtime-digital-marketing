@@ -24,11 +24,7 @@ const SocialMediaSection = () => {
       <Flex direction="row" gap={1} justifyContent="center" alignItems="center">
         <Text>Share on</Text>
         <TwitterIconButton size="sm" onClick={handleRedirect} />
-        <LinkedinIconButton
-          aria-label="Github Repo"
-          size="sm"
-          onClick={handleRedirect}
-        />
+        <LinkedinIconButton size="sm" onClick={handleRedirect} />
       </Flex>
     </Flex>
   );

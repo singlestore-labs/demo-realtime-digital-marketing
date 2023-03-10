@@ -82,10 +82,7 @@ export const NavTools = () => {
     <Flex alignItems="center" justifyContent="right" gap={7}>
       <Menu>
         <MenuButton alignItems="center">
-          <Icon
-            as={useColorModeValue(BsShare, BsShareFill)}
-            cursor="pointer"
-          />
+          <Icon as={useColorModeValue(BsShare, BsShareFill)} cursor="pointer" />
         </MenuButton>
         <MenuList p={0} minW={0}>
           <MenuItem p={0} m={0} width="100%" justifyContent="center">
