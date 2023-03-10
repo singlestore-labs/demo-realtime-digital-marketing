@@ -1,0 +1,15 @@
+.single-common-components-centering-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    overflow-y: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+
+    &.vertical {
+        height: 100%;
+    }
+}

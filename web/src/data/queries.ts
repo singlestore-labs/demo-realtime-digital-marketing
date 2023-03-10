@@ -1,3 +1,5 @@
+import { Bounds } from "pigeon-maps";
+
 import {
   ConnectionConfig,
   ConnectionConfigOptionalDatabase,
@@ -27,7 +29,6 @@ import { compileWithStatement } from "@/data/sqlgen";
 import { toISOStringNoTZ } from "@/datetime";
 import { boundsToWKTPolygon } from "@/geo";
 import { ScaleFactor } from "@/scalefactors";
-import { Bounds } from "pigeon-maps";
 
 export const isConnected = async (config: ConnectionConfigOptionalDatabase) => {
   try {
@@ -38,15 +39,25 @@ export const isConnected = async (config: ConnectionConfigOptionalDatabase) => {
   }
 };
 
+export const connectToDB = async (config: ConnectionConfigOptionalDatabase) => {
+  try {
+    await ExecNoDb(config, "SELECT 1");
+    return true;
+  } catch (e) {
+    const error = e as SQLError;
+    return error;
+  }
+};
+
 export const hasSchema = async (config: ConnectionConfig) => {
   const objects = await schemaObjects(config);
   return Object.values(objects).every((x) => x);
 };
 
 type schemaObjInfo = {
-  tables: string[];
-  procedures: string[];
-  functions: string[];
+  tables: Array<string>;
+  procedures: Array<string>;
+  functions: Array<string>;
 };
 
 export const schemaObjects = async (
@@ -141,7 +152,10 @@ export const resetSchema = async (
   }
 
   if (resetDataOnly) {
-    progress("Resetting data", "info");
+    progress(
+      "Resetting data. This might take a while. Thanks for your patience",
+      "info"
+    );
     await dropPipelines(config);
     await truncateData(config);
   }
@@ -193,7 +207,7 @@ export type SegmentConfig = {
 };
 
 export type PipelineName = "locations" | "requests" | "purchases";
-export const pipelineNames: PipelineName[] = [
+export const pipelineNames: Array<PipelineName> = [
   "locations",
   "requests",
   "purchases",
@@ -260,8 +274,10 @@ export const getPipelineSQL = (
     switch (key) {
       case "SCALE_FACTOR":
         return scaleFactor.prefix;
+
       case "PARTITIONS":
         return Math.min(maxPartitions, scaleFactor.partitions).toString();
+
       default:
         throw new Error(`Unknown variable: ${key}`);
     }
@@ -372,7 +388,7 @@ export const checkPlans = async (config: ConnectionConfig) => {
 
 export const estimatedRowCount = <TableName extends string>(
   config: ConnectionConfig,
-  ...tables: TableName[]
+  ...tables: Array<TableName>
 ) => {
   const tablesSQL = tables.map((name) => `"${name}"`).join(",");
 
@@ -413,7 +429,7 @@ export const estimatedRowCount = <TableName extends string>(
 
 export const estimatedRowCountObj = <TableName extends string>(
   config: ConnectionConfig,
-  ...tables: TableName[]
+  ...tables: Array<TableName>
 ) =>
   estimatedRowCount(config, ...tables).then((rows) =>
     rows.reduce((acc, { tableName, count }) => {
@@ -436,7 +452,7 @@ export const truncateTimeseriesTables = async (
   const tablesSQL = tables.map((name) => `"${name}"`).join(",");
 
   const oversizedTables = await QueryNoDb<{
-    tableName: typeof tables[number];
+    tableName: (typeof tables)[number];
     minTs: number;
     maxTs: number;
     count: number;
@@ -689,8 +705,7 @@ export const customerMetrics = (
           GROUP BY metrics.customer
         )
         ORDER BY ${sortColumn} DESC
-        LIMIT ${limit}
-      `,
+        LIMIT ${limit}`,
     }).sql
   );
 

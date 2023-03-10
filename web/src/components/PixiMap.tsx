@@ -1,9 +1,33 @@
-import { DEFAULT_CITY } from "@/data/offers";
-import { Box, BoxProps, Link, useConst } from "@chakra-ui/react";
 import "@pixi/graphics-extras";
+
+import {
+  Box,
+  BoxProps,
+  Center,
+  Divider,
+  Flex,
+  Link,
+  Stack,
+  Text,
+  Tooltip,
+  useColorMode,
+  useColorModeValue,
+  useConst,
+} from "@chakra-ui/react";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import React, { useLayoutEffect, useState } from "react";
+import * as React from "react";
+import Select, { GroupBase, StylesConfig } from "react-select";
+import { useRecoilState } from "recoil";
+
+import { DEFAULT_CITY } from "@/data/offers";
+import { City } from "@/data/queries";
+import {
+  isUpdatingCities,
+  selectedCities as selectedCitiesFromRecoil,
+  selectedCity,
+} from "@/data/recoil";
+import { useConnectionState } from "@/view/hooks/hooks";
 
 const stamenProvider =
   (flavor: "toner" | "toner-lite") =>
@@ -21,10 +45,10 @@ const stamenAttribution = (
   </>
 );
 
-export const DEFAULT_CENTER = [
+export const DEFAULT_CENTER: [number, number] = [
   DEFAULT_CITY.lonlat[1],
   DEFAULT_CITY.lonlat[0],
-] as [number, number];
+];
 export const DEFAULT_ZOOM = 12;
 
 type RendererConfig<T> = {
@@ -68,7 +92,7 @@ const PixiMapLayer = <T,>({
     options,
   });
 
-  useLayoutEffect(() => {
+  React.useLayoutEffect(() => {
     if (!canvasRef.current) {
       // We expect canvasRef to always be set here because we are using
       // useLayoutEffect which fires syncronously after the component mounts.
@@ -144,41 +168,218 @@ const RequiresInitLayer = <T,>({
   );
 };
 
+const CitySelectionDropdown: React.FC<{
+  selectionDropdownLeft?: string | number;
+  selectionDropdownTop?: string | number;
+  lastSelectedCityDetails: City | undefined;
+}> = ({
+  lastSelectedCityDetails,
+  selectionDropdownTop = "10px",
+  selectionDropdownLeft = "10px",
+}) => {
+  const { colorMode } = useColorMode();
+  const [isUpdating] = useRecoilState(isUpdatingCities);
+  const { connected } = useConnectionState();
+  const [_lastSelectedCityId, setLastSelectedCityId] =
+    useRecoilState(selectedCity);
+  const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
+  const [dropdownDisabledMsg, setDropdownDisabledMsg] = React.useState("");
+  const [dropdownDisabled, setDropdownDisabled] =
+    React.useState<boolean>(false);
+  const options = selectedCities.map((c) => ({ label: c.name, value: c }));
+
+  let fontColor = "white";
+  if (colorMode === "dark") {
+    fontColor = "black";
+  }
+
+  let selectionValue = { label: "Select city", value: { id: -1 } };
+  if (lastSelectedCityDetails) {
+    selectionValue = {
+      label: lastSelectedCityDetails.name,
+      value: lastSelectedCityDetails,
+    };
+  }
+
+  const selectionStyle: StylesConfig<
+    { label: string; value: { id: number } },
+    false,
+    GroupBase<{ label: string; value: { id: number } }>
+  > = {
+    input: (props) => ({
+      ...props,
+      background: "transparent",
+      cursor: "pointer",
+    }),
+    placeholder: (props) => ({
+      ...props,
+      color: fontColor,
+    }),
+    option: (props) => ({
+      ...props,
+      background: "white",
+      cursor: "pointer",
+      color: "#4C4A57",
+    }),
+    dropdownIndicator: (props) => ({
+      ...props,
+      color: fontColor,
+    }),
+    indicatorSeparator: (props) => ({
+      ...props,
+      display: "none",
+    }),
+    control: (props) => ({
+      ...props,
+      background: "transparent",
+      border: "none",
+    }),
+    singleValue: (props) => ({
+      ...props,
+      color: fontColor,
+    }),
+  };
+
+  React.useEffect(() => {
+    setDropdownDisabled(selectedCities.length <= 0 || isUpdating || !connected);
+    if (selectedCities.length <= 0) {
+      setDropdownDisabledMsg(
+        "You need to select at least one city from the available locations on the Dashboard page"
+      );
+    } else if (isUpdating) {
+      setDropdownDisabledMsg("City list is updating, please wait.");
+    }
+  }, [connected, isUpdating, selectedCities]);
+
+  return (
+    <Flex
+      position="absolute"
+      zIndex={5}
+      top={selectionDropdownTop}
+      left={selectionDropdownLeft}
+      background={useColorModeValue("#553ACF", "#CCC3F9")}
+      color={fontColor}
+      boxShadow="1px 6px 6px grey"
+      justifyContent="space-between"
+      gap={1}
+      padding="0px 2px 0px 10px"
+      borderRadius="6px"
+      alignItems="center"
+    >
+      <Box display="inline">
+        <Text display="inline">Map view</Text>
+      </Box>
+      <Center height="25px" margin="2px 0px 2px 5px" background={fontColor}>
+        <Divider color={fontColor} orientation="vertical" />
+      </Center>
+      <Tooltip isDisabled={!dropdownDisabled} label={dropdownDisabledMsg}>
+        <Box display="inline">
+          <Select
+            options={options}
+            value={selectionValue}
+            onChange={(e) => setLastSelectedCityId(e?.value.id || -1)}
+            isDisabled={dropdownDisabled}
+            styles={selectionStyle}
+          />
+        </Box>
+      </Tooltip>
+    </Flex>
+  );
+};
+
 export type PixiMapProps<T> = {
+  options: T;
   useRenderer: UsePixiRenderer<T>;
   height?: number | string;
-  defaultCenter?: [number, number];
-  defaultZoom?: number;
-  options: T;
+  selectionDropdownTop?: React.CSSProperties["top"];
+  selectionDropdownLeft?: React.CSSProperties["left"];
+  defaultCenter?: [number, number] | undefined;
+  showCitySelectionDropDown?: boolean;
+  zoom?: number;
 } & BoxProps;
 
 export const PixiMap = <T,>({
   height = "100%",
-  defaultCenter = DEFAULT_CENTER,
-  defaultZoom = DEFAULT_ZOOM,
+  selectionDropdownLeft = "10px",
+  selectionDropdownTop = "10px",
+  showCitySelectionDropDown = true,
+  defaultCenter,
   useRenderer,
+  zoom = DEFAULT_ZOOM,
   options,
   ...rest
 }: PixiMapProps<T>) => {
-  const [center, setCenter] = useState(defaultCenter);
-  const [zoom, setZoom] = useState(defaultZoom);
+  const [lastSelectedCityId] = useRecoilState(selectedCity);
+  const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
+  const [lastSelectedCityDetails, setLastSelectedCityDetails] = React.useState<
+    City | undefined
+  >(undefined);
+  const [mapZoom, setMapZoom] = React.useState(zoom);
+
+  let initialPosition = DEFAULT_CENTER;
+  if (lastSelectedCityDetails) {
+    initialPosition = [
+      lastSelectedCityDetails.centerLat,
+      lastSelectedCityDetails.centerLon,
+    ];
+  }
+  const [centerValue, setCenterValue] =
+    React.useState<[number, number]>(initialPosition);
+
+  let citySelectionDropdown;
+  if (showCitySelectionDropDown) {
+    citySelectionDropdown = (
+      <CitySelectionDropdown
+        selectionDropdownLeft={selectionDropdownLeft}
+        selectionDropdownTop={selectionDropdownTop}
+        lastSelectedCityDetails={lastSelectedCityDetails}
+      />
+    );
+  }
+
+  const handleBoundsChange = ({
+    center,
+    zoom,
+  }: {
+    center: [number, number];
+    zoom: number;
+  }) => {
+    setMapZoom(zoom);
+    setCenterValue(center);
+  };
+
+  React.useEffect(() => {
+    setLastSelectedCityDetails(
+      selectedCities.find((c) => c.id === lastSelectedCityId)
+    );
+  }, [selectedCities, lastSelectedCityId]);
+
+  React.useEffect(() => {
+    if (lastSelectedCityDetails && !defaultCenter) {
+      setCenterValue([
+        lastSelectedCityDetails.centerLat,
+        lastSelectedCityDetails.centerLon,
+      ]);
+    }
+  }, [lastSelectedCityDetails, defaultCenter]);
 
   return (
-    <Box borderRadius="lg" overflow="hidden" height={height} {...rest}>
-      <Map
-        dprs={[1, 2]}
-        provider={stamenProvider("toner-lite")}
-        attribution={stamenAttribution}
-        maxZoom={20}
-        center={center}
-        zoom={zoom}
-        onBoundsChanged={({ center, zoom }) => {
-          setCenter(center);
-          setZoom(zoom);
-        }}
-      >
-        <RequiresInitLayer useRenderer={useRenderer} options={options} />
-      </Map>
-    </Box>
+    <Stack spacing={0} height={height} position="relative">
+      {citySelectionDropdown}
+      <Box width="100%" overflow="hidden" height={height} {...rest}>
+        <Map
+          dprs={[1, 2]}
+          provider={stamenProvider("toner-lite")}
+          attribution={stamenAttribution}
+          maxZoom={18}
+          minZoom={5}
+          onBoundsChanged={handleBoundsChange}
+          center={defaultCenter || centerValue}
+          defaultZoom={mapZoom}
+        >
+          <RequiresInitLayer useRenderer={useRenderer} options={options} />
+        </Map>
+      </Box>
+    </Stack>
   );
 };

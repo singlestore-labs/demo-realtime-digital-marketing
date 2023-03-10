@@ -1,16 +1,18 @@
-import { Heatmap } from "@/components/Heatmap";
-import { PixiMapProps } from "@/components/PixiMap";
-import { useConnectionState } from "@/data/hooks";
-import { Offer, queryOffersInBounds } from "@/data/queries";
-import { connectionConfig } from "@/data/recoil";
 import { Omit } from "framer-motion/types/types";
 import { Bounds } from "pigeon-maps";
+import * as React from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
+import { Heatmap } from "@/components/HeatMap";
+import { PixiMapProps } from "@/components/PixiMap";
+import { Offer, queryOffersInBounds } from "@/data/queries";
+import { connectionConfig } from "@/data/recoil";
+import { useConnectionState } from "@/view/hooks/hooks";
+
 const MAX_OFFERS = 1000;
 
-const useCells = (bounds: Bounds, callback: (cells: Offer[]) => void) => {
+const useCells = (bounds: Bounds, callback: (cells: Array<Offer>) => void) => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
 
@@ -31,7 +33,7 @@ export const OfferMap = (props: Props) => {
     <Heatmap
       {...props}
       useCells={useCells}
-      colorInterpolater={() => "#04adff"}
+      colorInterpolater={() => "#553ACF"}
       getCellConfig={(cell: Offer) => {
         return {
           value: 1,

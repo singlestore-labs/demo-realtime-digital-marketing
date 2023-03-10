@@ -1,4 +1,5 @@
 import { Code, HTMLChakraProps, ThemingProps } from "@chakra-ui/react";
+import * as React from "react";
 
 export interface Props extends HTMLChakraProps<"code">, ThemingProps<"Code"> {}
 

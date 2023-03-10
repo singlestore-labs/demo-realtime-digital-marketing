@@ -4,15 +4,16 @@ import {
   FormLabel,
   Input,
 } from "@chakra-ui/react";
-import { ReactNode } from "react";
+import * as React from "react";
 
 type ConfigInputProps = {
   label: string;
   placeholder: string;
   value: string;
   setValue: (value: string) => void;
-  helpText?: ReactNode;
+  helpText?: React.ReactNode;
   type?: "text" | "password" | "number";
+  required?: boolean;
 };
 
 export const ConfigInput = ({
@@ -22,6 +23,7 @@ export const ConfigInput = ({
   setValue,
   helpText,
   type = "text",
+  required = false,
 }: ConfigInputProps) => (
   <FormControl>
     <FormLabel mb={1} fontSize="xs" fontWeight="bold" textTransform="uppercase">
@@ -29,6 +31,8 @@ export const ConfigInput = ({
     </FormLabel>
     <Input
       size="sm"
+      required={required}
+      borderRadius="6px"
       placeholder={placeholder}
       value={value}
       onChange={(e) => setValue(e.target.value)}

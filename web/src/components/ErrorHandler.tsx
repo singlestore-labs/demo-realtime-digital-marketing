@@ -1,6 +1,3 @@
-import { CodeBlock } from "@/components/CodeBlock";
-import { SQLError } from "@/data/client";
-import { resettingSchema } from "@/data/recoil";
 import { RepeatIcon, WarningTwoIcon } from "@chakra-ui/icons";
 import {
   Button,
@@ -11,10 +8,16 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import React from "react";
+import * as React from "react";
 import { ReactNode } from "react-markdown/lib/react-markdown";
 import { useRecoilValue } from "recoil";
 import dedent from "ts-dedent";
+
+import { CodeBlock } from "@/components/CodeBlock";
+import { SQLError } from "@/data/client";
+import { resettingSchema } from "@/data/recoil";
+
+import { PrimaryButton } from "./customcomponents/Button";
 
 type Props = {
   isResettingSchema?: boolean;
@@ -76,7 +79,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
       if (error instanceof SQLError) {
         info = (
           <>
-            <Text textAlign="center">
+            <Text textAlign="center" zIndex={10}>
               An error occurred while running the following query:
             </Text>
             <CodeBlock>{dedent(error.sql)}</CodeBlock>
@@ -88,7 +91,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
         <Container maxW="container.md" my={10}>
           <Stack gap={4}>
             <Center>
-              <WarningTwoIcon boxSize={20} color="red" />
+              <WarningTwoIcon boxSize={20} color="#C53030" />
             </Center>
             <Heading size="xl" textAlign="center">
               {error.message}
@@ -101,20 +104,19 @@ export class ErrorBoundary extends React.Component<Props, State> {
               >
                 Dismiss Error
               </Button>
-              <Button
+              <PrimaryButton
                 onClick={() => window.location.reload()}
                 size="sm"
-                colorScheme="blue"
                 leftIcon={<RepeatIcon />}
               >
                 Reload
-              </Button>
+              </PrimaryButton>
             </HStack>
           </Stack>
         </Container>
       );
     }
 
-    return this.props.children;
+    return <>{this.props.children}</>;
   }
 }

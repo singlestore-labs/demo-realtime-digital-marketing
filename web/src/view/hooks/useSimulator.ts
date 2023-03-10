@@ -1,10 +1,11 @@
-import { useConnectionState, useTick } from "@/data/hooks";
+import * as React from "react";
+import { useRecoilValue } from "recoil";
+
 import { runMatchingProcess, runUpdateSegments } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
-import { useSession } from "@/data/useSession";
 import { toISOStringNoTZ } from "@/datetime";
-import { useCallback, useRef } from "react";
-import { useRecoilValue } from "recoil";
+import { useConnectionState, useTick } from "@/view/hooks/hooks";
+import { useSession } from "@/view/hooks/useSession";
 
 const TICK_INTERVAL_MATCH = 1 * 1000;
 const TICK_INTERVAL_SEGMENTS = 1 * 1000;
@@ -12,10 +13,10 @@ const TICK_INTERVAL_SEGMENTS = 1 * 1000;
 export const useSimulator = (enabled: boolean) => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
-  const timestampCursor = useRef(toISOStringNoTZ(new Date(0)));
+  const timestampCursor = React.useRef(toISOStringNoTZ(new Date(0)));
   const { session } = useSession();
 
-  const matchingTick = useCallback(
+  const matchingTick = React.useCallback(
     (ctx: AbortController) => runMatchingProcess({ ...config, ctx }, "minute"),
     [config]
   );
@@ -26,7 +27,7 @@ export const useSimulator = (enabled: boolean) => {
     intervalMS: TICK_INTERVAL_MATCH,
   });
 
-  const updateSegmentsTick = useCallback(
+  const updateSegmentsTick = React.useCallback(
     async (ctx: AbortController) => {
       timestampCursor.current = await runUpdateSegments(
         { ...config, ctx },

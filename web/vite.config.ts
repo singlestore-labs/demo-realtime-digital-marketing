@@ -59,12 +59,16 @@ function transformSQL() {
         switch (basename(id)) {
           case "schema.sql":
             return render(parseStatements(src));
+
           case "seed.sql":
             return render(parseStatements(src));
+
           case "pipelines.sql":
             return render(parseStatements(src));
+
           case "functions.sql":
             return render(parseProcedures(src));
+
           case "procedures.sql":
             return render(parseProcedures(src));
         }

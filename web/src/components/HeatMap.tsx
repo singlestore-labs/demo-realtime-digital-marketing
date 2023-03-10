@@ -1,12 +1,13 @@
-import { PixiMap, PixiMapProps, UsePixiRenderer } from "@/components/PixiMap";
-import { useDebounce } from "@/data/hooks";
-import { Polygon, WKTPolygonToPolygon } from "@/geo";
 import { useConst } from "@chakra-ui/react";
 import * as d3color from "d3-color";
 import { ScaleSequential, scaleSequential } from "d3-scale";
 import { Bounds, Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import { useCallback, useMemo } from "react";
+import * as React from "react";
+
+import { PixiMap, PixiMapProps, UsePixiRenderer } from "@/components/PixiMap";
+import { Polygon, WKTPolygonToPolygon } from "@/geo";
+import { useDebounce } from "@/view/hooks/hooks";
 
 // convert number (range 0-1) to color (hex)
 export type ColorInterpolater = (t: number) => string;
@@ -42,7 +43,9 @@ class HeatmapCell extends PIXI.Container {
     this.polygon = new PIXI.Graphics();
     this.addChild(this.polygon);
 
-    const color = colorScale(config.value);
+    // White color may not be visible due to light background of the map.
+    // Adding extra color opacity to avoid pure white color.
+    const color = colorScale(config.value + 0.01);
     this.color = colorToRGBNumber(color);
     this.hoverColor = colorToRGBNumber(color.darker(1));
 
@@ -58,7 +61,7 @@ class HeatmapCell extends PIXI.Container {
   update(latLngToPixel: (latlng: Point) => Point) {
     const color = this.hovering ? this.hoverColor : this.color;
     this.polygon.clear();
-    this.polygon.lineStyle(1, color, 0.5);
+    this.polygon.lineStyle(1.5, color, 0.5);
     this.polygon.beginFill(color, 0.2);
     this.polygon.drawPolygon(
       this.points.flatMap(([lng, lat]) => latLngToPixel([lat, lng]))
@@ -68,7 +71,7 @@ class HeatmapCell extends PIXI.Container {
 }
 
 type RendererProps<T> = {
-  useCells: (bounds: Bounds, callback: (cells: T[]) => void) => void;
+  useCells: (bounds: Bounds, callback: (cells: Array<T>) => void) => void;
   getCellConfig: (cell: T) => CellConfig;
   colorInterpolater: ColorInterpolater;
 };
@@ -90,7 +93,7 @@ const makeUseRenderer =
       let minValue = Infinity;
       let maxValue = -Infinity;
 
-      const cfgs: CellConfig[] = [];
+      const cfgs: Array<CellConfig> = [];
       for (const cell of cells) {
         const cfg = props.getCellConfig(cell);
         cfgs.push(cfg);
@@ -112,7 +115,7 @@ const makeUseRenderer =
     });
 
     return {
-      update: useCallback(() => {
+      update: React.useCallback(() => {
         for (let i = 0; i < scene.children.length; i++) {
           const child = scene.children[i] as HeatmapCell;
           child.update(latLngToPixel);
@@ -126,7 +129,7 @@ export type HeatmapProps<T> = RendererProps<T> &
 
 export const Heatmap = <T,>(props: HeatmapProps<T>) => {
   const { useCells, getCellConfig, colorInterpolater, ...rest } = props;
-  const useRenderer = useMemo(
+  const useRenderer = React.useMemo(
     () => makeUseRenderer({ useCells, getCellConfig, colorInterpolater }),
     [colorInterpolater, getCellConfig, useCells]
   );

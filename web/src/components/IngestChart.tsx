@@ -1,7 +1,4 @@
-import { ConnectionConfig } from "@/data/client";
-import { estimatedRowCountObj } from "@/data/queries";
-import { Timeseries, TimeseriesPoint } from "@/data/timeseries";
-import { Center, Spinner, Text, useColorMode } from "@chakra-ui/react";
+import { Center, Text, useColorMode } from "@chakra-ui/react";
 import {
   AnimatedLineSeries,
   Axis,
@@ -12,21 +9,26 @@ import {
 } from "@visx/xychart";
 import { RenderTooltipParams } from "@visx/xychart/lib/components/Tooltip";
 import { format } from "d3-format";
-import { useCallback, useMemo, useRef } from "react";
+import * as React from "react";
 import useSWR from "swr";
+
+import { Loader } from "@/components/customcomponents/loader/Loader";
+import { ConnectionConfig } from "@/data/client";
+import { estimatedRowCountObj } from "@/data/queries";
+import { Timeseries, TimeseriesPoint } from "@/data/timeseries";
 
 const SI_FORMAT = format("~s");
 
 export const useIngestChartData = <TableName extends string>(
   config: ConnectionConfig,
-  ...tables: TableName[]
+  ...tables: Array<TableName>
 ) => {
   type ReturnType = { [name in TableName]: Timeseries };
-  const emptyCache = useMemo(
+  const emptyCache = React.useMemo(
     () => tables.reduce((a, n) => ({ ...a, [n]: [] }), {} as ReturnType),
     [tables]
   );
-  const cache = useRef<ReturnType>(emptyCache);
+  const cache = React.useRef<ReturnType>(emptyCache);
 
   const { data } = useSWR(
     ["estimatedRowCount.timeseries", ...tables],
@@ -51,7 +53,11 @@ export const useIngestChartData = <TableName extends string>(
     { refreshInterval: 1000 }
   );
 
-  return data ?? emptyCache;
+  if (data) {
+    return data;
+  }
+
+  return emptyCache;
 };
 
 type Props<TableName extends string> = {
@@ -67,9 +73,9 @@ export const IngestChart = <TableName extends string>({
   ...props
 }: Props<TableName>) => {
   const { colorMode } = useColorMode();
-  const tables = Object.keys(data) as TableName[];
+  const tables = Object.keys(data) as Array<TableName>;
 
-  const renderTooltip = useCallback(
+  const renderTooltip = React.useCallback(
     ({ tooltipData, colorScale }: RenderTooltipParams<TimeseriesPoint>) => {
       if (!colorScale || !tooltipData) {
         return null;
@@ -92,7 +98,7 @@ export const IngestChart = <TableName extends string>({
     [tables]
   );
 
-  const yTickFormat = useCallback(
+  const yTickFormat = React.useCallback(
     (v: number) => SI_FORMAT(v).replace("G", "B"),
     []
   );
@@ -100,7 +106,7 @@ export const IngestChart = <TableName extends string>({
   if (tables.some((name) => data[name].length < 2)) {
     return (
       <Center height={props.height}>
-        <Spinner size="md" />
+        <Loader size="small" centered />
       </Center>
     );
   }
@@ -120,12 +126,12 @@ export const IngestChart = <TableName extends string>({
       xScale={{ type: "time" }}
       yScale={{ type: "sqrt", nice: true, zero: false, clamp: true }}
       theme={colorMode === "light" ? lightTheme : darkTheme}
-      margin={{ left: 0, right: 50, top: 10, bottom: 40 }}
+      margin={{ left: 50, right: 0, top: 10, bottom: 40 }}
       {...props}
     >
       <Axis orientation="bottom" numTicks={5} label="time" labelOffset={10} />
       <Axis
-        orientation="right"
+        orientation="left"
         numTicks={props.height < 250 ? 3 : 5}
         tickFormat={yTickFormat}
         label={yAxisLabel}

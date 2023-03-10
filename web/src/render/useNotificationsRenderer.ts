@@ -1,23 +1,24 @@
-import { trackAnalyticsEvent } from "@/analytics";
-import { UsePixiRenderer } from "@/components/PixiMap";
-import { useConnectionState, useDebounce } from "@/data/hooks";
-import { queryNotificationsInBounds } from "@/data/queries";
-import { connectionConfig } from "@/data/recoil";
-import { toISOStringNoTZ } from "@/datetime";
 import { easeCubicIn, easeExp, easeLinear, easeQuadOut } from "d3-ease";
 import { Point } from "pigeon-maps";
 import * as PIXI from "pixi.js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import * as React from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
+
+import { trackAnalyticsEvent } from "@/analytics";
+import { UsePixiRenderer } from "@/components/PixiMap";
+import { City, getCities, queryNotificationsInBounds } from "@/data/queries";
+import { connectionConfig } from "@/data/recoil";
+import { toISOStringNoTZ } from "@/datetime";
+import { useConnectionState, useDebounce } from "@/view/hooks/hooks";
 
 const MAX_NOTIFICATIONS = 100;
 const REFRESH_INTERVAL = 1000;
 
 class Pulse extends PIXI.Container {
   static lifetime = 1.5;
-  static markerColor = 0x04adff;
-  static pulseColor = 0x04adff;
+  static markerColor = 0x553acf;
+  static pulseColor = 0x553acf;
 
   latlng: Point;
   age = 0;
@@ -77,10 +78,19 @@ class Pulse extends PIXI.Container {
 export const useNotificationsDataKey = () => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
-  return useMemo(
+  return React.useMemo(
     () => ["notifications", config, initialized],
     [config, initialized]
   );
+};
+
+export const useCities = (onSuccess: (cities: Array<City>) => void) => {
+  const config = useRecoilValue(connectionConfig);
+  const { initialized } = useConnectionState();
+  return useSWR(["cities", config, initialized], () => getCities(config), {
+    isPaused: () => !initialized,
+    onSuccess,
+  });
 };
 
 export const useNotificationsRenderer: UsePixiRenderer = ({
@@ -88,12 +98,12 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   latLngToPixel,
   bounds,
 }) => {
-  const timestampCursor = useRef(toISOStringNoTZ(new Date()));
+  const timestampCursor = React.useRef(toISOStringNoTZ(new Date()));
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 50);
   const swrKey = useNotificationsDataKey();
-  const trackedNotifications = useRef(false);
+  const trackedNotifications = React.useRef(false);
 
   useSWR(
     swrKey,
@@ -125,7 +135,7 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   );
 
   return {
-    update: useCallback(
+    update: React.useCallback(
       (delta) => {
         // iterate in reverse since Pulses remove themselves when invisible
         for (let i = scene.children.length - 1; i >= 0; i--) {

@@ -1,9 +1,10 @@
-import { useConnectionState } from "@/data/hooks";
-import { updateSessions } from "@/data/queries";
-import { connectionConfig, resettingSchema } from "@/data/recoil";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 import { v4 as uuidv4 } from "uuid";
+
+import { updateSessions } from "@/data/queries";
+import { connectionConfig, resettingSchema } from "@/data/recoil";
+import { useConnectionState } from "@/view/hooks/hooks";
 
 const SESSION_ID = (() => {
   const newUUID = () =>

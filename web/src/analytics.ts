@@ -1,8 +1,9 @@
-import { useConnectionState } from "@/data/hooks";
-import { userSessionID } from "@/data/recoil";
-import { useEffect } from "react";
+import * as React from "react";
 import { useLocation } from "react-router-dom";
 import { useRecoilState } from "recoil";
+
+import { userSessionID } from "@/data/recoil";
+import { useConnectionState } from "@/view/hooks/hooks";
 
 export function trackAnalyticsEvent(
   event: string,
@@ -20,18 +21,18 @@ export function useAnalytics() {
   const { connectionType } = useConnectionState();
   const [userID, setUserID] = useRecoilState(userSessionID);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const { pathname } = location;
     trackAnalyticsEvent("change-page", { pathname });
   }, [location]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (connectionType) {
       trackAnalyticsEvent("connection-successful", { connectionType });
     }
   }, [connectionType]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (window.analytics) {
       window.analytics.identify(userID);
     } else {

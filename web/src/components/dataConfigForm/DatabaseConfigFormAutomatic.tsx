@@ -1,5 +1,8 @@
+import { Link, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import * as React from "react";
+import { useRecoilState } from "recoil";
+
 import { ConfigInput } from "@/components/ConfigInput";
-import { MarkdownText } from "@/components/MarkdownText";
 import { ScaleFactorSelector } from "@/components/ScaleFactorSelector";
 import {
   connectionDatabase,
@@ -7,8 +10,6 @@ import {
   connectionPassword,
   connectionUser,
 } from "@/data/recoil";
-import { SimpleGrid, Stack } from "@chakra-ui/react";
-import { useRecoilState } from "recoil";
 
 type Props = {
   showDatabase?: boolean;
@@ -24,6 +25,23 @@ export const DatabaseConfigForm = ({
   const [password, setPassword] = useRecoilState(connectionPassword);
   const [database, setDatabase] = useRecoilState(connectionDatabase);
 
+  let databaseInput;
+  if (showDatabase) {
+    databaseInput = (
+      <ConfigInput
+        label="Database"
+        placeholder="martech"
+        value={database}
+        setValue={setDatabase}
+      />
+    );
+  }
+
+  let scaleFactor;
+  if (showScaleFactor) {
+    scaleFactor = <ScaleFactorSelector />;
+  }
+
   return (
     <Stack spacing={4}>
       <ConfigInput
@@ -32,19 +50,19 @@ export const DatabaseConfigForm = ({
         value={host}
         setValue={setHost}
         helpText={
-          <MarkdownText>
-            {`
-              The protocol (http, https), host, and port for the SingleStore
-              [Data API][1].
-
-              [1]: https://docs.singlestore.com/docs/http-api/
-            `}
-          </MarkdownText>
+          <Text>
+            The protocol (http, https), host, and port for the SingleStore{" "}
+            <Link href="https://docs.singlestore.com/docs/http-api" isExternal>
+              Data API
+            </Link>
+            .
+          </Text>
         }
       />
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
           label="Username"
+          helpText="Fill in the Security credentials of your workspace group."
           placeholder="admin"
           value={user}
           setValue={setUser}
@@ -56,16 +74,9 @@ export const DatabaseConfigForm = ({
           setValue={setPassword}
           type="password"
         />
-        {showDatabase && (
-          <ConfigInput
-            label="Database"
-            placeholder="martech"
-            value={database}
-            setValue={setDatabase}
-          />
-        )}
-        {showScaleFactor && <ScaleFactorSelector />}
       </SimpleGrid>
+      {databaseInput}
+      {scaleFactor}
     </Stack>
   );
 };

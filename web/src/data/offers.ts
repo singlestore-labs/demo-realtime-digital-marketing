@@ -1,3 +1,7 @@
+import OpenLocationCode from "open-location-code-typescript";
+import { Bounds, Point } from "pigeon-maps";
+import stringHash from "string-hash";
+
 import { ConnectionConfig, Exec } from "@/data/client";
 import { compileInsert, InsertStatement } from "@/data/sqlgen";
 import { boundsToWKTPolygon } from "@/geo";
@@ -9,14 +13,11 @@ import {
   Vendor,
 } from "@/rand";
 import VENDORS from "@/static-data/vendors.json";
-import OpenLocationCode from "open-location-code-typescript";
-import { Bounds, Point } from "pigeon-maps";
-import stringHash from "string-hash";
 
 export const DEFAULT_CITY = {
   id: 120658,
-  name: "New York",
-  lonlat: [-73.993562, 40.727063] as Point,
+  name: "New York City",
+  lonlat: <[number, number]>[-73.993562, 40.727063],
   diameter: 0.04,
 };
 
@@ -50,16 +51,16 @@ export const removeCity = (config: ConnectionConfig, cityId: number) =>
   Exec(config, "DELETE FROM cities WHERE city_id = ?", cityId);
 
 export const SegmentKinds = ["olc_8", "purchase", "request"] as const;
-export type SegmentKind = typeof SegmentKinds[number];
+export type SegmentKind = (typeof SegmentKinds)[number];
 
-export const SegmentIntervals = [
+export const SegmentIntervals = <const>[
   "minute",
   "hour",
   "day",
   "week",
   "month",
-] as const;
-export type SegmentInterval = typeof SegmentIntervals[number];
+];
+export type SegmentInterval = (typeof SegmentIntervals)[number];
 
 export type Segment = {
   interval: SegmentInterval;
@@ -72,7 +73,7 @@ export const segmentId = ({ interval, kind, value }: Segment) =>
 
 export const createSegments = async (
   config: ConnectionConfig,
-  segments: Segment[]
+  segments: Array<Segment>
 ) => {
   const { sql, params } = compileInsert({
     table: "segments",
@@ -91,7 +92,7 @@ export const createSegments = async (
 
 export type Offer = {
   customer: string;
-  segments: Segment[];
+  segments: Array<Segment>;
 
   // should be a WKT polygon
   notificationZone: string;
@@ -103,7 +104,7 @@ export type Offer = {
 
 export const createOffers = async (
   config: ConnectionConfig,
-  offers: Offer[]
+  offers: Array<Offer>
 ) => {
   const stmt: InsertStatement = {
     table: "offers",
@@ -120,7 +121,7 @@ export const createOffers = async (
   };
 
   let numOffers = 0;
-  let segments: Segment[] = [];
+  let segments: Array<Segment> = [];
 
   const commitBatch = async () => {
     const { sql, params } = compileInsert(stmt);
@@ -160,7 +161,7 @@ export const createOffers = async (
 const randomSegmentKind = () => randomChoice(SegmentKinds);
 const randomSegmentInterval = () => randomChoice(SegmentIntervals);
 
-const vendorDomain = ({ vendor, tld }: typeof VENDORS[number]) =>
+const vendorDomain = ({ vendor, tld }: (typeof VENDORS)[number]) =>
   `${vendor.toLowerCase()}.${tld}`;
 
 const randomPointInCity = (city: CityConfig): Point => {
@@ -187,12 +188,14 @@ export const randomSegment = (city: CityConfig, vendor: Vendor): Segment => {
         value: olc,
       };
     }
+
     case "purchase":
       return {
         kind,
         interval,
         value: vendor.vendor,
       };
+
     case "request":
       return {
         kind,
@@ -218,10 +221,10 @@ export const randomOffer = (city: CityConfig): Offer => {
   const [lon, lat] = randomPointInCity(city);
   const olc = OpenLocationCode.encode(lat, lon, 8);
   const area = OpenLocationCode.decode(olc);
-  const bounds = {
+  const bounds = <Bounds>{
     ne: [area.latitudeHi, area.longitudeHi],
     sw: [area.latitudeLo, area.longitudeLo],
-  } as Bounds;
+  };
 
   return {
     customer: vendor.vendor,

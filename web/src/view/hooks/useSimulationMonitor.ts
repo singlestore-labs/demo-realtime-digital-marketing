@@ -1,4 +1,6 @@
-import { useConnectionState, useTick } from "@/data/hooks";
+import * as React from "react";
+import { useRecoilValue } from "recoil";
+
 import {
   checkPlans,
   ensurePipelinesAreRunning,
@@ -6,9 +8,8 @@ import {
   truncateTimeseriesTables,
 } from "@/data/queries";
 import { configScaleFactor, connectionConfig } from "@/data/recoil";
-import { useSession } from "@/data/useSession";
-import { useCallback } from "react";
-import { useRecoilValue } from "recoil";
+import { useConnectionState, useTick } from "@/view/hooks/hooks";
+import { useSession } from "@/view/hooks/useSession";
 
 const TICK_INTERVAL_MONITOR = 10 * 1000;
 
@@ -18,7 +19,7 @@ export const useSimulationMonitor = (enabled: boolean) => {
   const { initialized } = useConnectionState();
   const { session } = useSession();
 
-  const monitorTick = useCallback(
+  const monitorTick = React.useCallback(
     (ctx: AbortController) => {
       const cfgWithCtx = { ...config, ctx };
       return Promise.all([

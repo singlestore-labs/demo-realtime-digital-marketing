@@ -1,10 +1,4 @@
 import {
-  useConnectionState,
-  useMountedCallback,
-  useResetSchema,
-} from "@/data/hooks";
-import { connectionDatabase } from "@/data/recoil";
-import {
   AlertDialog,
   AlertDialogBody,
   AlertDialogContent,
@@ -14,13 +8,24 @@ import {
   Button,
   ButtonOptions,
   HTMLChakraProps,
-  Spinner,
   ThemingProps,
   useBoolean,
+  useColorModeValue,
   useDisclosure,
 } from "@chakra-ui/react";
-import React, { useCallback } from "react";
+import * as React from "react";
 import { useRecoilValue } from "recoil";
+
+import { Loader } from "@/components/customcomponents/loader/Loader";
+import { useUpdateCityList } from "@/data/models/useUpdateCityList";
+import { connectionDatabase } from "@/data/recoil";
+import {
+  useConnectionState,
+  useMountedCallback,
+  useResetSchema,
+} from "@/view/hooks/hooks";
+
+import { PrimaryButton } from "./customcomponents/Button";
 
 export type Props = HTMLChakraProps<"button"> &
   ButtonOptions &
@@ -30,19 +35,31 @@ export type Props = HTMLChakraProps<"button"> &
   };
 
 export const ResetSchemaButton = (props: Props) => {
+  const { updateCityList } = useUpdateCityList();
   const { connected, initialized } = useConnectionState();
-  const resetSchemaDialog = useDisclosure();
+  const { onOpen, onClose, isOpen } = useDisclosure();
   const [resettingSchema, resettingSchemaCtrl] = useBoolean();
   const database = useRecoilValue(connectionDatabase);
   const cancelResetSchemaBtn = React.useRef<HTMLButtonElement>(null);
   const { skipSeedData, resetDataOnly, disabled, ...restProps } = props;
 
+  let resetButtonContent: React.ReactNode = "Create Database";
+  if (resettingSchema) {
+    resetButtonContent = <Loader size="small" />;
+  } else if (initialized) {
+    resetButtonContent = "Recreate database";
+  }
+
   const onResetSchema = useResetSchema({
-    before: useCallback(() => resettingSchemaCtrl.on(), [resettingSchemaCtrl]),
+    before: React.useCallback(
+      () => resettingSchemaCtrl.on(),
+      [resettingSchemaCtrl]
+    ),
     after: useMountedCallback(() => {
       resettingSchemaCtrl.off();
-      resetSchemaDialog.onClose();
-    }, [resetSchemaDialog, resettingSchemaCtrl]),
+      updateCityList();
+      onClose();
+    }, [onClose, resettingSchemaCtrl]),
     includeSeedData: !skipSeedData,
     resetDataOnly: !!resetDataOnly,
   });
@@ -51,14 +68,13 @@ export const ResetSchemaButton = (props: Props) => {
     <>
       <Button
         disabled={!connected || disabled}
-        onClick={resetSchemaDialog.onOpen}
-        colorScheme={initialized ? "green" : "red"}
+        onClick={onOpen}
         {...restProps}
       />
 
       <AlertDialog
-        isOpen={resetSchemaDialog.isOpen}
-        onClose={resetSchemaDialog.onClose}
+        isOpen={isOpen}
+        onClose={onClose}
         closeOnEsc={false}
         closeOnOverlayClick={false}
         leastDestructiveRef={cancelResetSchemaBtn}
@@ -74,26 +90,22 @@ export const ResetSchemaButton = (props: Props) => {
             </AlertDialogBody>
             <AlertDialogFooter>
               <Button
+                background="transparent"
+                border="0.5px solid"
+                color={useColorModeValue("#553ACF", "#ECE8FD")}
                 ref={cancelResetSchemaBtn}
-                onClick={resetSchemaDialog.onClose}
+                onClick={onClose}
                 disabled={resettingSchema}
               >
                 Cancel
               </Button>
-              <Button
+              <PrimaryButton
                 disabled={resettingSchema}
-                colorScheme={initialized ? "red" : "green"}
                 onClick={onResetSchema}
                 ml={3}
               >
-                {resettingSchema ? (
-                  <Spinner />
-                ) : initialized ? (
-                  "Recreate database"
-                ) : (
-                  "Create database"
-                )}
-              </Button>
+                {resetButtonContent}
+              </PrimaryButton>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialogOverlay>

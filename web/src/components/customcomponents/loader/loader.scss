@@ -1,0 +1,251 @@
+.single-common-components-loading {
+    overflow-y: initial;
+
+    > .inner {
+        display: flex;
+        align-items: center;
+
+        flex-direction: column;
+
+        &.inline-message {
+            flex-direction: row;
+
+            > .message {
+                padding-top: 0;
+                padding-left: "0.5714285714285714rem";
+            }
+        }
+
+        > .message {
+            padding-top: "1.7142857142857142rem";
+        }
+    }
+
+    .svg-small {
+        $svgSize: 16px;
+        $strokeWidth: 2px;
+
+        .circle {
+            stroke-linecap: round;
+            fill: transparent;
+            stroke-width: $strokeWidth;
+        }
+
+        .circle-stroke {
+            transform-origin: 50% 50% 0;
+            stroke-linecap: round;
+            fill: transparent;
+            animation: spin-circle 5s linear infinite;
+            stroke-dasharray: ($svgSize * 3.14);
+        }
+
+        @keyframes spin-circle {
+            0% {
+                transform: rotate(0);
+                stroke-dashoffset: ($svgSize * 4);
+            }
+            50% {
+                transform: rotate(720deg);
+                stroke-dashoffset: ($svgSize * 5.3);
+            }
+            100% {
+                transform: rotate(1080deg);
+                stroke-dashoffset: ($svgSize * 4);
+            }
+        }
+    }
+
+    .svg-large {
+        @mixin animate-logo($animation-name) {
+            animation: $animation-name 1.6s infinite linear;
+            overflow: "clip";
+            transform-origin: 50% 50%;
+        }
+
+        @include animate-logo(spin-scale-logo);
+
+        .path-logo-one {
+            @include animate-logo(fade-path-logo-one);
+        }
+
+        .path-logo-two {
+            @include animate-logo(fade-path-logo-two);
+        }
+
+        .path-logo-three {
+            @include animate-logo(fade-path-logo-three);
+        }
+
+        @keyframes spin-scale-logo {
+            0% {
+                transform: rotate(0deg) scale(0.5);
+            }
+            12% {
+                transform: rotate(90deg) scale(0.6);
+            }
+            22% {
+                transform: rotate(180deg) scale(0.7);
+            }
+            32% {
+                transform: rotate(270deg) scale(0.78);
+            }
+            40% {
+                transform: rotate(360deg) scale(0.84);
+            }
+            48% {
+                transform: rotate(450deg) scale(0.9);
+            }
+            56% {
+                transform: rotate(540deg) scale(0.96);
+            }
+            64% {
+                transform: rotate(630deg) scale(1);
+            }
+            69% {
+                transform: rotate(720deg) scale(1);
+            }
+            75% {
+                transform: rotate(810deg) scale(0.92);
+            }
+            82% {
+                transform: rotate(900deg) scale(0.8);
+            }
+            90% {
+                transform: rotate(990deg) scale(0.65);
+            }
+            100% {
+                transform: rotate(1080deg) scale(0.5);
+            }
+        }
+
+        @keyframes fade-path-logo-one {
+            0% {
+                opacity: 0;
+            }
+            12% {
+                opacity: 0;
+            }
+            22% {
+                opacity: 0.05;
+            }
+            32% {
+                opacity: 0.15;
+            }
+            40% {
+                opacity: 0.3;
+            }
+            48% {
+                opacity: 0.5;
+            }
+            56% {
+                opacity: 0.75;
+            }
+            64% {
+                opacity: 1;
+            }
+            69% {
+                opacity: 1;
+            }
+            75% {
+                opacity: 0.5;
+            }
+            82% {
+                opacity: 0.25;
+            }
+            90% {
+                opacity: 0.05;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes fade-path-logo-two {
+            0% {
+                opacity: 0.1;
+            }
+            12% {
+                opacity: 0.15;
+            }
+            22% {
+                opacity: 0.3;
+            }
+            32% {
+                opacity: 0.5;
+            }
+            40% {
+                opacity: 0.75;
+            }
+            48% {
+                opacity: 1;
+            }
+            56% {
+                opacity: 1;
+            }
+            64% {
+                opacity: 1;
+            }
+            69% {
+                opacity: 1;
+            }
+            75% {
+                opacity: 0.8;
+            }
+            82% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.25;
+            }
+            100% {
+                opacity: 0.1;
+            }
+        }
+
+        @keyframes fade-path-logo-three {
+            0% {
+                opacity: 0;
+            }
+            12% {
+                opacity: 0.05;
+            }
+            22% {
+                opacity: 0.15;
+            }
+            32% {
+                opacity: 0.3;
+            }
+            40% {
+                opacity: 0.5;
+            }
+            48% {
+                opacity: 0.7;
+            }
+            56% {
+                opacity: 0.9;
+            }
+            64% {
+                opacity: 1;
+            }
+            69% {
+                opacity: 1;
+            }
+            75% {
+                opacity: 0.65;
+            }
+            82% {
+                opacity: 0.35;
+            }
+            90% {
+                opacity: 0.15;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+    }
+
+    &.right-margin {
+        margin-right: 5px;
+    }
+}

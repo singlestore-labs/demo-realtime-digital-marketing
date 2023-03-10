@@ -1,8 +1,11 @@
+import { atom, AtomEffect, atomFamily, DefaultValue, selector } from "recoil";
+import { v4 as uuidv4 } from "uuid";
+
 import { trackAnalyticsEvent } from "@/analytics";
 import { ConnectionConfig } from "@/data/client";
-import { atom, AtomEffect, atomFamily, DefaultValue, selector } from "recoil";
+
 import { defaultScaleFactor, ScaleFactor, ScaleFactors } from "../scalefactors";
-import { v4 as uuidv4 } from "uuid";
+import { City } from "./queries";
 
 type LocalStorageEffectConfig<T> = {
   encode: (v: T) => string;
@@ -19,7 +22,7 @@ const localStorageEffect =
   ({ setSelf, onSet, node }) => {
     const key = `recoil.localstorage.${node.key}`;
     const savedValue = localStorage.getItem(key);
-    if (savedValue != null) {
+    if (savedValue !== null) {
       setSelf(decode(savedValue));
     }
 
@@ -40,10 +43,37 @@ const searchParamEffect =
     }
   };
 
+export const showWelcomeMessage = atom({
+  key: "showWelcomeMessage",
+  default: true,
+  effects: [localStorageEffect()],
+});
+
 export const userSessionID = atom({
   key: "userID",
   default: uuidv4(),
   effects: [localStorageEffect()],
+});
+
+export const selectedCity = atom({
+  key: "selectedCity",
+  default: -1,
+  effects: [],
+});
+
+export const selectedCities = atom<Array<City>>({
+  key: "selectedCities",
+  default: [],
+});
+
+export const isUpdatingCities = atom({
+  key: "isUpdatingCities",
+  default: false,
+});
+
+export const errorUpdatingCities = atom<Error | undefined>({
+  key: "errorUpdatingCities",
+  default: undefined,
 });
 
 export const connectionHost = atom({
@@ -108,9 +138,9 @@ export const portalConnectionConfig = selector<ConnectionConfig | undefined>({
         const { username, password } = JSON.parse(decodedCredentials);
         if (username && password) {
           return {
-            host: "https://" + portalHostnameValue,
+            host: `https://${portalHostnameValue}`,
             user: username,
-            password: password,
+            password,
             database: portalDatabaseValue,
           };
         }
