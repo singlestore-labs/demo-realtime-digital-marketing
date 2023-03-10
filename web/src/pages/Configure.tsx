@@ -241,7 +241,7 @@ const SchemaObjectModal = ({
   onClose: () => void;
   schemaObjectName: string;
 }) => {
-  const obj = findSchemaObjectByName(schemaObjectName);
+  const { name, statement } = findSchemaObjectByName(schemaObjectName);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   return (
@@ -253,10 +253,10 @@ const SchemaObjectModal = ({
     >
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Create statement for {obj.name}</ModalHeader>
+        <ModalHeader>Create statement for {name}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <CodeBlock mb={4}>{obj.statement}</CodeBlock>
+          <CodeBlock mb={4}>{statement}</CodeBlock>
         </ModalBody>
       </ModalContent>
     </Modal>
