@@ -300,7 +300,8 @@ const ConfigHeader = ({
   configInitialized: boolean;
 }) => {
   const [database, setDatabase] = useRecoilState(connectionDatabase);
-  const { colorMode } = useColorMode();
+  const resetButtonBackground = useColorModeValue("#ECE8FD", "#2F206E");
+  const resetButtonFontColor = useColorModeValue("#553ACF", "#ECE8FD");
 
   if (configInitialized) {
     return <></>;
@@ -321,8 +322,8 @@ const ConfigHeader = ({
       </FormControl>
       <Box flex={1}>
         <ResetSchemaButton
-          background={colorMode === "light" ? "#ECE8FD" : "#2F206E"}
-          color={colorMode === "light" ? "#553ACF" : "#ECE8FD"}
+          background={resetButtonBackground}
+          color={resetButtonFontColor}
           size="sm"
           skipSeedData
         >
