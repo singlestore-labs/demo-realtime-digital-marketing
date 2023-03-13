@@ -19,3 +19,15 @@ export const PrimaryButton = (props: customButtonProps) => {
     />
   );
 };
+
+export const InvertedPrimaryButton = (props: customButtonProps) => {
+  return (
+    <Button
+      style={{
+        color: useColorModeValue("#ECE8FD", "#553ACF"),
+        background: useColorModeValue("#2F206E", "#ECE8FD"),
+      }}
+      {...props}
+    />
+  );
+};

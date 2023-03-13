@@ -34,8 +34,8 @@ export const selectableCitiesData: Array<City> = [
   {
     id: 10998,
     name: "Paris",
-    centerLat: 43.19999996623008,
-    centerLon: -80.38332998797264,
+    centerLat: 2.34879996,
+    centerLon: 48.85340997,
     diameter: 0.4,
   },
   {

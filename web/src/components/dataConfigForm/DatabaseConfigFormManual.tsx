@@ -20,7 +20,7 @@ import {
   connectionUser,
 } from "@/data/recoil";
 
-import { PrimaryButton } from "../customcomponents/Button";
+import { InvertedPrimaryButton } from "../customcomponents/Button";
 import { Loader } from "../customcomponents/loader/Loader";
 
 type Props = {
@@ -156,14 +156,14 @@ export const DatabaseConfigFormManual = ({
         hasArrow
         label="Fill in the required details to connect"
       >
-        <PrimaryButton
+        <InvertedPrimaryButton
           width="100%"
           alignItems="center"
           isDisabled={connectDisabled}
           onClick={connect}
         >
           {connectButtonContainer}
-        </PrimaryButton>
+        </InvertedPrimaryButton>
       </Tooltip>
     </Stack>
   );
