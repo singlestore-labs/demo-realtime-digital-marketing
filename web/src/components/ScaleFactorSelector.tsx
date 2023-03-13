@@ -22,7 +22,7 @@ export const ScaleFactorSelector = () => {
         size="sm"
         required
         borderRadius="6px"
-        _focus={{borderColor: "#553ACF"}}
+        _focus={{ borderColor: "#553ACF" }}
         value={scaleFactor.name}
         onChange={(ev) => {
           const v = ev.target.value;

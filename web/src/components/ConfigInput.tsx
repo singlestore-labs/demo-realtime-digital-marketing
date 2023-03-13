@@ -33,7 +33,7 @@ export const ConfigInput = ({
       size="sm"
       required={required}
       borderRadius="6px"
-      _focus={{borderColor: "#553ACF"}}
+      _focus={{ borderColor: "#553ACF" }}
       placeholder={placeholder}
       value={value}
       onChange={(e) => setValue(e.target.value)}
