@@ -229,7 +229,7 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
           </Link>
         </Text>
       }
-      right={<DatabaseConfigForm />}
+      right={<DatabaseConfigForm showScaleFactor />}
     />
   );
 };

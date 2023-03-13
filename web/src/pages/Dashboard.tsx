@@ -255,7 +255,6 @@ export const NotificationsMap = () => {
           selectionDropdownLeft={isSmallScreen ? undefined : "31.5%"}
           selectionDropdownTop={isSmallScreen ? undefined : "1vw"}
           useRenderer={useNotificationsRenderer}
-          zoom={13}
           options={{}}
         />
       </Box>
