@@ -21,6 +21,7 @@ export const ScaleFactorSelector = () => {
       <Select
         size="sm"
         required
+        borderRadius="6px"
         value={scaleFactor.name}
         onChange={(ev) => {
           const v = ev.target.value;

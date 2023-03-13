@@ -64,7 +64,7 @@ export const Stats = () => {
   return (
     <SimpleGrid spacing={2} minChildWidth="25%">
       <StatWrapper
-        statLabel="offeres"
+        statLabel="Offeres"
         statNumber={formatStat(tableCounts.data.offers)}
       />
       <StatWrapper
