@@ -1,4 +1,9 @@
-import { ColorMode, extendTheme, Theme, theme as origTheme } from "@chakra-ui/react";
+import {
+  ColorMode,
+  extendTheme,
+  Theme,
+  theme as origTheme,
+} from "@chakra-ui/react";
 
 import "@fontsource/inter/variable-full.css";
 import "@fontsource/source-code-pro/variable.css";
@@ -13,7 +18,7 @@ export const chakraTheme = extendTheme({
     global: ({ colorMode }: { colorMode: ColorMode }) => ({
       a: {
         color: colorMode === "light" ? "#553ACF" : "#CCC3F9",
-      }
+      },
     }),
   },
   components: {
@@ -27,10 +32,10 @@ export const chakraTheme = extendTheme({
         solid: {
           _focus: {
             border: 0,
-            "box-shadow": "0 0 0 3px currentColor"
-          }
-        }
-      }
+            "box-shadow": "0 0 0 3px currentColor",
+          },
+        },
+      },
     },
     Alert: {
       variants: {

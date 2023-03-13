@@ -42,7 +42,7 @@ export const selectableCitiesData: Array<City> = [
     id: 33174,
     name: "Barcelona",
     centerLat: 41.38878998,
-    centerLon: 2.15899000,
+    centerLon: 2.15899,
     diameter: 0.4,
   },
   {
