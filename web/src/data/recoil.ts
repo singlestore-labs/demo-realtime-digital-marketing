@@ -64,6 +64,7 @@ export const selectedCity = atom({
 export const selectedCities = atom<Array<City>>({
   key: "selectedCities",
   default: [],
+  // effects: [localStorageEffect()]
 });
 
 export const isUpdatingCities = atom({

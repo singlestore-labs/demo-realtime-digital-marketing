@@ -209,7 +209,9 @@ const CitySelectionDropdown: React.FC<{
     input: (props) => ({
       ...props,
       background: "transparent",
+      minWidth: "85px",
       cursor: "pointer",
+      boxShadow: "none"
     }),
     placeholder: (props) => ({
       ...props,
@@ -233,6 +235,7 @@ const CitySelectionDropdown: React.FC<{
       ...props,
       background: "transparent",
       border: "none",
+      boxShadow: "none"
     }),
     singleValue: (props) => ({
       ...props,

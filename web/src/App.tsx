@@ -98,10 +98,12 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
   }
 
   return (
-    <LayoutContainer>
-      <WelcomeMessageToast />
-      {children}
-    </LayoutContainer>
+    <>
+      <LayoutContainer>
+        <WelcomeMessageToast />
+        {children}
+      </LayoutContainer>
+    </>
   );
 };
 
