@@ -75,7 +75,7 @@ export const DatabaseConfigFormManual = ({
   };
 
   const connectDisabled =
-    localHost === "" || localUser === "" || localPassword === "";
+    localHost === "" || localUser === "" || localPassword === "" || loading;
 
   let databaseInput;
   if (showDatabase) {

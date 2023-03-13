@@ -211,7 +211,6 @@ const CitySelectionDropdown: React.FC<{
       background: "transparent",
       minWidth: "85px",
       cursor: "pointer",
-      boxShadow: "none",
     }),
     placeholder: (props) => ({
       ...props,
