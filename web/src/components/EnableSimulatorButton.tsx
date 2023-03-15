@@ -2,7 +2,6 @@ import {
   Alert,
   AlertIcon,
   AlertTitle,
-  ButtonProps,
   FormControl,
   FormControlProps,
   FormLabel,
