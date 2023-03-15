@@ -19,27 +19,31 @@ import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { useConnectionState, useMountedCallback } from "@/view/hooks/hooks";
 import { useSession } from "@/view/hooks/useSession";
 
-
-
 export const EnableSimulatorButton = () => {
-    return (
-      <Alert status="warning" borderRadius="md">
-        <AlertIcon />
-        <AlertTitle>The simulator is disabled</AlertTitle>
-        <ToggleSimulatorButton
-          containerProps={{
-            position: "absolute",
-            textAlign: "right",
-            right: 3,
-            display: "inline"
-          }}
-        />
-      </Alert>
-    );
-  };
+  return (
+    <Alert status="warning" borderRadius="md">
+      <AlertIcon />
+      <AlertTitle>The simulator is disabled</AlertTitle>
+      <ToggleSimulatorButton
+        containerProps={{
+          position: "absolute",
+          textAlign: "right",
+          right: 3,
+          display: "inline",
+        }}
+      />
+    </Alert>
+  );
+};
 
-export const ToggleSimulatorButton = ({switchProps, containerProps}: {switchProps?: SwitchProps, containerProps?: FormControlProps}) => {
-  const [ enabled, setEnabled ] = useRecoilState(simulatorEnabled);
+export const ToggleSimulatorButton = ({
+  switchProps,
+  containerProps,
+}: {
+  switchProps?: SwitchProps;
+  containerProps?: FormControlProps;
+}) => {
+  const [enabled, setEnabled] = useRecoilState(simulatorEnabled);
   const { session, refresh: refreshSession } = useSession();
   const config = useRecoilValue(connectionConfig);
   const { connected, initialized } = useConnectionState();
@@ -55,36 +59,46 @@ export const ToggleSimulatorButton = ({switchProps, containerProps}: {switchProp
     [togglingCtrl]
   );
 
-  const onToggleSimulator = React.useCallback(async (state: boolean) => {
-    togglingCtrl.on();
-    if (state) {
-      trackAnalyticsEvent("enable-simulator");
-    } else {
-      trackAnalyticsEvent("disable-simulator");
-    }
+  const onToggleSimulator = React.useCallback(
+    async (state: boolean) => {
+      togglingCtrl.on();
+      if (state) {
+        trackAnalyticsEvent("enable-simulator");
+      } else {
+        trackAnalyticsEvent("disable-simulator");
+      }
 
-    if (connected && initialized) {
-      await setSessionController(config, session.sessionID, state);
-    }
-    setEnabled(state);
+      if (connected && initialized) {
+        await setSessionController(config, session.sessionID, state);
+      }
+      setEnabled(state);
 
-    refreshSession();
-    stopSpinner();
-    togglingCtrl.off();
-  }, [
-    config,
-    connected,
-    togglingCtrl,
-    initialized,
-    refreshSession,
-    session.sessionID,
-    setEnabled,
-    stopSpinner,
-  ]);
+      refreshSession();
+      stopSpinner();
+      togglingCtrl.off();
+    },
+    [
+      config,
+      connected,
+      togglingCtrl,
+      initialized,
+      refreshSession,
+      session.sessionID,
+      setEnabled,
+      stopSpinner,
+    ]
+  );
 
   return (
     <FormControl {...containerProps}>
-      <FormLabel htmlFor="simulatorSwitch" fontSize="x-small" display="inline" padding={0}>{buttonText}</FormLabel>
+      <FormLabel
+        htmlFor="simulatorSwitch"
+        fontSize="x-small"
+        display="inline"
+        padding={0}
+      >
+        {buttonText}
+      </FormLabel>
       <Switch
         id="simulatorSwitch"
         disabled={toggling}
