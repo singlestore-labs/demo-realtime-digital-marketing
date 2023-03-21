@@ -21,7 +21,7 @@ export const ScaleFactors: Array<ScaleFactor> = [
   {
     name: "s00",
     maxRows: 10_000_000,
-    prefix: "v2/100k-2p",
+    prefix: "v2/10k-2p",
     partitions: 2,
   },
   {
@@ -66,7 +66,7 @@ export const ScaleFactors: Array<ScaleFactor> = [
 export const getScaleFactor = (name: string): ScaleFactor =>
   ScaleFactors.find((sf) => sf.name === name) || ScaleFactors[0];
 
-export const defaultScaleFactor = getScaleFactor("s00");
+export const defaultScaleFactor = getScaleFactor("micro");
 
 export const pickScaleFactor = (numPartitions: number): ScaleFactor => {
   // pick the scale factor with the largest number of partitions <= numPartitions
