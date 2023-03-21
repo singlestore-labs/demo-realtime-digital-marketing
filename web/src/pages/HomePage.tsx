@@ -1,4 +1,3 @@
-import { InfoIcon } from "@chakra-ui/icons";
 import {
   Flex,
   Grid,
@@ -13,7 +12,6 @@ import {
   TabPanels,
   Tabs,
   Text,
-  Tooltip,
   useColorModeValue,
   useMediaQuery,
 } from "@chakra-ui/react";
