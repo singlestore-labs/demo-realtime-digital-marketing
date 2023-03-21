@@ -34,7 +34,7 @@ const HOW_IT_WORKS_STEPS = [
         SinglestoreDB endpoints by clicking in workspace Connect options.
       </>
     ),
-    imageSrc: WorkspaceConnectOptionSVG,
+    imageSrc: CreateWorkspaceButtonSVG,
   },
   {
     title: "2. Paste Workspace Group's password",
@@ -44,7 +44,7 @@ const HOW_IT_WORKS_STEPS = [
         password can be reset in the Access tab of your Workspace Group.
       </>
     ),
-    imageSrc: CreateWorkspaceButtonSVG,
+    imageSrc: WorkspaceConnectOptionSVG,
   },
   {
     title: "3. Select Martech database and connect",
