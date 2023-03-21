@@ -1,6 +1,5 @@
 import {
   Box,
-  Link,
   SimpleGrid,
   Stack,
   Text,
@@ -81,7 +80,7 @@ export const DatabaseConfigFormManual = ({
   if (showDatabase) {
     databaseInput = (
       <ConfigInput
-        label="Database"
+        label="Martech Database name"
         placeholder="martech"
         required
         value={localDatabase}
@@ -114,24 +113,16 @@ export const DatabaseConfigFormManual = ({
   return (
     <Stack spacing={4} onKeyDown={handleEnterKeyPress}>
       <ConfigInput
-        label="Host & Port"
+        label="Workspace Host"
         placeholder="http://127.0.0.1:8808"
         value={localHost}
         required
         setValue={setLocalHost}
-        helpText={
-          <Text>
-            The protocol (http, https), host, and port for the SingleStore{" "}
-            <Link href="https://docs.singlestore.com/docs/http-api/" isExternal>
-              Data API
-            </Link>
-            .
-          </Text>
-        }
+        helpText={<Text>Your workspace hostname.</Text>}
       />
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
-          label="Username"
+          label="Workspace group username"
           required
           helpText="Fill in the Security credentials of your workspace group."
           placeholder="admin"
@@ -139,7 +130,7 @@ export const DatabaseConfigFormManual = ({
           setValue={setLocalUser}
         />
         <ConfigInput
-          label="Password"
+          label="Workspace group password"
           required
           placeholder=""
           value={localPassword}

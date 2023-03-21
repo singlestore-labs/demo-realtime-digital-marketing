@@ -1,4 +1,4 @@
-import { Link, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import * as React from "react";
 import { useRecoilState } from "recoil";
 
@@ -29,7 +29,7 @@ export const DatabaseConfigForm = ({
   if (showDatabase) {
     databaseInput = (
       <ConfigInput
-        label="Database"
+        label="Martech database name"
         placeholder="martech"
         value={database}
         setValue={setDatabase}
@@ -45,30 +45,22 @@ export const DatabaseConfigForm = ({
   return (
     <Stack spacing={4}>
       <ConfigInput
-        label="Host & Port"
+        label="Workspace Host"
         placeholder="http://127.0.0.1:8808"
         value={host}
         setValue={setHost}
-        helpText={
-          <Text>
-            The protocol (http, https), host, and port for the SingleStore{" "}
-            <Link href="https://docs.singlestore.com/docs/http-api" isExternal>
-              Data API
-            </Link>
-            .
-          </Text>
-        }
+        helpText={<Text>Your workspace hostname.</Text>}
       />
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
-          label="Username"
+          label="Workspace group username"
           helpText="Fill in the Security credentials of your workspace group."
           placeholder="admin"
           value={user}
           setValue={setUser}
         />
         <ConfigInput
-          label="Password"
+          label="Workspace group password"
           placeholder=""
           value={password}
           setValue={setPassword}
