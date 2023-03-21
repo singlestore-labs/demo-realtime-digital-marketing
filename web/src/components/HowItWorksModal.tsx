@@ -21,7 +21,7 @@ import { HiChevronRight } from "react-icons/hi";
 
 import CreateWorkspaceButtonSVG from "@/assets/howitworks/create-workspace-button.svg";
 import RTDMConnectButtonSVG from "@/assets/howitworks/rtdm-connect-button.svg";
-import WorkspaceConnectDirectOptionSVG from "@/assets/howitworks/workspace-connect-direct.svg";
+import WorkspaceConnectOptionSVG from "@/assets/howitworks/workspace-connect-direct.svg";
 
 import { InvertedPrimaryButton } from "./customcomponents/Button";
 
@@ -34,7 +34,7 @@ const HOW_IT_WORKS_STEPS = [
         SinglestoreDB endpoints by clicking in workspace Connect options.
       </>
     ),
-    imageSrc: WorkspaceConnectDirectOptionSVG,
+    imageSrc: WorkspaceConnectOptionSVG,
   },
   {
     title: "2. Paste Workspace Group's password",
@@ -102,7 +102,6 @@ export const HowItWorksModal = () => {
         src={imageSrc}
         width="70%"
         objectFit="contain"
-        background="#FFFFFF"
         marginBottom="16px"
       />
       <Text fontSize="md" fontWeight="bold">
@@ -147,7 +146,6 @@ export const HowItWorksModal = () => {
             </ModalHeader>
             <ModalCloseButton
               _focus={{ boxShadow: "none" }}
-              // onClick={closeModal}
             />
             <ModalBody padding={0} margin={0}>
               <Grid display="flex" padding={0} margin={0}>
