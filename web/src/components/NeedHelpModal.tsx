@@ -109,7 +109,6 @@ const StepGridItems = () => {
     if (index < numOfSteps - 1) {
       return <StepSeparator />;
     }
-    return <></>;
   };
 
   return (

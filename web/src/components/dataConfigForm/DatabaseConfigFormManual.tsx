@@ -1,11 +1,4 @@
-import {
-  Box,
-  SimpleGrid,
-  Stack,
-  Text,
-  Tooltip,
-  useToast,
-} from "@chakra-ui/react";
+import { Box, SimpleGrid, Stack, Tooltip, useToast } from "@chakra-ui/react";
 import * as React from "react";
 import { useRecoilState } from "recoil";
 
@@ -80,7 +73,7 @@ export const DatabaseConfigFormManual = ({
   if (showDatabase) {
     databaseInput = (
       <ConfigInput
-        label="Martech Database name"
+        label="Martech Database Name"
         placeholder="martech"
         required
         value={localDatabase}
@@ -118,11 +111,11 @@ export const DatabaseConfigFormManual = ({
         value={localHost}
         required
         setValue={setLocalHost}
-        helpText={<Text>Your workspace hostname.</Text>}
+        helpText="Your workspace hostname."
       />
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
-          label="Workspace group username"
+          label="Workspace Goup Username"
           required
           helpText="Fill in the Security credentials of your workspace group."
           placeholder="admin"
@@ -130,7 +123,7 @@ export const DatabaseConfigFormManual = ({
           setValue={setLocalUser}
         />
         <ConfigInput
-          label="Workspace group password"
+          label="Workspace Group Password"
           required
           placeholder=""
           value={localPassword}
