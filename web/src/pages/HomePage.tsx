@@ -23,7 +23,7 @@ import GraphicalBackground2 from "@/assets/graphical-background-2.svg";
 import SingleStoreLogoDark from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { DatabaseConfigFormManual } from "@/components/dataConfigForm/DatabaseConfigFormManual";
-import { HowItWorksModal } from "@/components/HowItWorksModal";
+import { NeedHelpModal } from "@/components/NeedHelpModal";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 import { useConnectionState } from "@/view/hooks/hooks";
 
@@ -64,14 +64,14 @@ const ConnectSection: React.FC = () => {
             fontWeight="bold"
             gap={1}
           >
-            Connect to Singlestore
+            Connect to SinglestoreDB
           </Tab>
         </TabList>
         <TabPanels padding={0} margin={0}>
           <TabPanel paddingLeft={0} paddingTop={5} margin={0}>
             <DatabaseConfigFormManual showDatabase />
             <br />
-            <HowItWorksModal />
+            <NeedHelpModal />
           </TabPanel>
         </TabPanels>
       </Tabs>

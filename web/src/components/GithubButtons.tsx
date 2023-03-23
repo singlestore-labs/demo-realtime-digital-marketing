@@ -32,6 +32,7 @@ export const GithubStargazer: React.FC<GithubStargazerProps> = ({
   repoName,
 }) => {
   const [stargazersCount, setStargazersCount] = React.useState(0);
+
   const handleFlexRedirect = () => {
     window.open(`https://github.com/${owner}/${repoName}`, "_blank");
   };
