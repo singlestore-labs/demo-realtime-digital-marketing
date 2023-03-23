@@ -115,7 +115,7 @@ export const DatabaseConfigFormManual = ({
       />
       <SimpleGrid columns={2} gap={2}>
         <ConfigInput
-          label="Workspace Goup Username"
+          label="Workspace Group Username"
           required
           helpText="Fill in the Security credentials of your workspace group."
           placeholder="admin"
