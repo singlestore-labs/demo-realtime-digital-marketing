@@ -137,9 +137,7 @@ export const NeedHelpModal = () => {
 
   return (
     <>
-      <Link onClick={openModal} >
-        Need help?
-      </Link>
+      <Link onClick={openModal}>Need help?</Link>
       <Modal size="6xl" isOpen={showModal} onClose={closeModal} isCentered>
         <ModalOverlay />
         <ModalContent
