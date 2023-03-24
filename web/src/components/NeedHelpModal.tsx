@@ -146,7 +146,8 @@ export const NeedHelpModal = () => {
         >
           <Stack justifyContent="center" alignItems="center" gap="26px">
             <ModalHeader fontSize="26px" fontWeight="bold" padding="8px">
-              How to connect the Real-Time Digital marketing app to SingleStoreDB?
+              How to connect the Real-Time Digital marketing app to
+              SingleStoreDB?
             </ModalHeader>
             <ModalCloseButton _focus={{ boxShadow: "none" }} />
             <ModalBody padding={0} margin={0}>
