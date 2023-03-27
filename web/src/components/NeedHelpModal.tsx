@@ -93,7 +93,13 @@ const SingleStepContainer = ({
     textAlign="center"
     gap="8px"
   >
-    <Image src={imageSrc} width="70%" maxH="50%" objectFit="contain" marginBottom="16px" />
+    <Image
+      src={imageSrc}
+      width="70%"
+      maxH="50%"
+      objectFit="contain"
+      marginBottom="16px"
+    />
     <Text fontSize="md" fontWeight="bold">
       {title}
     </Text>
