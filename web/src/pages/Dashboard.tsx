@@ -51,7 +51,7 @@ const RealtimeChart = () => {
       <Stack spacing={4}>
         <Stack spacing={3}>
           <Stack spacing={2}>
-            <Heading size="md">Key Metrics</Heading>
+            <Heading fontSize="xl">Key Metrics</Heading>
             <Text>Serving ads real-time to simulated subscribers</Text>
           </Stack>
         </Stack>
@@ -195,7 +195,7 @@ const StatsWrapper = () => {
       <Stack spacing={4}>
         <Stack spacing={3}>
           <Stack spacing={2}>
-            <Heading fontSize="md">Locations</Heading>
+            <Heading fontSize="xl">Locations</Heading>
             <Text overflowWrap="break-word">
               Select cities to add to the dataset
             </Text>
@@ -266,7 +266,7 @@ export const NotificationsMap = () => {
         left={0}
         top={0}
         overflow={isSmallScreen ? undefined : "auto"}
-        width={isSmallScreen ? "100%" : "30%"}
+        width={isSmallScreen ? "100%" : "31%"}
         height={isSmallScreen ? "auto" : "100%"}
         borderBottomRightRadius="10px"
         padding="36px 48px 36px 48px"

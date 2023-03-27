@@ -133,7 +133,7 @@ const DashboardContainerChild = () => {
     <Stack gap={10}>
       <Stack spacing={3}>
         <Stack spacing={2}>
-          <Heading fontSize="md">Engagement</Heading>
+          <Heading fontSize="xl">Engagement</Heading>
           <Text overflowWrap="break-word">
             Conversion rate with subscribers
           </Text>
@@ -142,7 +142,7 @@ const DashboardContainerChild = () => {
       </Stack>
       <Stack spacing={3}>
         <Stack spacing={2}>
-          <Heading fontSize="md">Top Performing Customers</Heading>
+          <Heading fontSize="xl">Top Performing Customers</Heading>
           <Text overflowWrap="break-word">
             Companies with the highest conversion rate
           </Text>

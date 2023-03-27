@@ -12,7 +12,7 @@ export const selectableCitiesData: Array<City> = [
   },
   {
     id: 120658,
-    name: "New York City",
+    name: "New York",
     centerLat: 40.71427003,
     centerLon: -74.00597003,
     diameter: 0.4,
