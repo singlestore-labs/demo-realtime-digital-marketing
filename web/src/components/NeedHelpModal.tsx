@@ -19,9 +19,9 @@ import {
 import * as React from "react";
 import { HiChevronRight } from "react-icons/hi";
 
-import CreateWorkspaceButtonSVG from "@/assets/howitworks/create-workspace-button.svg";
-import RTDMConnectButtonSVG from "@/assets/howitworks/rtdm-connect-button.svg";
-import WorkspaceConnectOptionSVG from "@/assets/howitworks/workspace-connect-direct.svg";
+import CreateWorkspaceButtonSVG from "@/assets/needhelpmodal/create-workspace-button.svg";
+import RTDMConnectButtonSVG from "@/assets/needhelpmodal/rtdm-connect-button.svg";
+import WorkspaceConnectOptionSVG from "@/assets/needhelpmodal/workspace-connect-direct.svg";
 
 import { InvertedPrimaryButton } from "./customcomponents/Button";
 
@@ -93,7 +93,7 @@ const SingleStepContainer = ({
     textAlign="center"
     gap="8px"
   >
-    <Image src={imageSrc} width="70%" objectFit="contain" marginBottom="16px" />
+    <Image src={imageSrc} width="70%" maxH="50%" objectFit="contain" marginBottom="16px" />
     <Text fontSize="md" fontWeight="bold">
       {title}
     </Text>

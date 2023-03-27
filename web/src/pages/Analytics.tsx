@@ -387,7 +387,7 @@ const StatWrapper = ({
   return (
     <GridItem
       padding="20px"
-      background={useColorModeValue("#ECE8FD", "#2F206E")}
+      background={useColorModeValue("#8174B8", "#2F206E")}
       borderRadius="15px"
       colSpan={colSpan || 1}
     >

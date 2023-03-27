@@ -1,3 +1,14 @@
+const rectifyHostAddress = (hostAddress: string) => {
+	if (hostAddress === "") {
+		return hostAddress;
+	}
+	if (hostAddress.toLowerCase().startsWith('http://') || hostAddress.toLocaleLowerCase().startsWith('https://')) {
+		return hostAddress;
+	} else {
+		return `https://${hostAddress}`;
+	}
+};
+
 export type ConnectionConfig = {
   host: string;
   user: string;
@@ -131,7 +142,7 @@ const fetchEndpoint = async (
     console.log("running query", sql, args);
   }
 
-  const response = await fetch(`${config.host}/api/v2/${endpoint}`, {
+  const response = await fetch(`${rectifyHostAddress(config.host)}/api/v2/${endpoint}`, {
     method: "POST",
     signal: config.ctx?.signal,
     headers: {
