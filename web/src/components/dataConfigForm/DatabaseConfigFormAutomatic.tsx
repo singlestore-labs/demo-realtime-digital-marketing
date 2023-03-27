@@ -46,7 +46,7 @@ export const DatabaseConfigForm = ({
     <Stack spacing={4}>
       <ConfigInput
         label="Workspace Host"
-        placeholder="http://127.0.0.1:8808"
+        placeholder="http://127.0.0.1"
         value={host}
         setValue={setHost}
         helpText="Your workspace hostname."

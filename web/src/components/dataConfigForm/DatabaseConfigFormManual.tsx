@@ -107,7 +107,7 @@ export const DatabaseConfigFormManual = ({
     <Stack spacing={4} onKeyDown={handleEnterKeyPress}>
       <ConfigInput
         label="Workspace Host"
-        placeholder="http://127.0.0.1:8808"
+        placeholder="http://127.0.0.1"
         value={localHost}
         required
         setValue={setLocalHost}
