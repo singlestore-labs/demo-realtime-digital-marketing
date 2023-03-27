@@ -1,3 +1,15 @@
+const rectifyHostAddress = (hostAddress: string) => {
+  if (
+    hostAddress.toLowerCase().startsWith("http://") ||
+    hostAddress.toLocaleLowerCase().startsWith("https://") ||
+    hostAddress === ""
+  ) {
+    return hostAddress;
+  } else {
+    return `https://${hostAddress}`;
+  }
+};
+
 export type ConnectionConfig = {
   host: string;
   user: string;
@@ -131,15 +143,18 @@ const fetchEndpoint = async (
     console.log("running query", sql, args);
   }
 
-  const response = await fetch(`${config.host}/api/v2/${endpoint}`, {
-    method: "POST",
-    signal: config.ctx?.signal,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Basic ${btoa(`${config.user}:${config.password}`)}`,
-    },
-    body: JSON.stringify({ sql, args, database: config.database }),
-  });
+  const response = await fetch(
+    `${rectifyHostAddress(config.host)}/api/v2/${endpoint}`,
+    {
+      method: "POST",
+      signal: config.ctx?.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${btoa(`${config.user}:${config.password}`)}`,
+      },
+      body: JSON.stringify({ sql, args, database: config.database }),
+    }
+  );
 
   if (!response.ok) {
     throw new SQLError(await response.text(), sql);

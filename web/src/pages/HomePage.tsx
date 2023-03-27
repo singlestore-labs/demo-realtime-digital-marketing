@@ -23,13 +23,65 @@ import GraphicalBackground2 from "@/assets/graphical-background-2.svg";
 import SingleStoreLogoDark from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { DatabaseConfigFormManual } from "@/components/dataConfigForm/DatabaseConfigFormManual";
+import { NeedHelpModal } from "@/components/NeedHelpModal";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 import { useConnectionState } from "@/view/hooks/hooks";
+
+const ConnectSection: React.FC = () => {
+  const fontColor = useColorModeValue("#553ACF", "#CCC3F9");
+
+  return (
+    <Stack spacing={4}>
+      <Heading>
+        <Image src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDark)} />
+      </Heading>
+      <Heading>
+        <Text>Real-Time Digital Marketing</Text>
+      </Heading>
+      <Text size="1.2em">
+        Watch{" "}
+        <Link
+          fontWeight="bold"
+          href="https://portal.singlestore.com"
+          isExternal
+        >
+          SingleStoreDB
+        </Link>{" "}
+        serve ads to millions of simulated subscribers based on their behavior,
+        purchases, request history, and geolocation.
+      </Text>
+      <Tabs variant="unstyled">
+        <TabList>
+          <Tab
+            justifyContent="center"
+            _selected={{
+              color: fontColor,
+              borderBottom: `2px solid ${useColorModeValue(
+                "#553ACF",
+                "#CCC3F9"
+              )}`,
+            }}
+            fontWeight="bold"
+            gap={1}
+          >
+            Connect to SinglestoreDB
+          </Tab>
+        </TabList>
+        <TabPanels padding={0} margin={0}>
+          <TabPanel paddingLeft={0} paddingTop={5} margin={0}>
+            <DatabaseConfigFormManual showDatabase />
+            <br />
+            <NeedHelpModal />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </Stack>
+  );
+};
 
 export const HomePage: React.FC = () => {
   const { connected } = useConnectionState();
   const navigate = useNavigate();
-  const fontColor = useColorModeValue("#553ACF", "#CCC3F9");
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
   const { updateCityList } = useUpdateCityList();
 
@@ -49,51 +101,7 @@ export const HomePage: React.FC = () => {
       alignItems="center"
     >
       <GridItem padding="10% 10% 10% 20%">
-        <Stack spacing={4}>
-          <Heading>
-            <Image
-              src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDark)}
-            />
-          </Heading>
-          <Heading>
-            <Text>Real-Time Digital Marketing</Text>
-          </Heading>
-          <Text size="1.2em">
-            Watch{" "}
-            <Link
-              fontWeight="bold"
-              href="https://portal.singlestore.com"
-              isExternal
-            >
-              SingleStoreDB
-            </Link>{" "}
-            serve ads to millions of simulated subscribers based on their
-            behavior, purchases, request history, and geolocation.
-          </Text>
-          <Tabs variant="unstyled">
-            <TabList>
-              <Tab
-                justifyContent="center"
-                _selected={{
-                  color: fontColor,
-                  borderBottom: `2px solid ${useColorModeValue(
-                    "#553ACF",
-                    "#CCC3F9"
-                  )}`,
-                }}
-                fontWeight="bold"
-                gap={1}
-              >
-                Connect to Singlestore
-              </Tab>
-            </TabList>
-            <TabPanels padding={0} margin={0}>
-              <TabPanel paddingLeft={0} paddingTop={5} margin={0}>
-                <DatabaseConfigFormManual showDatabase />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </Stack>
+        <ConnectSection />
       </GridItem>
       <GridItem
         backgroundImage={GraphicalBackground2}

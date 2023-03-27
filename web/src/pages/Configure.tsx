@@ -115,7 +115,7 @@ const CollapsibleSection = ({
     <div style={containerStyle}>
       <Button
         justifyContent="space-between"
-        size="sm"
+        size="md"
         width="100%"
         style={buttonStyle}
         onClick={() => setSectionOpen(!sectionOpen)}
@@ -123,9 +123,9 @@ const CollapsibleSection = ({
         {title}
         {accordionIcon}
       </Button>
-      <div style={childContainerStyle}>
+      <Box style={childContainerStyle}>
         <Collapse in={sectionOpen}>{childComponent}</Collapse>
-      </div>
+      </Box>
     </div>
   );
 };
@@ -1104,7 +1104,7 @@ export const Configure = () => {
     >
       <Flex gap={5} justifyContent="space-between" marginBottom="50px">
         <Stack spacing={2}>
-          <Heading fontSize="md">Setting up Your Application</Heading>
+          <Heading fontSize="xl">Setting up Your Application</Heading>
           <Text size="xs" overflowWrap="break-word">
             Connect to a SingleStoreDB workspace to see how we power the
             real-time Digital Marketing applications. If you have any questions

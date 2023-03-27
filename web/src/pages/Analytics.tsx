@@ -84,7 +84,7 @@ const NotificationZoneMap = () => {
               <Progress
                 colorScheme="transparent"
                 height={2}
-                bgGradient="linear(to-r, rgba(79, 52, 199, 1) 0%, rgba(232, 230, 245) 100%)"
+                bgGradient="linear(to-r, #3A249E 0%, #CCC3F9 100%)"
                 value={90}
               />
             </Box>
@@ -103,7 +103,7 @@ const NotificationZoneMap = () => {
         <Heatmap
           height={400}
           useCells={useConversionCells}
-          colorInterpolater={interpolateRgb("#E8E6F5", "#4F34C7")}
+          colorInterpolater={interpolateRgb("#CCC3F9", "#3A249E")}
           getCellConfig={({ conversionRate, wktPolygon }: ZoneMetrics) => ({
             value: conversionRate,
             wktPolygon,
@@ -133,7 +133,7 @@ const DashboardContainerChild = () => {
     <Stack gap={10}>
       <Stack spacing={3}>
         <Stack spacing={2}>
-          <Heading fontSize="md">Engagement</Heading>
+          <Heading fontSize="xl">Engagement</Heading>
           <Text overflowWrap="break-word">
             Conversion rate with subscribers
           </Text>
@@ -142,7 +142,7 @@ const DashboardContainerChild = () => {
       </Stack>
       <Stack spacing={3}>
         <Stack spacing={2}>
-          <Heading fontSize="md">Top Performing Customers</Heading>
+          <Heading fontSize="xl">Top Performing Customers</Heading>
           <Text overflowWrap="break-word">
             Companies with the highest conversion rate
           </Text>
