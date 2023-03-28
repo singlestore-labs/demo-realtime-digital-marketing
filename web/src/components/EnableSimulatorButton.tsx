@@ -1,13 +1,19 @@
 import {
   Alert,
+  AlertDescription,
   AlertIcon,
   AlertTitle,
+  Box,
+  Button,
   FormControl,
   FormControlProps,
   FormLabel,
   Switch,
   SwitchProps,
+  Text,
+  Tooltip,
   useBoolean,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import * as React from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -22,20 +28,20 @@ export const EnableSimulatorButton = () => {
   return (
     <Alert status="warning" borderRadius="md">
       <AlertIcon />
-      <AlertTitle>The simulator is disabled</AlertTitle>
-      <ToggleSimulatorButton
-        containerProps={{
-          position: "absolute",
-          textAlign: "right",
-          right: 3,
-          display: "inline",
-        }}
-      />
+      <Box display="flex" flexDirection="column">
+        <AlertTitle>The simulator is disabled</AlertTitle>
+        <AlertDescription>
+          This application uses a simulator to generate new data like live
+          notifications and subscribers. To experience the full power of
+          real-time digital marketing, please enable the simulator in the nav
+          bar.
+        </AlertDescription>
+      </Box>
     </Alert>
   );
 };
 
-export const ToggleSimulatorButton = ({
+export const SimulatorToggler = ({
   switchProps,
   containerProps,
 }: {
@@ -47,11 +53,6 @@ export const ToggleSimulatorButton = ({
   const config = useRecoilValue(connectionConfig);
   const { connected, initialized } = useConnectionState();
   const [toggling, togglingCtrl] = useBoolean(false);
-
-  let buttonText = "Simulator disabled";
-  if (enabled) {
-    buttonText = "Simulator enabled";
-  }
 
   const stopSpinner = useMountedCallback(
     () => togglingCtrl.off,
@@ -89,14 +90,16 @@ export const ToggleSimulatorButton = ({
   );
 
   return (
-    <FormControl {...containerProps}>
+    <FormControl {...containerProps} gap={3}>
       <FormLabel
         htmlFor="simulatorSwitch"
-        fontSize="x-small"
+        fontSize="xs"
+        fontWeight="bold"
         display="inline"
         padding={0}
+        margin={0}
       >
-        {buttonText}
+        Simulator
       </FormLabel>
       <Switch
         id="simulatorSwitch"
@@ -106,5 +109,34 @@ export const ToggleSimulatorButton = ({
         {...switchProps}
       />
     </FormControl>
+  );
+};
+
+export const SimulatorButton = () => {
+  return (
+    <Tooltip
+      label={
+        <Text>
+          The simulator generates live notifications and subscribers even if the
+          application browser window is closed. Toggle off to stop new data
+          generation or suspend cluster in SingleStoreDB portal.
+        </Text>
+      }
+      hasArrow
+      textAlign="center"
+    >
+      <Button
+        style={{
+          color: useColorModeValue("black", "white"),
+          backgroundColor: useColorModeValue("#DCD5FB", "#3A249E"),
+        }}
+        size="sm"
+      >
+        <SimulatorToggler
+          switchProps={{ size: "sm" }}
+          containerProps={{ display: "flex", alignItems: "center" }}
+        />
+      </Button>
+    </Tooltip>
   );
 };

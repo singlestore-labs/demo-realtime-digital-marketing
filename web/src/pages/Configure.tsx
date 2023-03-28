@@ -46,7 +46,7 @@ import { CodeBlock } from "@/components/CodeBlock";
 import { PrimaryButton } from "@/components/customcomponents/Button";
 import { Loader } from "@/components/customcomponents/loader/Loader";
 import { DatabaseConfigForm } from "@/components/dataConfigForm/DatabaseConfigFormAutomatic";
-import { ToggleSimulatorButton } from "@/components/EnableSimulatorButton";
+import { SimulatorToggler } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
@@ -1128,7 +1128,7 @@ export const Configure = () => {
           >
             Reset application
           </ResetSchemaButton>
-          <ToggleSimulatorButton />
+          <SimulatorToggler />
         </Box>
       </Flex>
       {sections}
