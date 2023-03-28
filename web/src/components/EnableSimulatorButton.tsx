@@ -25,7 +25,7 @@ import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { useConnectionState, useMountedCallback } from "@/view/hooks/hooks";
 import { useSession } from "@/view/hooks/useSession";
 
-export const EnableSimulatorButton = () => {
+export const EnableSimulatorWarning = () => {
   return (
     <Alert status="warning" borderRadius="md">
       <AlertIcon />
