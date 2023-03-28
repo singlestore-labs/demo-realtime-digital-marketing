@@ -39,10 +39,8 @@ import SingleStoreLogoDark from "@/assets/singlestore-logo-dark.svg";
 import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
 import { GithubStargazer } from "@/components/GithubButtons";
 import { LinkedinIconButton, TwitterIconButton } from "@/components/IconLinks";
-import {
-  EnableSimulatorButton,
-  SimulatorButton,
-} from "../EnableSimulatorButton";
+
+import { SimulatorButton } from "../EnableSimulatorButton";
 
 export const SinglestoreBrandLogo = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");

@@ -1,3 +1,4 @@
+import { InfoIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
@@ -99,7 +100,8 @@ export const SimulatorToggler = ({
         padding={0}
         margin={0}
       >
-        Simulator
+        Simulator{" "}&nbsp;
+        <InfoIcon fontSize="1.1em" />
       </FormLabel>
       <Switch
         id="simulatorSwitch"
@@ -115,6 +117,7 @@ export const SimulatorToggler = ({
 export const SimulatorButton = () => {
   return (
     <Tooltip
+      variant="simulator"
       label={
         <Text>
           The simulator generates live notifications and subscribers even if the
@@ -129,11 +132,14 @@ export const SimulatorButton = () => {
         style={{
           color: useColorModeValue("black", "white"),
           backgroundColor: useColorModeValue("#DCD5FB", "#3A249E"),
+          border: "none",
+          boxShadow: "none",
         }}
+        padding="8px 18px 8px 18px"
         size="sm"
       >
         <SimulatorToggler
-          switchProps={{ size: "sm" }}
+          switchProps={{ size: "sm", variant: "simulator" }}
           containerProps={{ display: "flex", alignItems: "center" }}
         />
       </Button>

@@ -21,7 +21,7 @@ export const chakraTheme = extendTheme({
       700: "#472EB7",
       800: "#3A249E",
       900: "#2F206E",
-    }
+    },
   },
   fonts: {
     heading: "InterVariable, sans-serif",
@@ -70,6 +70,27 @@ export const chakraTheme = extendTheme({
             },
           };
         },
+      },
+    },
+    Switch: {
+      variants: {
+        simulator: ({ colorMode }: { colorMode: ColorMode }) => ({
+          track: {
+            _checked: {
+              bg: colorMode === "light" ? "black" : "white",
+            },
+          },
+          thumb: {
+            bg: colorMode === "light" ? "white" : "black",
+          },
+        }),
+      },
+    },
+    Tooltip: {
+      variants: {
+        simulator: ({ colorMode }: { colorMode: ColorMode }) => ({
+          bg: colorMode === "light" ? "#171923" : "#F3F3F5",
+        }),
       },
     },
   },
