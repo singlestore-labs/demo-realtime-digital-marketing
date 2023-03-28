@@ -68,12 +68,10 @@ export const SimulatorToggler = ({
       } else {
         trackAnalyticsEvent("disable-simulator");
       }
-
       if (connected && initialized) {
         await setSessionController(config, session.sessionID, state);
       }
       setEnabled(state);
-
       refreshSession();
       stopSpinner();
       togglingCtrl.off();
@@ -100,8 +98,7 @@ export const SimulatorToggler = ({
         padding={0}
         margin={0}
       >
-        Simulator{" "}&nbsp;
-        <InfoIcon fontSize="1.1em" />
+        Simulator <InfoIcon fontSize="1.1em" />
       </FormLabel>
       <Switch
         id="simulatorSwitch"
