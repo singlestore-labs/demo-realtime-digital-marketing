@@ -58,7 +58,7 @@ export const SimulatorToggler = ({
     setToggling(true);
     const newState = !enabled;
     trackAnalyticsEvent("change-simulator-state", {
-      enabled: newState.toString(),
+      enabled: newState,
     });
     if (connected && initialized) {
       await setSessionController(config, session.sessionID, newState);
@@ -79,7 +79,7 @@ export const SimulatorToggler = ({
   return (
     <FormControl {...containerProps} gap={3}>
       <FormLabel
-        htmlFor="simulatorSwitch"
+        htmlFor="simulator-switch"
         fontSize="xs"
         fontWeight="bold"
         display="inline"
@@ -92,7 +92,7 @@ export const SimulatorToggler = ({
         </Box>
       </FormLabel>
       <Switch
-        id="simulatorSwitch"
+        id="simulator-switch"
         disabled={toggling}
         isChecked={enabled}
         onChange={onToggleSimulator}
