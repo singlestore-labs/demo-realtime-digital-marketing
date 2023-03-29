@@ -1,4 +1,4 @@
-import { Icon, InfoIcon, WarningIcon } from "@chakra-ui/icons";
+import { Icon, InfoIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
@@ -13,7 +13,6 @@ import {
   SwitchProps,
   Text,
   Tooltip,
-  useBoolean,
   useColorModeValue,
 } from "@chakra-ui/react";
 import * as React from "react";
@@ -22,9 +21,8 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { trackAnalyticsEvent } from "@/analytics";
 import { setSessionController } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
-import { useConnectionState, useMountedCallback } from "@/view/hooks/hooks";
+import { useConnectionState } from "@/view/hooks/hooks";
 import { useSession } from "@/view/hooks/useSession";
-import { BsInfoCircleFill } from "react-icons/bs";
 
 export const EnableSimulatorWarning = () => {
   return (
@@ -54,40 +52,29 @@ export const SimulatorToggler = ({
   const { session, refresh: refreshSession } = useSession();
   const config = useRecoilValue(connectionConfig);
   const { connected, initialized } = useConnectionState();
-  const [toggling, togglingCtrl] = useBoolean(false);
+  const [toggling, setToggling] = React.useState(false);
 
-  const stopSpinner = useMountedCallback(
-    () => togglingCtrl.off,
-    [togglingCtrl]
-  );
-
-  const onToggleSimulator = React.useCallback(
-    async (state: boolean) => {
-      togglingCtrl.on();
-      if (state) {
-        trackAnalyticsEvent("enable-simulator");
-      } else {
-        trackAnalyticsEvent("disable-simulator");
-      }
-      if (connected && initialized) {
-        await setSessionController(config, session.sessionID, state);
-      }
-      setEnabled(state);
-      refreshSession();
-      stopSpinner();
-      togglingCtrl.off();
-    },
-    [
-      config,
-      connected,
-      togglingCtrl,
-      initialized,
-      refreshSession,
-      session.sessionID,
-      setEnabled,
-      stopSpinner,
-    ]
-  );
+  const onToggleSimulator = React.useCallback(async () => {
+    setToggling(true);
+    const newState = !enabled;
+    trackAnalyticsEvent("change-simulator-state", {
+      enabled: newState.toString(),
+    });
+    if (connected && initialized) {
+      await setSessionController(config, session.sessionID, newState);
+    }
+    setEnabled(newState);
+    refreshSession();
+    setToggling(false);
+  }, [
+    config,
+    connected,
+    initialized,
+    session.sessionID,
+    enabled,
+    refreshSession,
+    setEnabled,
+  ]);
 
   return (
     <FormControl {...containerProps} gap={3}>
@@ -108,7 +95,7 @@ export const SimulatorToggler = ({
         id="simulatorSwitch"
         disabled={toggling}
         isChecked={enabled}
-        onChange={() => onToggleSimulator(!enabled)}
+        onChange={onToggleSimulator}
         {...switchProps}
       />
     </FormControl>
@@ -120,7 +107,7 @@ export const SimulatorButton = () => {
     <Tooltip
       variant="simulator"
       label={
-        <Text>
+        <Text padding={2}>
           The simulator generates live notifications and subscribers even if the
           application browser window is closed. Toggle off to stop new data
           generation or suspend cluster in SingleStoreDB portal.
