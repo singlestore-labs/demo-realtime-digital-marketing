@@ -1,4 +1,4 @@
-import { InfoIcon } from "@chakra-ui/icons";
+import { Icon, InfoIcon, WarningIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
@@ -24,6 +24,7 @@ import { setSessionController } from "@/data/queries";
 import { connectionConfig, simulatorEnabled } from "@/data/recoil";
 import { useConnectionState, useMountedCallback } from "@/view/hooks/hooks";
 import { useSession } from "@/view/hooks/useSession";
+import { BsInfoCircleFill } from "react-icons/bs";
 
 export const EnableSimulatorWarning = () => {
   return (
@@ -98,7 +99,10 @@ export const SimulatorToggler = ({
         padding={0}
         margin={0}
       >
-        Simulator <InfoIcon fontSize="1.1em" />
+        <Box gap={1} display="flex">
+          <Text>Simulator</Text>
+          <Icon as={InfoIcon} fontSize="1.1em" />
+        </Box>
       </FormLabel>
       <Switch
         id="simulatorSwitch"
