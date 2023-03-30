@@ -1,7 +1,7 @@
 const rectifyHostAddress = (hostAddress: string) => {
   if (
     hostAddress.toLowerCase().startsWith("http://") ||
-    hostAddress.toLocaleLowerCase().startsWith("https://") ||
+    hostAddress.toLowerCase().startsWith("https://") ||
     hostAddress === ""
   ) {
     return hostAddress;

@@ -16,7 +16,7 @@ import * as React from "react";
 import { BsEye, BsInfoCircleFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 
-import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
+import { EnableSimulatorWarning } from "@/components/EnableSimulatorButton";
 import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { PixiMap } from "@/components/PixiMap";
 import { SetupDatabaseButton } from "@/components/SetupDatabaseButton";
@@ -235,7 +235,7 @@ export const NotificationsMap = () => {
   if (!initialized) {
     mapStatisticsContainer = <SetupDatabaseButton />;
   } else if (!enabled) {
-    mapStatisticsContainer = <EnableSimulatorButton />;
+    mapStatisticsContainer = <EnableSimulatorWarning />;
   } else {
     mapStatisticsContainer = <StatsWrapper />;
   }
