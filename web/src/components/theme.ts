@@ -9,6 +9,20 @@ import "@fontsource/inter/variable-full.css";
 import "@fontsource/source-code-pro/variable.css";
 
 export const chakraTheme = extendTheme({
+  colors: {
+    indigo: {
+      50: "#F7F6FE",
+      100: "#ECE8FD",
+      200: "#DCD5FB",
+      300: "#CCC3F9",
+      400: "#B0A0F8",
+      500: "#7760E1",
+      600: "#553ACF",
+      700: "#472EB7",
+      800: "#3A249E",
+      900: "#2F206E",
+    },
+  },
   fonts: {
     heading: "InterVariable, sans-serif",
     body: "InterVariable, sans-serif",
@@ -17,14 +31,14 @@ export const chakraTheme = extendTheme({
   styles: {
     global: ({ colorMode }: { colorMode: ColorMode }) => ({
       a: {
-        color: colorMode === "light" ? "#553ACF" : "#CCC3F9",
+        color: colorMode === "light" ? "indigo.600" : "indigo.300",
       },
     }),
   },
   components: {
     Link: {
       baseStyle: ({ colorMode }: { colorMode: ColorMode }) => ({
-        color: colorMode === "light" ? "#553ACF" : "#CCC3F9",
+        color: colorMode === "light" ? "indigo.600" : "indigo.300",
       }),
     },
     Button: {
@@ -52,10 +66,31 @@ export const chakraTheme = extendTheme({
           }
           return {
             container: {
-              bg: colorMode === "light" ? "#553ACF" : "#CCC3F9",
+              bg: colorMode === "light" ? "indigo.600" : "indigo.300",
             },
           };
         },
+      },
+    },
+    Switch: {
+      variants: {
+        simulator: ({ colorMode }: { colorMode: ColorMode }) => ({
+          track: {
+            _checked: {
+              bg: colorMode === "light" ? "black" : "white",
+            },
+          },
+          thumb: {
+            bg: colorMode === "light" ? "white" : "black",
+          },
+        }),
+      },
+    },
+    Tooltip: {
+      variants: {
+        simulator: ({ colorMode }: { colorMode: ColorMode }) => ({
+          bg: colorMode === "light" ? "#171923" : "#F3F3F5",
+        }),
       },
     },
   },

@@ -7,7 +7,7 @@ import { useConnectionState } from "@/view/hooks/hooks";
 
 export function trackAnalyticsEvent(
   event: string,
-  params?: Record<string, string | number>
+  params?: Record<string, string | number | boolean>
 ) {
   if (window.analytics) {
     window.analytics.track(`rtdm-${event}`, params);

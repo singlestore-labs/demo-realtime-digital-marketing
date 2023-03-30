@@ -35,7 +35,7 @@ import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
 import { Loader } from "@/components/customcomponents/loader/Loader";
-import { EnableSimulatorButton } from "@/components/EnableSimulatorButton";
+import { EnableSimulatorWarning } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/HeatMap";
 import { SetupDatabaseButton } from "@/components/SetupDatabaseButton";
 import {
@@ -127,7 +127,7 @@ const DashboardContainerChild = () => {
   if (!initialized) {
     return <SetupDatabaseButton />;
   } else if (!enabled) {
-    return <EnableSimulatorButton />;
+    return <EnableSimulatorWarning />;
   }
   return (
     <Stack gap={10}>
