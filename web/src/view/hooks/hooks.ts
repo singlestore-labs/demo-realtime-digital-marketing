@@ -6,7 +6,6 @@ import useSWR, { useSWRConfig } from "swr";
 import { SQLError } from "@/data/client";
 import { isConnected, resetSchema, schemaObjects } from "@/data/queries";
 import {
-  connectedToDB,
   connectionConfig,
   portalConnectionConfig,
   resettingSchema,
@@ -43,17 +42,10 @@ export const useConnectionState = () => {
   // we are using ES6 spread syntax to remove database from config
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { ...config } = useRecoilValue(connectionConfig);
-  const [ connectedFromRecoil, setConnectedInRecoil] = useRecoilState(connectedToDB);
   const connected = useSWR(["isConnected", config], () => isConnected(config));
   const schemaObjs = useSchemaObjects(!connected.data);
   const portalConfig = useRecoilValue(portalConnectionConfig);
   let connectionType;
-
-  React.useEffect(() => {
-    if (connected.data !== undefined) {
-      setConnectedInRecoil(!!connected.data);
-    }
-  }, [connected, setConnectedInRecoil]);
 
   if (portalConfig) {
     connectionType = "portal";
@@ -62,7 +54,8 @@ export const useConnectionState = () => {
   }
 
   return {
-    connected: connectedFromRecoil,
+    connected: !!connected.data,
+    isValidatingConnection: connected.isValidating,
     initialized:
       !!connected.data && Object.values(schemaObjs.data || []).every(Boolean),
     reset: () => {

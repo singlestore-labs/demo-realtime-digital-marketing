@@ -18,7 +18,7 @@ import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/navBar/Nav";
 import { AnalyticsDashboard } from "@/pages/Analytics";
 import { Configure } from "@/pages/Configure";
-import { NotificationsMap } from "@/pages/Dashboard";
+import { Dashboard } from "@/pages/Dashboard";
 import { HomePage } from "@/pages/HomePage";
 import { useConnectionState } from "@/view/hooks/hooks";
 
@@ -91,9 +91,9 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({
 }) => {
   // Private routes will ensure user is connected to singlestore before using the route.
   // Will redirect to connection page in case user in not connected.
-  const { connected } = useConnectionState();
+  const { connected, isValidatingConnection } = useConnectionState();
 
-  if (!connected) {
+  if (!connected && !isValidatingConnection) {
     return <Navigate to="/" />;
   }
 
@@ -111,11 +111,18 @@ const Analytics = ({ children }: { children: React.ReactNode }) => {
 };
 
 const LayoutContainer = ({ children }: { children: React.ReactNode }) => {
+  const {connected, isValidatingConnection } = useConnectionState();
+  let childComponent = <Loader size="large" centered />;
+
+  if (connected || !isValidatingConnection) {
+    childComponent = <>{children}</>;
+  }
+
   return (
     <>
       <Nav />
       <Box flex="1" paddingTop="3px">
-        {children}
+        {childComponent}
       </Box>
       <Footer />
     </>
@@ -130,7 +137,7 @@ const RoutesBlock = () => {
         path="/dashboard"
         element={
           <PrivateRoute>
-            <NotificationsMap />
+            <Dashboard />
           </PrivateRoute>
         }
       />

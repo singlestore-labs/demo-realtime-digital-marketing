@@ -49,12 +49,6 @@ export const showWelcomeMessage = atom({
   effects: [localStorageEffect()],
 });
 
-export const connectedToDB = atom({
-  key: "connectedToDB",
-  default: false,
-  effects: [localStorageEffect()]
-});
-
 export const userSessionID = atom({
   key: "userID",
   default: uuidv4(),
@@ -69,7 +63,6 @@ export const selectedCity = atom({
 export const selectedCities = atom<Array<City>>({
   key: "selectedCities",
   default: [],
-  effects: [localStorageEffect()]
 });
 
 export const isUpdatingCities = atom({

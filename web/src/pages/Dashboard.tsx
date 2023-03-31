@@ -175,6 +175,13 @@ const StatsWrapper = () => {
     useRecoilState(selectedCity);
   const [totalSelectableCities, setTotalSelectableCities] =
     React.useState(selectedCities);
+  const { updateCityList } = useUpdateCityList();
+
+  React.useEffect(() => {
+    // This function will only be called once, when the component is first rendered
+    updateCityList();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // empty dependency array means the effect runs only once
 
   React.useEffect(() => {
     const selectableCityIds = selectableCitiesData.map((c) => c.id);
@@ -220,7 +227,7 @@ const StatsWrapper = () => {
   );
 };
 
-export const NotificationsMap = () => {
+export const Dashboard = () => {
   const { connected, initialized } = useConnectionState();
   const enabled = useRecoilValue(simulatorEnabled);
   useSimulationMonitor(enabled && connected && initialized);
