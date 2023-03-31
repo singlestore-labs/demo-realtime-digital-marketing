@@ -21,7 +21,7 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { PixiMap } from "@/components/PixiMap";
 import { SetupDatabaseButton } from "@/components/SetupDatabaseButton";
 import { Stats } from "@/components/Stats";
-import { selectableCitiesData } from "@/data/constants";
+import { SELECTABLE_CITIES_DATA } from "@/data/constants";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 import { City } from "@/data/queries";
 import {
@@ -94,7 +94,7 @@ const SelectCityCheckbox = (props: {
   const getNewSelectedCityAfterDeletion = (city: City): number => {
     const cityIndex = selectedCities.findIndex((c) => c.id === city.id);
     if (cityIndex === 0 && selectedCities.length > 1) {
-      return selectableCitiesData[1].id;
+      return SELECTABLE_CITIES_DATA[1].id;
     }
     return -1;
   };
@@ -180,16 +180,16 @@ const StatsWrapper = () => {
   React.useEffect(() => {
     // This function will only be called once, when the component is first rendered
     updateCityList();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // empty dependency array means the effect runs only once
 
   React.useEffect(() => {
-    const selectableCityIds = selectableCitiesData.map((c) => c.id);
+    const selectableCityIds = SELECTABLE_CITIES_DATA.map((c) => c.id);
     const unknownSelectedCities = selectedCities.filter(
       (c) => !selectableCityIds.includes(c.id)
     );
     setTotalSelectableCities([
-      ...selectableCitiesData,
+      ...SELECTABLE_CITIES_DATA,
       ...unknownSelectedCities,
     ]);
     if (lastSelectedCityId === -1 && selectedCities.length > 0) {

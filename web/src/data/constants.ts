@@ -2,7 +2,7 @@ import { City } from "@/data/queries";
 
 // The selectableCities variable hardcodes cities details that user can select.
 // Make sure the values here matches the values stored in worldcities database in martech.
-export const selectableCitiesData: Array<City> = [
+export const SELECTABLE_CITIES_DATA: Array<City> = [
   {
     id: 14,
     name: "Dubai",
@@ -12,7 +12,7 @@ export const selectableCitiesData: Array<City> = [
   },
   {
     id: 120658,
-    name: "New York",
+    name: "New York City",
     centerLat: 40.71427003,
     centerLon: -74.00597003,
     diameter: 0.4,

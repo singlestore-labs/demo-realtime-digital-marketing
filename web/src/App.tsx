@@ -111,7 +111,7 @@ const Analytics = ({ children }: { children: React.ReactNode }) => {
 };
 
 const LayoutContainer = ({ children }: { children: React.ReactNode }) => {
-  const {connected, isValidatingConnection } = useConnectionState();
+  const { connected, isValidatingConnection } = useConnectionState();
   let childComponent = <Loader size="large" centered />;
 
   if (connected || !isValidatingConnection) {

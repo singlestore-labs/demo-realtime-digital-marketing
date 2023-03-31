@@ -45,8 +45,8 @@ export const useConnectionState = () => {
   const connected = useSWR(["isConnected", config], () => isConnected(config));
   const schemaObjs = useSchemaObjects(!connected.data);
   const portalConfig = useRecoilValue(portalConnectionConfig);
-  let connectionType;
 
+  let connectionType;
   if (portalConfig) {
     connectionType = "portal";
   } else if (connected.data) {
