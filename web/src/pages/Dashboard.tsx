@@ -169,6 +169,7 @@ const SelectCityCheckbox = (props: {
 };
 
 const StatsWrapper = () => {
+  const isFirstRender = React.useRef(true);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [isUpdating] = useRecoilState(isUpdatingCities);
   const [lastSelectedCityId, setLastSelectedCityId] =
@@ -176,12 +177,6 @@ const StatsWrapper = () => {
   const [totalSelectableCities, setTotalSelectableCities] =
     React.useState(selectedCities);
   const { updateCityList } = useUpdateCityList();
-
-  React.useEffect(() => {
-    // This function will only be called once, when the component is first rendered
-    updateCityList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // empty dependency array means the effect runs only once
 
   React.useEffect(() => {
     const selectableCityIds = SELECTABLE_CITIES_DATA.map((c) => c.id);
@@ -196,6 +191,11 @@ const StatsWrapper = () => {
       setLastSelectedCityId(selectedCities[0].id);
     }
   }, [selectedCities, lastSelectedCityId, setLastSelectedCityId]);
+
+  if (isFirstRender.current) {
+    updateCityList();
+    isFirstRender.current = false;
+  }
 
   return (
     <>
