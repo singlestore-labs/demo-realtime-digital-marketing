@@ -58,6 +58,7 @@ export const userSessionID = atom({
 export const selectedCity = atom({
   key: "selectedCity",
   default: -1,
+  effects:[],
 });
 
 export const selectedCities = atom<Array<City>>({

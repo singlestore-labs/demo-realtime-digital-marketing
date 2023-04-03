@@ -178,10 +178,10 @@ const StatsWrapper = () => {
   const { updateCityList } = useUpdateCityList();
 
   React.useEffect(() => {
+    console.log("...... run update ........");
     // This function will only be called once, when the component is first rendered
     updateCityList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // empty dependency array means the effect runs only once
+  }, [updateCityList]); // empty dependency array means the effect runs only once
 
   React.useEffect(() => {
     const selectableCityIds = SELECTABLE_CITIES_DATA.map((c) => c.id);

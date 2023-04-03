@@ -115,14 +115,14 @@ export const useUpdateCityList = (): CityListHookReturnType => {
   const [_selectedCities, setSelectedCities] = useRecoilState(selectedCities);
   const [_error, setError] = useRecoilState(errorUpdatingCities);
   const [_isUpdating, setIsUpdating] = useRecoilState(isUpdatingCities);
-  const selectCityHook = useRecoilState(selectedCity);
+  const [city, selectCityHook] = useRecoilState(selectedCity);
   const config = useRecoilValue(connectionConfig);
 
   const onCreateCity = async (lat: number, lon: number) => {
     await addCityToDatabase(
       config,
       [lat, lon],
-      selectCityHook,
+      [city, selectCityHook],
       setIsUpdating,
       setSelectedCities,
       setError
@@ -132,22 +132,22 @@ export const useUpdateCityList = (): CityListHookReturnType => {
     await removeCityFromDatabase(
       config,
       cityId,
-      selectCityHook,
+      [city, selectCityHook],
       setIsUpdating,
       setSelectedCities,
       setError
     );
   };
 
-  const updateCityList = async () => {
+  const updateCityList = React.useCallback(async () => {
     await getSelectedCitiesFromDatabase(
       config,
-      selectCityHook,
+      [city, selectCityHook],
       setIsUpdating,
       setSelectedCities,
       setError
     );
-  };
+  }, [config, city, selectCityHook, setError, setIsUpdating, setSelectedCities]);
 
   return {
     onCreateCity,
