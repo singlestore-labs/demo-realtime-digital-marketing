@@ -169,14 +169,13 @@ const SelectCityCheckbox = (props: {
 };
 
 const StatsWrapper = () => {
-  const isFirstRender = React.useRef(true);
   const [selectedCities] = useRecoilState(selectedCitiesFromRecoil);
   const [isUpdating] = useRecoilState(isUpdatingCities);
   const [lastSelectedCityId, setLastSelectedCityId] =
     useRecoilState(selectedCity);
   const [totalSelectableCities, setTotalSelectableCities] =
     React.useState(selectedCities);
-  const { updateCityList } = useUpdateCityList();
+  const mutableCityListHook = React.useRef(useUpdateCityList());
 
   React.useEffect(() => {
     const selectableCityIds = SELECTABLE_CITIES_DATA.map((c) => c.id);
@@ -192,10 +191,9 @@ const StatsWrapper = () => {
     }
   }, [selectedCities, lastSelectedCityId, setLastSelectedCityId]);
 
-  if (isFirstRender.current) {
-    updateCityList();
-    isFirstRender.current = false;
-  }
+  React.useEffect(() => {
+      mutableCityListHook.current.updateCityList();
+  }, [mutableCityListHook.current.updateCityList]);
 
   return (
     <>
