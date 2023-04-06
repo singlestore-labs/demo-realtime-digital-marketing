@@ -68,7 +68,8 @@ export const defaultSelectedCities = selector<Array<City>>({
     try {
       selectedCities = await getCities(config);
     } catch (error) {
-      throw error;
+      selectedCities = [];
+      console.log('Failed to fetch selected cities details from the Database.');
     }
     return selectedCities;
   }
