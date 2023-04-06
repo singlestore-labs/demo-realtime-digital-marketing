@@ -5,7 +5,7 @@ import { trackAnalyticsEvent } from "@/analytics";
 import { ConnectionConfig } from "@/data/client";
 
 import { defaultScaleFactor, ScaleFactor, ScaleFactors } from "../scalefactors";
-import { City } from "./queries";
+import { City, getCities } from "./queries";
 
 type LocalStorageEffectConfig<T> = {
   encode: (v: T) => string;
@@ -60,9 +60,23 @@ export const selectedCity = atom({
   default: -1,
 });
 
+export const defaultSelectedCities = selector<Array<City>>({
+  key: "defaultSelectedCities",
+  get: async ({get}) => {
+    const config = get(connectionConfig);
+    let selectedCities: Array<City> = [];
+    try {
+      selectedCities = await getCities(config);
+    } catch (error) {
+      throw error;
+    }
+    return selectedCities;
+  }
+});
+
 export const selectedCities = atom<Array<City>>({
   key: "selectedCities",
-  default: [],
+  default: defaultSelectedCities,
 });
 
 export const isUpdatingCities = atom({

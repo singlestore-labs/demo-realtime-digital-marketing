@@ -175,7 +175,6 @@ const StatsWrapper = () => {
     useRecoilState(selectedCity);
   const [totalSelectableCities, setTotalSelectableCities] =
     React.useState(selectedCities);
-  const mutableCityListHook = React.useRef(useUpdateCityList());
 
   React.useEffect(() => {
     const selectableCityIds = SELECTABLE_CITIES_DATA.map((c) => c.id);
@@ -190,10 +189,6 @@ const StatsWrapper = () => {
       setLastSelectedCityId(selectedCities[0].id);
     }
   }, [selectedCities, lastSelectedCityId, setLastSelectedCityId]);
-
-  React.useEffect(() => {
-      mutableCityListHook.current.updateCityList();
-  }, [mutableCityListHook.current.updateCityList]);
 
   return (
     <>
