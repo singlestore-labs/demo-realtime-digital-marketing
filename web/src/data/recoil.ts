@@ -5,7 +5,7 @@ import { trackAnalyticsEvent } from "@/analytics";
 import { ConnectionConfig } from "@/data/client";
 
 import { defaultScaleFactor, ScaleFactor, ScaleFactors } from "../scalefactors";
-import { City } from "./queries";
+import { City, getCities } from "./queries";
 
 type LocalStorageEffectConfig<T> = {
   encode: (v: T) => string;
@@ -58,12 +58,26 @@ export const userSessionID = atom({
 export const selectedCity = atom({
   key: "selectedCity",
   default: -1,
-  effects: [],
+});
+
+export const defaultSelectedCities = selector<Array<City>>({
+  key: "defaultSelectedCities",
+  get: async ({get}) => {
+    const config = get(connectionConfig);
+    let selectedCities: Array<City> = [];
+    try {
+      selectedCities = await getCities(config);
+    } catch (error) {
+      selectedCities = [];
+      console.log('Failed to fetch selected cities details from the Database.');
+    }
+    return selectedCities;
+  }
 });
 
 export const selectedCities = atom<Array<City>>({
   key: "selectedCities",
-  default: [],
+  default: defaultSelectedCities,
 });
 
 export const isUpdatingCities = atom({

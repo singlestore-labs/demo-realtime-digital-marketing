@@ -21,7 +21,7 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { PixiMap } from "@/components/PixiMap";
 import { SetupDatabaseButton } from "@/components/SetupDatabaseButton";
 import { Stats } from "@/components/Stats";
-import { selectableCitiesData } from "@/data/constants";
+import { SELECTABLE_CITIES_DATA } from "@/data/constants";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 import { City } from "@/data/queries";
 import {
@@ -94,7 +94,7 @@ const SelectCityCheckbox = (props: {
   const getNewSelectedCityAfterDeletion = (city: City): number => {
     const cityIndex = selectedCities.findIndex((c) => c.id === city.id);
     if (cityIndex === 0 && selectedCities.length > 1) {
-      return selectableCitiesData[1].id;
+      return SELECTABLE_CITIES_DATA[1].id;
     }
     return -1;
   };
@@ -177,12 +177,12 @@ const StatsWrapper = () => {
     React.useState(selectedCities);
 
   React.useEffect(() => {
-    const selectableCityIds = selectableCitiesData.map((c) => c.id);
+    const selectableCityIds = SELECTABLE_CITIES_DATA.map((c) => c.id);
     const unknownSelectedCities = selectedCities.filter(
       (c) => !selectableCityIds.includes(c.id)
     );
     setTotalSelectableCities([
-      ...selectableCitiesData,
+      ...SELECTABLE_CITIES_DATA,
       ...unknownSelectedCities,
     ]);
     if (lastSelectedCityId === -1 && selectedCities.length > 0) {
@@ -220,7 +220,7 @@ const StatsWrapper = () => {
   );
 };
 
-export const NotificationsMap = () => {
+export const Dashboard = () => {
   const { connected, initialized } = useConnectionState();
   const enabled = useRecoilValue(simulatorEnabled);
   useSimulationMonitor(enabled && connected && initialized);

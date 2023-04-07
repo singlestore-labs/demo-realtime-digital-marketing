@@ -47,7 +47,6 @@ export const useConnectionState = () => {
   const portalConfig = useRecoilValue(portalConnectionConfig);
 
   let connectionType;
-
   if (portalConfig) {
     connectionType = "portal";
   } else if (connected.data) {
@@ -56,6 +55,7 @@ export const useConnectionState = () => {
 
   return {
     connected: !!connected.data,
+    isValidatingConnection: connected.isValidating,
     initialized:
       !!connected.data && Object.values(schemaObjs.data || []).every(Boolean),
     reset: () => {
