@@ -62,17 +62,17 @@ export const selectedCity = atom({
 
 export const defaultSelectedCities = selector<Array<City>>({
   key: "defaultSelectedCities",
-  get: async ({get}) => {
+  get: async ({ get }) => {
     const config = get(connectionConfig);
     let selectedCities: Array<City> = [];
     try {
       selectedCities = await getCities(config);
     } catch (error) {
       selectedCities = [];
-      console.log('Failed to fetch selected cities details from the Database.');
+      console.log("Failed to fetch selected cities details from the Database.");
     }
     return selectedCities;
-  }
+  },
 });
 
 export const selectedCities = atom<Array<City>>({
