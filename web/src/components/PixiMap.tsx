@@ -6,7 +6,6 @@ import {
   Center,
   Divider,
   Flex,
-  Link,
   Stack,
   Text,
   Tooltip,
@@ -15,6 +14,7 @@ import {
   useConst,
 } from "@chakra-ui/react";
 import { Bounds, Map, PigeonProps, Point } from "pigeon-maps";
+import { osm } from "pigeon-maps/providers";
 import * as PIXI from "pixi.js";
 import * as React from "react";
 import Select, { GroupBase, StylesConfig } from "react-select";
@@ -28,22 +28,6 @@ import {
   selectedCity,
 } from "@/data/recoil";
 import { useConnectionState } from "@/view/hooks/hooks";
-
-const stamenProvider =
-  (flavor: "toner" | "toner-lite") =>
-  (x: number, y: number, z: number, dpr = 1) =>
-    `https://stamen-tiles.a.ssl.fastly.net/${flavor}/${z}/${x}/${y}${
-      dpr >= 2 ? "@2x" : ""
-    }.png`;
-
-const stamenAttribution = (
-  <>
-    Map tiles by <Link href="http://stamen.com">Stamen Design</Link>, under{" "}
-    <Link href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</Link>.
-    Data by <Link href="http://openstreetmap.org">OpenStreetMap</Link>, under{" "}
-    <Link href="http://www.openstreetmap.org/copyright">ODbL</Link>.
-  </>
-);
 
 export const DEFAULT_CENTER: [number, number] = [
   DEFAULT_CITY.lonlat[1],
@@ -371,8 +355,7 @@ export const PixiMap = <T,>({
       <Box width="100%" overflow="hidden" height={height} {...rest}>
         <Map
           dprs={[1, 2]}
-          provider={stamenProvider("toner-lite")}
-          attribution={stamenAttribution}
+          provider={osm}
           maxZoom={18}
           minZoom={5}
           onBoundsChanged={handleBoundsChange}
