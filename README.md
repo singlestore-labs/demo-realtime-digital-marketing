@@ -1,5 +1,8 @@
 # SingleStore demo: Realtime Digital Marketing <!-- omit in toc -->
 
+**Attention**: The code in this repository is intended for experimental use only and is not fully tested, documented, or supported by SingleStore. Visit the [SingleStore Forums](https://www.singlestore.com/forum/) to ask questions about this repository.
+
+
 - [Code tour](#code-tour)
 - [Data simulator](#data-simulator)
   - [`./gen`](#gen)
