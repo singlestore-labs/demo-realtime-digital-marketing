@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 import { v4 as uuidv4 } from "uuid";
@@ -25,7 +26,7 @@ const SESSION_ID = (() => {
   return sessionID;
 })();
 
-const SESSION_LEASE_SECONDS = 60;
+const SESSION_LEASE_SECONDS = 120; // 2 minutes - long enough to prevent timeout, short enough for quick failover
 
 export const useSession = () => {
   const config = useRecoilValue(connectionConfig);
@@ -39,6 +40,18 @@ export const useSession = () => {
       isPaused: () => isResettingSchema || !connected || !initialized,
     }
   );
+
+  // Only log when controller status changes (not every second)
+  const prevController = React.useRef<boolean | null>(null);
+  React.useEffect(() => {
+    if (data && data.isController !== prevController.current) {
+      prevController.current = data.isController;
+      if (!data.isController) {
+        console.warn('⚠️ Simulator stopped - lost controller status');
+      }
+    }
+  }, [data]);
+
   return {
     session: data || {
       sessionID: SESSION_ID,

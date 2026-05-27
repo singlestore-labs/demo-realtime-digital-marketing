@@ -577,6 +577,30 @@ export const queryNotificationsInBounds = (
     boundsToWKTPolygon(bounds)
   );
 
+// New: Query for persistent subscriber locations
+export type SubscriberLocationTuple = [lon: number, lat: number, subscriberId: number];
+
+export const querySubscriberLocationsInBounds = (
+  config: ConnectionConfig,
+  limit: number,
+  bounds: Bounds
+) =>
+  QueryTuples<SubscriberLocationTuple>(
+    config,
+    `
+      SELECT
+        GEOGRAPHY_LONGITUDE(current_location) AS lon,
+        GEOGRAPHY_LATITUDE(current_location) AS lat,
+        id AS subscriberId
+      FROM subscribers
+      WHERE
+        current_location IS NOT NULL
+        AND GEOGRAPHY_CONTAINS(?, current_location)
+      LIMIT ${limit}
+    `,
+    boundsToWKTPolygon(bounds)
+  );
+
 export type Offer = {
   offerId: number;
   notificationZone: string;
