@@ -41,14 +41,19 @@ export const useSession = () => {
     }
   );
 
-  // Only log when controller status changes (not every second)
+  // Only log when controller status is LOST (was true, now false)
   const prevController = React.useRef<boolean | null>(null);
   React.useEffect(() => {
-    if (data && data.isController !== prevController.current) {
-      prevController.current = data.isController;
-      if (!data.isController) {
+    if (data) {
+      const wasController = prevController.current === true;
+      const isController = data.isController;
+
+      // Only warn if we HAD controller status and LOST it
+      if (wasController && !isController) {
         console.warn('⚠️ Simulator stopped - lost controller status');
       }
+
+      prevController.current = isController;
     }
   }, [data]);
 
