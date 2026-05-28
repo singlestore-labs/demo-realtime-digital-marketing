@@ -12,11 +12,11 @@ import { connectionConfig } from "@/data/recoil";
 import { toISOStringNoTZ } from "@/datetime";
 import { useConnectionState, useDebounce } from "@/view/hooks/hooks";
 
-const MAX_NOTIFICATIONS = 100;
-const REFRESH_INTERVAL = 1000;
+const MAX_NOTIFICATIONS = 200;
+const REFRESH_INTERVAL = 500;
 
 class Pulse extends PIXI.Container {
-  static lifetime = 1.5;
+  static lifetime = 3.0;
   static markerColor = 0x553acf;
   static pulseColor = 0x553acf;
 
