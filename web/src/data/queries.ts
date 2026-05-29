@@ -359,7 +359,7 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
   );
 };
 
-// returns true if any plans were dropped
+// returns true if any plans contain empty tables
 export const checkPlans = async (config: ConnectionConfig) => {
   const badPlans = await Query<{ planId: string }>(
     config,
@@ -370,18 +370,6 @@ export const checkPlans = async (config: ConnectionConfig) => {
         plan_warnings LIKE "%empty tables%"
     `
   );
-
-  try {
-    await Promise.all(
-      badPlans.map(({ planId }) =>
-        Exec(config, `DROP ${planId} FROM PLANCACHE`)
-      )
-    );
-  } catch (e) {
-    if (!(e instanceof SQLError && e.isPlanMissing())) {
-      throw e;
-    }
-  }
 
   return badPlans.length > 0;
 };

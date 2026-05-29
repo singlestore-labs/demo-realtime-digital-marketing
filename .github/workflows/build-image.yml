@@ -5,6 +5,11 @@ on:
     branches:
       - "main"
 
+  workflow_dispatch:
+
+env:
+  HEAD_COMMIT_SHA: ${{ inputs.headsha || github.event.pull_request.head.sha || github.sha }}
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -24,6 +29,7 @@ jobs:
 
       - name: Build and push
         uses: docker/build-push-action@v3
+
         with:
-          push: true
-          tags: ghcr.io/singlestore-labs/demo-realtime-digital-marketing:latest
+          push: false 
+          tags: ghcr.io/singlestore-labs/demo-realtime-digital-marketing:${{ env.HEAD_COMMIT_SHA }}
