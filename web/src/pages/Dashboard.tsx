@@ -67,7 +67,7 @@ const RealtimeChart = () => {
             gap={2}
             fontSize="xs"
             alignItems="center"
-            color={useColorModeValue("#553ACF", "#ECE8FD")}
+            color={useColorModeValue("#820DDF", "#ECE8FD")}
           >
             <Icon as={BsInfoCircleFill} />{" "}
             <Text>Hover over graph for schema details</Text>

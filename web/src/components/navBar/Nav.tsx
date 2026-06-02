@@ -1,6 +1,5 @@
 import { CloseIcon, HamburgerIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
 import {
-  Avatar,
   Box,
   Container,
   Flex,
@@ -8,6 +7,7 @@ import {
   HStack,
   Icon,
   IconButton,
+  Image,
   Link,
   Menu,
   MenuButton,
@@ -18,8 +18,6 @@ import {
   useColorModeValue,
   useDisclosure,
   useMediaQuery,
-  Wrap,
-  WrapItem,
 } from "@chakra-ui/react";
 import * as React from "react";
 import {
@@ -35,8 +33,8 @@ import {
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { NavLink as RouterLink } from "react-router-dom";
 
-import SingleStoreLogoDark from "@/assets/singlestore-logo-dark.svg";
-import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
+import SingleStoreLogoLight from "@/assets/singlestore-logo-light.svg";
+import SingleStoreLogoDark from "@/assets/singlestore-logo-dark-new.svg";
 import { GithubStargazer } from "@/components/GithubButtons";
 import { LinkedinIconButton, TwitterIconButton } from "@/components/IconLinks";
 
@@ -46,18 +44,13 @@ export const SinglestoreBrandLogo = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   return (
-    <HStack as="nav" spacing={2} display={{ base: "none", md: "flex" }}>
-      <Wrap display="inline-block">
-        <WrapItem>
-          <Avatar
-            size="sm"
-            background={useColorModeValue("#553ACF", "#CCC3F9")}
-            color={useColorModeValue("white", "#2F206E")}
-            name="Singlestore"
-            src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDark)}
-          />
-        </WrapItem>
-      </Wrap>
+    <HStack as="nav" spacing={4} display={{ base: "none", md: "flex" }}>
+      <Image
+        src={useColorModeValue(SingleStoreLogoDark, SingleStoreLogoLight)}
+        alt="SingleStore"
+        height="24px"
+        objectFit="contain"
+      />
       <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
         {isSmallScreen ? "Martech" : "Real-Time Digital Marketing"}
       </Heading>
@@ -128,7 +121,7 @@ export const Nav = () => {
   }
 
   const NavLinkActiveButtonStyle = {
-    background: useColorModeValue("#4F34C7", "#CCC3F9"),
+    background: useColorModeValue("#820DDF", "#CCC3F9"),
     color: useColorModeValue("#FFFFFF", "#2F206E"),
   };
 
@@ -163,7 +156,7 @@ export const Nav = () => {
         padding="4px 15px 4px 15px"
         borderRadius="5px"
         as={RouterLink}
-        color={useColorModeValue("#553ACF", "#CCC3F9")}
+        color={useColorModeValue("#820DDF", "#CCC3F9")}
         to={to}
         onClick={handleNavMenu.onClose}
         _hover={NavLinkActiveButtonStyle}

@@ -56,7 +56,7 @@ const WelcomeMessageToast = () => {
       padding="18px"
       color={defaultFontTheme}
       borderRadius="10px"
-      background={useColorModeValue("#553ACF", "#CCC3F9")}
+      background={useColorModeValue("#820DDF", "#CCC3F9")}
     >
       <CloseIcon
         fontSize="xx-small"

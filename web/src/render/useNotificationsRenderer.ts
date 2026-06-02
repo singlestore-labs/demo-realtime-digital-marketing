@@ -17,8 +17,8 @@ const REFRESH_INTERVAL = 1000;
 
 class Pulse extends PIXI.Container {
   static lifetime = 1.5;
-  static markerColor = 0x553acf;
-  static pulseColor = 0x553acf;
+  static markerColor = 0x820ddf;  // SingleStore Purple 700
+  static pulseColor = 0x820ddf;
 
   latlng: Point;
   age = 0;

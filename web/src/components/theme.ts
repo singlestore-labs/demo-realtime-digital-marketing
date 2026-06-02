@@ -10,17 +10,19 @@ import "@fontsource/source-code-pro/variable.css";
 
 export const chakraTheme = extendTheme({
   colors: {
-    indigo: {
-      50: "#F7F6FE",
-      100: "#ECE8FD",
-      200: "#DCD5FB",
-      300: "#CCC3F9",
-      400: "#B0A0F8",
-      500: "#7760E1",
-      600: "#553ACF",
-      700: "#472EB7",
-      800: "#3A249E",
-      900: "#2F206E",
+    // SingleStore 2026 Official Brand Colors
+    // Primary: Purple 700 (#820DDF) as primary accent
+    purple: {
+      50: "#F9F5FF",
+      100: "#F3EBFF",
+      200: "#E6D6FF",
+      300: "#D4B8FF",
+      400: "#B88FFF",
+      500: "#9D66FF",
+      600: "#9040FF",
+      700: "#820DDF",  // Primary brand color
+      800: "#6B0AB8",
+      900: "#550891",
     },
   },
   fonts: {
@@ -31,14 +33,14 @@ export const chakraTheme = extendTheme({
   styles: {
     global: ({ colorMode }: { colorMode: ColorMode }) => ({
       a: {
-        color: colorMode === "light" ? "indigo.600" : "indigo.300",
+        color: colorMode === "light" ? "purple.700" : "purple.300",
       },
     }),
   },
   components: {
     Link: {
       baseStyle: ({ colorMode }: { colorMode: ColorMode }) => ({
-        color: colorMode === "light" ? "indigo.600" : "indigo.300",
+        color: colorMode === "light" ? "purple.700" : "purple.300",
       }),
     },
     Button: {
@@ -66,7 +68,7 @@ export const chakraTheme = extendTheme({
           }
           return {
             container: {
-              bg: colorMode === "light" ? "indigo.600" : "indigo.300",
+              bg: colorMode === "light" ? "purple.700" : "purple.300",
             },
           };
         },
