@@ -661,7 +661,7 @@ const conversionMetricsBaseFragment = (eventsTable: ConversionEventTable) => `
       offers.notification_target,
       notifications.city_id,
       notifications.subscriber_id,
-      notifications.cost_cents,
+      FIRST(notifications.cost_cents) AS cost_cents,
       FIRST(notifications.ts) AS ts
     FROM offers, notifications
     WHERE offers.offer_id = notifications.offer_id
