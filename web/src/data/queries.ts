@@ -727,9 +727,10 @@ export const customerMetrics = (
               1 AS notification_count,
               -- Cost for this notification (already aggregated with FIRST in CTE)
               MAX(metrics.cost_cents) AS notification_cost,
-              -- Count conversions for this notification
-              COUNT(metrics.converted_at) AS conversion_count,
-              -- Calculate revenue: 4x cost for each conversion
+              -- Binary conversion: did this notification lead to at least one conversion?
+              -- This ensures conversion rate stays <= 100%
+              CASE WHEN COUNT(metrics.converted_at) > 0 THEN 1 ELSE 0 END AS conversion_count,
+              -- Calculate revenue: 4x cost for each actual conversion event
               SUM(CASE
                 WHEN metrics.converted_at IS NOT NULL
                 THEN metrics.cost_cents * 4.0
