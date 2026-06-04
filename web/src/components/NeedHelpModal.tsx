@@ -69,7 +69,7 @@ const StepSeparator = () => (
     <Icon
       as={HiChevronRight}
       color={useColorModeValue("white", "#2F206E")}
-      background={useColorModeValue("#553ACF", "#CCC3F9")}
+      background={useColorModeValue("#820DDF", "#CCC3F9")}
       borderRadius="50%"
       fontSize="1.2em"
     />

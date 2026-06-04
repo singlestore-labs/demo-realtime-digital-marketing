@@ -243,7 +243,7 @@ const CitySelectionDropdown: React.FC<{
       zIndex={5}
       top={selectionDropdownTop}
       left={selectionDropdownLeft}
-      background={useColorModeValue("#553ACF", "#CCC3F9")}
+      background={useColorModeValue("#820DDF", "#CCC3F9")}
       color={fontColor}
       boxShadow="1px 6px 6px grey"
       justifyContent="space-between"

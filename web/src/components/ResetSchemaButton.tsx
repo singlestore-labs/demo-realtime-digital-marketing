@@ -92,7 +92,7 @@ export const ResetSchemaButton = (props: Props) => {
               <Button
                 background="transparent"
                 border="0.5px solid"
-                color={useColorModeValue("#553ACF", "#ECE8FD")}
+                color={useColorModeValue("#820DDF", "#ECE8FD")}
                 ref={cancelResetSchemaBtn}
                 onClick={onClose}
                 disabled={resettingSchema}

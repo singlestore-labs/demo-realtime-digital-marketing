@@ -164,7 +164,7 @@ function SvgLarge() {
         >
           <stop stopColor="#EB54EB" stopOpacity=".5" />
           <stop offset=".569" stopColor="#A0F" stopOpacity=".75" />
-          <stop offset="1" stopColor="#4F34C7" stopOpacity="1" />
+          <stop offset="1" stopColor="#820DDF" stopOpacity="1" />
         </radialGradient>
         <radialGradient
           id="paint2_radial"

@@ -152,18 +152,18 @@ const Section = ({
 
   const collapsibleSectionStyle = {
     opacity: 1,
-    border: "1px solid #553ACF",
+    border: "1px solid #820DDF",
     background: "transparent",
     color: "#E6E5EA",
   };
   if (colorMode === "light") {
     collapsibleSectionStyle.border = "1px solid #ECE8FD";
     if (completed) {
-      collapsibleSectionStyle.background = "#553ACF";
+      collapsibleSectionStyle.background = "#820DDF";
       collapsibleSectionStyle.color = "white";
     } else if (previousStepCompleted) {
       collapsibleSectionStyle.background = "#F7F6FE";
-      collapsibleSectionStyle.color = "#553ACF";
+      collapsibleSectionStyle.color = "#820DDF";
     } else {
       collapsibleSectionStyle.color = "#777582";
     }
@@ -275,7 +275,7 @@ const SchemaItem = ({
       key={name}
       bg={useColorModeValue("#ECE8FD", "#2F206E")}
       fontSize="xs"
-      color={useColorModeValue("#553ACF", "#ECE8FD")}
+      color={useColorModeValue("#820DDF", "#ECE8FD")}
       textOverflow="ellipsis"
       whiteSpace="nowrap"
       overflow="hidden"
@@ -301,7 +301,7 @@ const ConfigHeader = ({
 }) => {
   const [database, setDatabase] = useRecoilState(connectionDatabase);
   const resetButtonBackground = useColorModeValue("#ECE8FD", "#2F206E");
-  const resetButtonFontColor = useColorModeValue("#553ACF", "#ECE8FD");
+  const resetButtonFontColor = useColorModeValue("#820DDF", "#ECE8FD");
 
   if (configInitialized) {
     return <></>;
@@ -971,7 +971,7 @@ const CompleteToast = () => {
         padding="20px 25px 10px 10px"
         gap={5}
         borderRadius="10px"
-        background={useColorModeValue("#553ACF", "#CCC3F9")}
+        background={useColorModeValue("#820DDF", "#CCC3F9")}
       >
         <CheckCircleIcon color={defaultFontTheme} margin="15px" fontSize="lg" />
         <Box

@@ -30,7 +30,7 @@ const StatWrapper = ({
       borderRadius="15px"
     >
       <StatLabel>{statLabel}</StatLabel>
-      <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
+      <StatNumber color={useColorModeValue("#820DDF", "#CCC3F9")}>
         {statNumber}
       </StatNumber>
     </Stat>

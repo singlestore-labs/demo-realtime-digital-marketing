@@ -221,7 +221,7 @@ const ConversionTable = () => {
     () => customerMetrics(config, "purchases", sortColumn, 10),
     { refreshInterval: 1000 }
   );
-  const activeColor = useColorModeValue("#553ACF", "#CCC3F9");
+  const activeColor = useColorModeValue("#820DDF", "#CCC3F9");
   const cellLeftPadding = "10px";
 
   const getTableBody = () => {
@@ -393,7 +393,7 @@ const StatWrapper = ({
     >
       <Stat>
         <StatLabel>{statLabel}</StatLabel>
-        <StatNumber color={useColorModeValue("#553ACF", "#CCC3F9")}>
+        <StatNumber color={useColorModeValue("#820DDF", "#CCC3F9")}>
           {statNumber}
         </StatNumber>
         {helpTextContainer}

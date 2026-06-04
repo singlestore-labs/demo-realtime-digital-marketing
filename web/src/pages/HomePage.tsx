@@ -20,20 +20,25 @@ import { useNavigate } from "react-router-dom";
 
 import DashboardControllerImage from "@/assets/dashboard-controller-snapshot.svg";
 import GraphicalBackground2 from "@/assets/graphical-background-2.svg";
-import SingleStoreLogoDark from "@/assets/singlestore-logo-dark.svg";
-import SinglestoreLogo from "@/assets/singlestore-logo-filled-sm.svg";
+import SingleStoreLogoLight from "@/assets/singlestore-logo-light.svg";
+import SingleStoreLogoDark from "@/assets/singlestore-logo-dark-new.svg";
 import { DatabaseConfigFormManual } from "@/components/dataConfigForm/DatabaseConfigFormManual";
 import { NeedHelpModal } from "@/components/NeedHelpModal";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 import { useConnectionState } from "@/view/hooks/hooks";
 
 const ConnectSection: React.FC = () => {
-  const fontColor = useColorModeValue("#553ACF", "#CCC3F9");
+  const fontColor = useColorModeValue("#820DDF", "#CCC3F9");
 
   return (
     <Stack spacing={4}>
       <Heading>
-        <Image src={useColorModeValue(SinglestoreLogo, SingleStoreLogoDark)} />
+        <Image
+          src={useColorModeValue(SingleStoreLogoDark, SingleStoreLogoLight)}
+          alt="SingleStore"
+          height="32px"
+          objectFit="contain"
+        />
       </Heading>
       <Heading>
         <Text>Real-Time Digital Marketing</Text>
@@ -57,7 +62,7 @@ const ConnectSection: React.FC = () => {
             _selected={{
               color: fontColor,
               borderBottom: `2px solid ${useColorModeValue(
-                "#553ACF",
+                "#820DDF",
                 "#CCC3F9"
               )}`,
             }}
