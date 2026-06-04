@@ -763,9 +763,18 @@ export const overallConversionRate = (
           *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
         FROM (
           SELECT
-            COUNT(metrics.offer_id) AS totalNotifications,
-            COUNT(metrics.converted_at) AS totalConversions
-          FROM metrics
+            SUM(notification_count) AS totalNotifications,
+            SUM(conversion_count) AS totalConversions
+          FROM (
+            SELECT
+              metrics.offer_id,
+              metrics.city_id,
+              metrics.subscriber_id,
+              1 AS notification_count,
+              CASE WHEN COUNT(metrics.converted_at) > 0 THEN 1 ELSE 0 END AS conversion_count
+            FROM metrics
+            GROUP BY metrics.offer_id, metrics.city_id, metrics.subscriber_id
+          ) AS unique_notifications
         )
       `,
     }).sql
@@ -791,12 +800,22 @@ export const zoneMetrics = (
           *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
         FROM (
           SELECT
-            metrics.notification_zone AS wktPolygon,
-            COUNT(metrics.offer_id) AS totalNotifications,
-            COUNT(metrics.converted_at) AS totalConversions
-          FROM metrics
-          WHERE GEOGRAPHY_INTERSECTS(?, metrics.notification_zone)
-          GROUP BY metrics.notification_zone
+            notification_zone AS wktPolygon,
+            SUM(notification_count) AS totalNotifications,
+            SUM(conversion_count) AS totalConversions
+          FROM (
+            SELECT
+              metrics.notification_zone,
+              metrics.offer_id,
+              metrics.city_id,
+              metrics.subscriber_id,
+              1 AS notification_count,
+              CASE WHEN COUNT(metrics.converted_at) > 0 THEN 1 ELSE 0 END AS conversion_count
+            FROM metrics
+            WHERE GEOGRAPHY_INTERSECTS(?, metrics.notification_zone)
+            GROUP BY metrics.notification_zone, metrics.offer_id, metrics.city_id, metrics.subscriber_id
+          ) AS unique_notifications
+          GROUP BY notification_zone
         )
       `,
       params: [boundsToWKTPolygon(bounds)],
