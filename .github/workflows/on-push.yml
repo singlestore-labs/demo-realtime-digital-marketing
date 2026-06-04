@@ -29,10 +29,16 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Install & cache web dependencies
-        uses: bahmutov/npm-install@v1
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
-          working-directory: web
+          node-version: '18'
+          cache: 'yarn'
+          cache-dependency-path: web/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: web
 
       - name: Prettier
         run: yarn prettier --check .
@@ -52,6 +58,8 @@ jobs:
 
       - name: Deploy
         if: github.ref == 'refs/heads/main'
-        uses: JamesIves/github-pages-deploy-action@v4.4.1
-        with:
-          folder: web/dist
+        uses: peaceiris/actions-gh-pages@v2
+        env:
+          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: ./web/dist
