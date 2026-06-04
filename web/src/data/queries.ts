@@ -651,6 +651,8 @@ const conversionMetricsBaseFragment = (eventsTable: ConversionEventTable) => `
     offer_notification.customer,
     offer_notification.notification_zone,
     offer_notification.offer_id,
+    offer_notification.city_id,
+    offer_notification.subscriber_id,
     offer_notification.cost_cents,
     events.ts as converted_at
   FROM (
@@ -710,19 +712,33 @@ export const customerMetrics = (
           END AS roas
         FROM (
           SELECT
-            metrics.customer,
-            COUNT(metrics.offer_id) AS totalNotifications,
-            COUNT(metrics.converted_at) AS totalConversions,
-            SUM(metrics.cost_cents) / 100.0 AS totalSpend,
-            -- Estimate revenue: assume average order value is 4x the cost (simulated ROAS)
-            -- Only count revenue for actual conversions
-            SUM(CASE
-              WHEN metrics.converted_at IS NOT NULL
-              THEN metrics.cost_cents * 4.0
-              ELSE 0
-            END) / 100.0 AS totalRevenue
-          FROM metrics
-          GROUP BY metrics.customer
+            customer,
+            SUM(notification_count) AS totalNotifications,
+            SUM(conversion_count) AS totalConversions,
+            SUM(notification_cost) / 100.0 AS totalSpend,
+            SUM(revenue) / 100.0 AS totalRevenue
+          FROM (
+            SELECT
+              metrics.customer,
+              metrics.offer_id,
+              metrics.city_id,
+              metrics.subscriber_id,
+              -- Each unique (offer, city, subscriber) is one notification
+              1 AS notification_count,
+              -- Cost for this notification (already aggregated with FIRST in CTE)
+              MAX(metrics.cost_cents) AS notification_cost,
+              -- Count conversions for this notification
+              COUNT(metrics.converted_at) AS conversion_count,
+              -- Calculate revenue: 4x cost for each conversion
+              SUM(CASE
+                WHEN metrics.converted_at IS NOT NULL
+                THEN metrics.cost_cents * 4.0
+                ELSE 0
+              END) AS revenue
+            FROM metrics
+            GROUP BY metrics.customer, metrics.offer_id, metrics.city_id, metrics.subscriber_id
+          ) AS unique_notifications
+          GROUP BY customer
         )
         ORDER BY ${sortColumn} DESC
         LIMIT ${limit}`,
