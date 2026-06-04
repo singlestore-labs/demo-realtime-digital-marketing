@@ -16,7 +16,7 @@ export const SetupDatabaseButton: React.FC = () => {
       </Text>
       <br />
       <ResetSchemaButton
-        background={useColorModeValue("#ECE8FD", "#2F206E")}
+        background={useColorModeValue("#ECE8FD", "#360061")}
         color={useColorModeValue("#820DDF", "#ECE8FD")}
         size="sm"
       >

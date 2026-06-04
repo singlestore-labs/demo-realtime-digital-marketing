@@ -26,11 +26,11 @@ const StatWrapper = ({
   return (
     <Stat
       padding="20px"
-      background={useColorModeValue("#ECE8FD", "#2F206E")}
+      background={useColorModeValue("#ECE8FD", "#360061")}
       borderRadius="15px"
     >
       <StatLabel>{statLabel}</StatLabel>
-      <StatNumber color={useColorModeValue("#820DDF", "#CCC3F9")}>
+      <StatNumber color={useColorModeValue("#820DDF", "#D199FF")}>
         {statNumber}
       </StatNumber>
     </Stat>
@@ -64,7 +64,7 @@ export const Stats = () => {
   return (
     <SimpleGrid spacing={2} minChildWidth="25%">
       <StatWrapper
-        statLabel="Offers"
+        statLabel="Ad Campaigns"
         statNumber={formatStat(tableCounts.data.offers)}
       />
       <StatWrapper
@@ -72,7 +72,7 @@ export const Stats = () => {
         statNumber={formatStat(tableCounts.data.cities)}
       />
       <StatWrapper
-        statLabel="Subscribers"
+        statLabel="Audience Segments"
         statNumber={formatStat(tableCounts.data.subscribers)}
       />
       <StatWrapper

@@ -32,7 +32,7 @@ export const EnableSimulatorWarning = () => {
         <AlertTitle>The simulator is disabled</AlertTitle>
         <AlertDescription>
           This application uses a simulator to generate new data like live
-          notifications and subscribers. To experience the full power of
+          campaign notifications and audience segments. To experience the full power of
           real-time digital marketing, please enable the simulator in the nav
           bar.
         </AlertDescription>
@@ -108,7 +108,7 @@ export const SimulatorButton = () => {
       variant="simulator"
       label={
         <Text padding={2}>
-          The simulator generates live notifications and subscribers even if the
+          The simulator generates live campaign notifications and audience segments even if the
           application browser window is closed. Toggle off to stop new data
           generation or suspend cluster in SingleStoreDB portal.
         </Text>
@@ -119,7 +119,7 @@ export const SimulatorButton = () => {
       <Button
         style={{
           color: useColorModeValue("black", "white"),
-          backgroundColor: useColorModeValue("#DCD5FB", "#3A249E"),
+          backgroundColor: useColorModeValue("#E6D6FF", "#360061"),
           border: "none",
           boxShadow: "none",
         }}

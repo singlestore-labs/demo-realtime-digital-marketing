@@ -35,11 +35,11 @@ const WelcomeMessageToast = () => {
     return (
       <Text style={{ fontWeight: 400, fontSize: "16px" }}>
         <Heading size="sm">Hello!</Heading>
-        This is a demo application for an international marketing company
-        serving simulated customer offers to millions of subscribers. You can:
+        This is a demo application for real-time digital marketing campaign
+        optimization serving personalized ad campaigns to millions of audience segments. You can:
         <ul style={{ listStylePosition: "inside", listStyleType: "initial" }}>
           <li>Add or remove locations from dashboard</li>
-          <li>Inspect engagement under "Analytics"</li>
+          <li>Inspect campaign performance under "Analytics"</li>
           <li>Change schema settings with "Configure"</li>
         </ul>
       </Text>
@@ -56,7 +56,7 @@ const WelcomeMessageToast = () => {
       padding="18px"
       color={defaultFontTheme}
       borderRadius="10px"
-      background={useColorModeValue("#820DDF", "#CCC3F9")}
+      background={useColorModeValue("#820DDF", "#D199FF")}
     >
       <CloseIcon
         fontSize="xx-small"

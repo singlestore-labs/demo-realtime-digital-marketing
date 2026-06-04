@@ -31,6 +31,7 @@ import * as React from "react";
 import { IconType } from "react-icons";
 import { BsGearFill } from "react-icons/bs";
 import { HiBell, HiOfficeBuilding, HiRefresh } from "react-icons/hi";
+import { MdAttachMoney, MdMonetizationOn, MdTrendingUp } from "react-icons/md";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -53,6 +54,8 @@ import { useSimulator } from "@/view/hooks/useSimulator";
 
 const formatPct = format(",.2%");
 const formatStat = format(".4~s");
+const formatCurrency = format("$,.2f");
+const formatROAS = format(".2f");
 
 const NotificationZoneMap = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
@@ -77,14 +80,14 @@ const NotificationZoneMap = () => {
           alignItems="center"
         >
           <Text fontWeight="bold" fontSize="sm" textTransform="uppercase">
-            Offer conversion rates by Notification zone
+            Campaign conversion rates by Notification zone
           </Text>
           <Flex width="30%" direction="column">
             <Box width="100%">
               <Progress
                 colorScheme="transparent"
                 height={2}
-                bgGradient="linear(to-r, #3A249E 0%, #CCC3F9 100%)"
+                bgGradient="linear(to-r, #360061 0%, #D199FF 100%)"
                 value={90}
               />
             </Box>
@@ -103,7 +106,7 @@ const NotificationZoneMap = () => {
         <Heatmap
           height={400}
           useCells={useConversionCells}
-          colorInterpolater={interpolateRgb("#CCC3F9", "#3A249E")}
+          colorInterpolater={interpolateRgb("#D199FF", "#360061")}
           getCellConfig={({ conversionRate, wktPolygon }: ZoneMetrics) => ({
             value: conversionRate,
             wktPolygon,
@@ -133,9 +136,9 @@ const DashboardContainerChild = () => {
     <Stack gap={10}>
       <Stack spacing={3}>
         <Stack spacing={2}>
-          <Heading fontSize="xl">Engagement</Heading>
+          <Heading fontSize="xl">Campaign Performance</Heading>
           <Text overflowWrap="break-word">
-            Conversion rate with subscribers
+            Real-time targeting and audience responsiveness metrics
           </Text>
         </Stack>
         <NotificationZoneMap />
@@ -185,12 +188,12 @@ const StatGrid = () => {
   return (
     <Grid gap={2} templateColumns="repeat(2, 1fr)">
       <StatWrapper
-        statLabel="Offers"
+        statLabel="Ad Campaigns"
         statNumber={formatStat(tableCounts.data.offers)}
         colSpan={2}
       />
       <StatWrapper
-        statLabel="Subscribers"
+        statLabel="Audience Segments"
         statNumber={formatStat(tableCounts.data.subscribers)}
       />
       <StatWrapper
@@ -221,14 +224,14 @@ const ConversionTable = () => {
     () => customerMetrics(config, "purchases", sortColumn, 10),
     { refreshInterval: 1000 }
   );
-  const activeColor = useColorModeValue("#820DDF", "#CCC3F9");
+  const activeColor = useColorModeValue("#820DDF", "#D199FF");
   const cellLeftPadding = "10px";
 
   const getTableBody = () => {
     if (metricsTableData.isValidating && !metricsTableData.data) {
       return (
         <Tr>
-          <Td colSpan={4}>
+          <Td colSpan={7}>
             <Loader size="small" centered />
           </Td>
         </Tr>
@@ -236,7 +239,7 @@ const ConversionTable = () => {
     } else if (!metricsTableData.data) {
       return (
         <Tr>
-          <Td colSpan={4}>
+          <Td colSpan={7}>
             <Text display="flex" justifyContent="center" width="100%">
               No data
             </Text>
@@ -272,6 +275,9 @@ const ConversionTable = () => {
             </Box>
           </Box>
         </Td>
+        <Td paddingLeft={cellLeftPadding}>{formatPct(c.ctr)}</Td>
+        <Td paddingLeft={cellLeftPadding}>{formatROAS(c.roas)}x</Td>
+        <Td paddingLeft={cellLeftPadding}>{formatCurrency(c.totalSpend)}</Td>
       </Tr>
     ));
   };
@@ -312,7 +318,7 @@ const ConversionTable = () => {
     <Box overflowX="auto">
       <TableContainer>
         <Table size="sm" variant="striped">
-          <Thead background={useColorModeValue("#ECE8FD", "#2F206E")}>
+          <Thead background={useColorModeValue("#ECE8FD", "#360061")}>
             <Tr>
               <THContentWrapper
                 sortColumnValue="customer"
@@ -322,17 +328,32 @@ const ConversionTable = () => {
               <THContentWrapper
                 sortColumnValue="totalNotifications"
                 icon={HiBell}
-                title="Total Notifications"
+                title="Impressions"
               />
               <THContentWrapper
                 sortColumnValue="totalConversions"
                 icon={HiRefresh}
-                title="Total Conversions"
+                title="Conversions"
               />
               <THContentWrapper
                 sortColumnValue="conversionRate"
                 icon={BsGearFill}
-                title="Conversion Rate"
+                title="Conv. Rate"
+              />
+              <THContentWrapper
+                sortColumnValue="ctr"
+                icon={MdTrendingUp}
+                title="CTR"
+              />
+              <THContentWrapper
+                sortColumnValue="roas"
+                icon={MdMonetizationOn}
+                title="ROAS"
+              />
+              <THContentWrapper
+                sortColumnValue="totalSpend"
+                icon={MdAttachMoney}
+                title="Total Spend"
               />
             </Tr>
           </Thead>
@@ -387,13 +408,13 @@ const StatWrapper = ({
   return (
     <GridItem
       padding="20px"
-      background={useColorModeValue("#ECE8FD", "#2F206E")}
+      background={useColorModeValue("#ECE8FD", "#360061")}
       borderRadius="15px"
       colSpan={colSpan || 1}
     >
       <Stat>
         <StatLabel>{statLabel}</StatLabel>
-        <StatNumber color={useColorModeValue("#820DDF", "#CCC3F9")}>
+        <StatNumber color={useColorModeValue("#820DDF", "#D199FF")}>
           {statNumber}
         </StatNumber>
         {helpTextContainer}

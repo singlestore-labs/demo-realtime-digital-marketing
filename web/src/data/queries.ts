@@ -651,6 +651,7 @@ const conversionMetricsBaseFragment = (eventsTable: ConversionEventTable) => `
     offer_notification.customer,
     offer_notification.notification_zone,
     offer_notification.offer_id,
+    offer_notification.cost_cents,
     events.ts as converted_at
   FROM (
     SELECT
@@ -660,6 +661,7 @@ const conversionMetricsBaseFragment = (eventsTable: ConversionEventTable) => `
       offers.notification_target,
       notifications.city_id,
       notifications.subscriber_id,
+      notifications.cost_cents,
       FIRST(notifications.ts) AS ts
     FROM offers, notifications
     WHERE offers.offer_id = notifications.offer_id
@@ -681,6 +683,10 @@ export type CustomerMetrics = {
   totalNotifications: number;
   totalConversions: number;
   conversionRate: number;
+  ctr: number;
+  roas: number;
+  totalSpend: number;
+  totalRevenue: number;
 };
 
 export const customerMetrics = (
@@ -695,12 +701,26 @@ export const customerMetrics = (
       with: [["metrics", conversionMetricsBaseFragment(eventTable)]],
       base: `
         SELECT
-          *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
+          *,
+          (totalConversions / totalNotifications) :> DOUBLE AS conversionRate,
+          (totalConversions / totalNotifications) :> DOUBLE AS ctr,
+          CASE
+            WHEN totalSpend > 0 THEN (totalRevenue / totalSpend) :> DOUBLE
+            ELSE 0
+          END AS roas
         FROM (
           SELECT
             metrics.customer,
             COUNT(metrics.offer_id) AS totalNotifications,
-            COUNT(metrics.converted_at) AS totalConversions
+            COUNT(metrics.converted_at) AS totalConversions,
+            SUM(metrics.cost_cents) / 100.0 AS totalSpend,
+            -- Estimate revenue: assume average order value is 4x the cost (simulated ROAS)
+            -- Only count revenue for actual conversions
+            SUM(CASE
+              WHEN metrics.converted_at IS NOT NULL
+              THEN metrics.cost_cents * 4.0
+              ELSE 0
+            END) / 100.0 AS totalRevenue
           FROM metrics
           GROUP BY metrics.customer
         )
