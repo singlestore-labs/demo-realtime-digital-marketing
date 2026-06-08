@@ -685,7 +685,6 @@ export type CustomerMetrics = {
   totalNotifications: number;
   totalConversions: number;
   conversionRate: number;
-  ctr: number;
   roas: number;
   totalSpend: number;
   totalRevenue: number;
@@ -705,7 +704,6 @@ export const customerMetrics = (
         SELECT
           *,
           (totalConversions / totalNotifications) :> DOUBLE AS conversionRate,
-          (totalConversions / totalNotifications) :> DOUBLE AS ctr,
           CASE
             WHEN totalSpend > 0 THEN (totalRevenue / totalSpend) :> DOUBLE
             ELSE 0
