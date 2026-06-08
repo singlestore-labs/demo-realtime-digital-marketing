@@ -98,10 +98,11 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   latLngToPixel,
   bounds,
 }) => {
-  // Start 30 seconds in the past to populate initial dots faster
+  // Start 5 seconds in the past to populate initial dots faster
+  // Keep window small to avoid dropping notifications when > MAX_NOTIFICATIONS exist
   const getInitialTimestamp = () => {
     const initialTime = new Date();
-    initialTime.setSeconds(initialTime.getSeconds() - 30);
+    initialTime.setSeconds(initialTime.getSeconds() - 5);
     return toISOStringNoTZ(initialTime);
   };
   const timestampCursor = React.useRef(getInitialTimestamp());
@@ -130,9 +131,9 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
             trackAnalyticsEvent("new-notifications");
             trackedNotifications.current = true;
           }
-          // Advance cursor to the OLDEST timestamp in batch (last element)
-          // This ensures we paginate through all historical data without gaps
-          timestampCursor.current = newNotifications[newNotifications.length - 1][0];
+          // Advance cursor to the NEWEST timestamp to prevent duplicates
+          // Query is ts > cursor, so next fetch gets only newer notifications
+          timestampCursor.current = newNotifications[0][0];
 
           for (const [, lng, lat] of newNotifications) {
             scene.addChild(new Pulse([lat, lng]));
