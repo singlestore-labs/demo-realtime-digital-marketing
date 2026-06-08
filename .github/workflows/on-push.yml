@@ -56,6 +56,10 @@ jobs:
         run: yarn run vite build
         working-directory: web
 
+      - name: Add CNAME for custom domain
+        if: github.ref == 'refs/heads/main'
+        run: echo "digital-marketing.labs.singlestore.com" > web/dist/CNAME
+
       - name: Deploy
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v2
