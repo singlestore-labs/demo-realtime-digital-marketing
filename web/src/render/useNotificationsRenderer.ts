@@ -130,7 +130,9 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
             trackAnalyticsEvent("new-notifications");
             trackedNotifications.current = true;
           }
-          timestampCursor.current = newNotifications[0][0];
+          // Advance cursor to the OLDEST timestamp in batch (last element)
+          // This ensures we paginate through all historical data without gaps
+          timestampCursor.current = newNotifications[newNotifications.length - 1][0];
 
           for (const [, lng, lat] of newNotifications) {
             scene.addChild(new Pulse([lat, lng]));
