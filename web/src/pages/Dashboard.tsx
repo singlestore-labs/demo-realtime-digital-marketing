@@ -52,7 +52,7 @@ const RealtimeChart = () => {
         <Stack spacing={3}>
           <Stack spacing={2}>
             <Heading fontSize="xl">Key Metrics</Heading>
-            <Text>Serving ads real-time to simulated subscribers</Text>
+            <Text>Real-time campaign delivery to audience segments</Text>
           </Stack>
         </Stack>
         <Stats />

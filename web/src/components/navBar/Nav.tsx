@@ -42,17 +42,18 @@ import { SimulatorButton } from "../EnableSimulatorButton";
 
 export const SinglestoreBrandLogo = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
+  const [isMediumScreen] = useMediaQuery("(max-width: 1200px)");
 
   return (
-    <HStack as="nav" spacing={4} display={{ base: "none", md: "flex" }}>
+    <HStack as="nav" spacing={4} display={{ base: "none", md: "flex" }} minWidth="fit-content">
       <Image
         src={useColorModeValue(SingleStoreLogoDark, SingleStoreLogoLight)}
         alt="SingleStore"
         height="24px"
         objectFit="contain"
       />
-      <Heading as="h1" size={isSmallScreen ? "sm" : "md"}>
-        {isSmallScreen ? "Martech" : "Real-Time Digital Marketing"}
+      <Heading as="h1" size={isSmallScreen ? "sm" : "md"} whiteSpace="nowrap">
+        {isSmallScreen ? "Martech" : isMediumScreen ? "RT Digital Marketing" : "Real-Time Digital Marketing"}
       </Heading>
     </HStack>
   );
@@ -74,7 +75,7 @@ export const NavTools = () => {
   };
 
   return (
-    <Flex alignItems="center" justifyContent="right" gap={7}>
+    <Flex alignItems="center" justifyContent="right" gap={7} minWidth="fit-content">
       <Menu>
         <MenuButton alignItems="center">
           <Icon as={useColorModeValue(BsShare, BsShareFill)} cursor="pointer" />
@@ -121,8 +122,8 @@ export const Nav = () => {
   }
 
   const NavLinkActiveButtonStyle = {
-    background: useColorModeValue("#820DDF", "#CCC3F9"),
-    color: useColorModeValue("#FFFFFF", "#2F206E"),
+    background: useColorModeValue("#820DDF", "#D199FF"),
+    color: useColorModeValue("#FFFFFF", "#360061"),
   };
 
   const LinksInternalComponent = ({
@@ -156,7 +157,7 @@ export const Nav = () => {
         padding="4px 15px 4px 15px"
         borderRadius="5px"
         as={RouterLink}
-        color={useColorModeValue("#820DDF", "#CCC3F9")}
+        color={useColorModeValue("#820DDF", "#D199FF")}
         to={to}
         onClick={handleNavMenu.onClose}
         _hover={NavLinkActiveButtonStyle}
@@ -212,7 +213,7 @@ export const Nav = () => {
 
   return (
     <Box
-      bg={useColorModeValue("#ECE8FD", "#2F206E")}
+      bg={useColorModeValue("#ECE8FD", "#360061")}
       borderBottomRadius="10px"
       borderTop={0}
       justifyContent="center"
@@ -232,6 +233,7 @@ export const Nav = () => {
           justifyContent="space-between"
           alignItems="center"
           padding={0}
+          gap={4}
         >
           <IconButton
             size="md"
@@ -245,8 +247,9 @@ export const Nav = () => {
             as="nav"
             spacing={4}
             alignItems="center"
-            justifyContent="right"
+            justifyContent="center"
             display={{ base: "none", md: "flex" }}
+            flex="1"
           >
             {links}
           </HStack>

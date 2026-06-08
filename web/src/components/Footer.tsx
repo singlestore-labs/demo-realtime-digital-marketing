@@ -33,7 +33,7 @@ const SocialMediaSection = () => {
 export const Footer = () => {
   return (
     <Box
-      bg={useColorModeValue("#ECE8FD", "#2F206E")}
+      bg={useColorModeValue("#ECE8FD", "#360061")}
       justifyContent="center"
       alignItems="center"
       zIndex={5}

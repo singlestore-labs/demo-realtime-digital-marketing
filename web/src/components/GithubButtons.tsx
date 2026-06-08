@@ -10,11 +10,11 @@ export const GitStargazerLogo = () => {
       fontSize="0.9em"
       border="1.5px solid"
       borderRight="none"
-      borderColor={useColorModeValue("#DCD5FB", "#3A249E")}
+      borderColor={useColorModeValue("#E6D6FF", "#360061")}
       borderLeftRadius="5px"
       padding="3px 10px 3px 10px"
       color={useColorModeValue("black", "white")}
-      backgroundColor={useColorModeValue("#DCD5FB", "#3A249E")}
+      backgroundColor={useColorModeValue("#E6D6FF", "#360061")}
     >
       <BsGithub />
       star
@@ -60,7 +60,7 @@ export const GithubStargazer: React.FC<GithubStargazerProps> = ({
         alignItems="center"
         gap={1}
         border="0.12em solid"
-        borderColor={useColorModeValue("#DCD5FB", "#3A249E")}
+        borderColor={useColorModeValue("#E6D6FF", "#360061")}
         borderRightRadius="5px"
         paddingLeft={3}
         paddingRight={3}

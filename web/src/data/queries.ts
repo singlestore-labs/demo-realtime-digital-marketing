@@ -651,6 +651,9 @@ const conversionMetricsBaseFragment = (eventsTable: ConversionEventTable) => `
     offer_notification.customer,
     offer_notification.notification_zone,
     offer_notification.offer_id,
+    offer_notification.city_id,
+    offer_notification.subscriber_id,
+    offer_notification.cost_cents,
     events.ts as converted_at
   FROM (
     SELECT
@@ -660,6 +663,7 @@ const conversionMetricsBaseFragment = (eventsTable: ConversionEventTable) => `
       offers.notification_target,
       notifications.city_id,
       notifications.subscriber_id,
+      FIRST(notifications.cost_cents) AS cost_cents,
       FIRST(notifications.ts) AS ts
     FROM offers, notifications
     WHERE offers.offer_id = notifications.offer_id
@@ -681,6 +685,10 @@ export type CustomerMetrics = {
   totalNotifications: number;
   totalConversions: number;
   conversionRate: number;
+  ctr: number;
+  roas: number;
+  totalSpend: number;
+  totalRevenue: number;
 };
 
 export const customerMetrics = (
@@ -695,14 +703,43 @@ export const customerMetrics = (
       with: [["metrics", conversionMetricsBaseFragment(eventTable)]],
       base: `
         SELECT
-          *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
+          *,
+          (totalConversions / totalNotifications) :> DOUBLE AS conversionRate,
+          (totalConversions / totalNotifications) :> DOUBLE AS ctr,
+          CASE
+            WHEN totalSpend > 0 THEN (totalRevenue / totalSpend) :> DOUBLE
+            ELSE 0
+          END AS roas
         FROM (
           SELECT
-            metrics.customer,
-            COUNT(metrics.offer_id) AS totalNotifications,
-            COUNT(metrics.converted_at) AS totalConversions
-          FROM metrics
-          GROUP BY metrics.customer
+            customer,
+            SUM(notification_count) AS totalNotifications,
+            SUM(conversion_count) AS totalConversions,
+            SUM(notification_cost) / 100.0 AS totalSpend,
+            SUM(revenue) / 100.0 AS totalRevenue
+          FROM (
+            SELECT
+              metrics.customer,
+              metrics.offer_id,
+              metrics.city_id,
+              metrics.subscriber_id,
+              -- Each unique (offer, city, subscriber) is one notification
+              1 AS notification_count,
+              -- Cost for this notification (already aggregated with FIRST in CTE)
+              MAX(metrics.cost_cents) AS notification_cost,
+              -- Binary conversion: did this notification lead to at least one conversion?
+              -- This ensures conversion rate stays <= 100%
+              CASE WHEN COUNT(metrics.converted_at) > 0 THEN 1 ELSE 0 END AS conversion_count,
+              -- Calculate revenue: 4x cost for each actual conversion event
+              SUM(CASE
+                WHEN metrics.converted_at IS NOT NULL
+                THEN metrics.cost_cents * 4.0
+                ELSE 0
+              END) AS revenue
+            FROM metrics
+            GROUP BY metrics.customer, metrics.offer_id, metrics.city_id, metrics.subscriber_id
+          ) AS unique_notifications
+          GROUP BY customer
         )
         ORDER BY ${sortColumn} DESC
         LIMIT ${limit}`,
@@ -726,9 +763,18 @@ export const overallConversionRate = (
           *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
         FROM (
           SELECT
-            COUNT(metrics.offer_id) AS totalNotifications,
-            COUNT(metrics.converted_at) AS totalConversions
-          FROM metrics
+            SUM(notification_count) AS totalNotifications,
+            SUM(conversion_count) AS totalConversions
+          FROM (
+            SELECT
+              metrics.offer_id,
+              metrics.city_id,
+              metrics.subscriber_id,
+              1 AS notification_count,
+              CASE WHEN COUNT(metrics.converted_at) > 0 THEN 1 ELSE 0 END AS conversion_count
+            FROM metrics
+            GROUP BY metrics.offer_id, metrics.city_id, metrics.subscriber_id
+          ) AS unique_notifications
         )
       `,
     }).sql
@@ -754,12 +800,22 @@ export const zoneMetrics = (
           *, (totalConversions / totalNotifications) :> DOUBLE AS conversionRate
         FROM (
           SELECT
-            metrics.notification_zone AS wktPolygon,
-            COUNT(metrics.offer_id) AS totalNotifications,
-            COUNT(metrics.converted_at) AS totalConversions
-          FROM metrics
-          WHERE GEOGRAPHY_INTERSECTS(?, metrics.notification_zone)
-          GROUP BY metrics.notification_zone
+            notification_zone AS wktPolygon,
+            SUM(notification_count) AS totalNotifications,
+            SUM(conversion_count) AS totalConversions
+          FROM (
+            SELECT
+              metrics.notification_zone,
+              metrics.offer_id,
+              metrics.city_id,
+              metrics.subscriber_id,
+              1 AS notification_count,
+              CASE WHEN COUNT(metrics.converted_at) > 0 THEN 1 ELSE 0 END AS conversion_count
+            FROM metrics
+            WHERE GEOGRAPHY_INTERSECTS(?, metrics.notification_zone)
+            GROUP BY metrics.notification_zone, metrics.offer_id, metrics.city_id, metrics.subscriber_id
+          ) AS unique_notifications
+          GROUP BY notification_zone
         )
       `,
       params: [boundsToWKTPolygon(bounds)],

@@ -169,11 +169,11 @@ const Section = ({
     }
   } else {
     if (completed) {
-      collapsibleSectionStyle.background = "#CCC3F9";
-      collapsibleSectionStyle.color = "#2F206E";
+      collapsibleSectionStyle.background = "#D199FF";
+      collapsibleSectionStyle.color = "#360061";
     } else if (previousStepCompleted) {
-      collapsibleSectionStyle.background = "#2F206E";
-      collapsibleSectionStyle.color = "#CCC3F9";
+      collapsibleSectionStyle.background = "#360061";
+      collapsibleSectionStyle.color = "#D199FF";
     }
   }
 
@@ -273,7 +273,7 @@ const SchemaItem = ({
   return (
     <GridItem
       key={name}
-      bg={useColorModeValue("#ECE8FD", "#2F206E")}
+      bg={useColorModeValue("#ECE8FD", "#360061")}
       fontSize="xs"
       color={useColorModeValue("#820DDF", "#ECE8FD")}
       textOverflow="ellipsis"
@@ -300,7 +300,7 @@ const ConfigHeader = ({
   configInitialized: boolean;
 }) => {
   const [database, setDatabase] = useRecoilState(connectionDatabase);
-  const resetButtonBackground = useColorModeValue("#ECE8FD", "#2F206E");
+  const resetButtonBackground = useColorModeValue("#ECE8FD", "#360061");
   const resetButtonFontColor = useColorModeValue("#820DDF", "#ECE8FD");
 
   if (configInitialized) {
@@ -532,7 +532,7 @@ const PipelinesSection = ({
     <>
       <Text>
         The application simulates streams for location, request and purchase
-        history from simulated subscribers using{" "}
+        history from simulated audience segments using{" "}
         <Link
           href="https://docs.singlestore.com/managed-service/en/load-data/about-loading-data-with-pipelines/pipeline-concepts/overview-of-pipelines.html"
           target="_blank"
@@ -612,11 +612,11 @@ const OffersSection = ({
 
   const done = !!tableCounts.data?.offers;
 
-  let loadButtonText = "Load offers";
+  let loadButtonText = "Load ad campaigns";
   if (working) {
     loadButtonText = "Loading...";
   } else if (done) {
-    loadButtonText = "Loaded offers!";
+    loadButtonText = "Loaded ad campaigns!";
   }
 
   let loadOffersButton;
@@ -627,10 +627,10 @@ const OffersSection = ({
     mapInfoContent = (
       <Text>
         <br />
-        The map to your right displays a polygon representing each offer's
+        The map to your right displays a polygon representing each campaign's
         activation zone. Currently, there are {tableCounts.data?.offers ||
           0}{" "}
-        offers in the database.
+        ad campaigns in the database.
       </Text>
     );
   } else {
@@ -643,7 +643,7 @@ const OffersSection = ({
     loadOffersButton = (
       <Text>
         <br />
-        Press the "Load offers" button to create some sample offers in New York
+        Press the "Load ad campaigns" button to create some sample campaigns in New York
         City.
       </Text>
     );
@@ -652,15 +652,15 @@ const OffersSection = ({
   return (
     <Section
       completed={done}
-      title="Offers"
+      title="Ad Campaigns"
       previousStepCompleted={previousStepCompleted}
       left={
         <>
           <Text>
-            Companies submit offers with a maximum bid price, notification zone,
-            list of segments and notification content. As subscribers travel,
-            they are matched with offers based on their location and segments.
-            If multiple offers match to a subscriber, the highest bid price is
+            Advertisers submit ad campaigns with a maximum bid price, notification zone,
+            list of segments and notification content. As audience segments engage,
+            they are matched with campaigns based on their location and behavior.
+            If multiple campaigns match to an audience segment, the highest bid price is
             selected.
           </Text>
           {loadOffersButton}
@@ -772,16 +772,16 @@ const SegmentationSection = ({
           <Text>
             A segment is defined by a simple rule, such as “bought a coffee in
             the last day” or “visited the grocery store in the last week”. While
-            segments could be evaluated dynamically when matching offers to
-            subscribers, this would waste compute time since segment memberships
+            segments could be evaluated dynamically when matching campaigns to
+            audience segments, this would waste compute time since segment memberships
             rarely change.
             <br />
             <br />
             Instead SingleStore periodically caches the mapping between
-            subscribers and segments for faster results.
+            audience segments and behavioral segments for faster results.
             <br />
             <br />
-            Run the following query to match subscribers to segments.
+            Run the following query to match audience segments to behavioral segments.
           </Text>
           <br />
           <PrimaryButton disabled={isRunning} onClick={onClick}>
@@ -899,7 +899,7 @@ const MatchingSection = ({
       left={
         <>
           <Text>
-            With offers and subscriber segments defined, let’s deliver ads as
+            With ad campaigns and audience segments defined, let’s deliver ads as
             push notifications. For this demo, notifications are inserted into a
             table called “notifications”.
             <br />
@@ -971,7 +971,7 @@ const CompleteToast = () => {
         padding="20px 25px 10px 10px"
         gap={5}
         borderRadius="10px"
-        background={useColorModeValue("#820DDF", "#CCC3F9")}
+        background={useColorModeValue("#820DDF", "#D199FF")}
       >
         <CheckCircleIcon color={defaultFontTheme} margin="15px" fontSize="lg" />
         <Box

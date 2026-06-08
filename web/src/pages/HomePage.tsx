@@ -28,7 +28,7 @@ import { useUpdateCityList } from "@/data/models/useUpdateCityList";
 import { useConnectionState } from "@/view/hooks/hooks";
 
 const ConnectSection: React.FC = () => {
-  const fontColor = useColorModeValue("#820DDF", "#CCC3F9");
+  const fontColor = useColorModeValue("#820DDF", "#D199FF");
 
   return (
     <Stack spacing={4}>
@@ -63,7 +63,7 @@ const ConnectSection: React.FC = () => {
               color: fontColor,
               borderBottom: `2px solid ${useColorModeValue(
                 "#820DDF",
-                "#CCC3F9"
+                "#D199FF"
               )}`,
             }}
             fontWeight="bold"
