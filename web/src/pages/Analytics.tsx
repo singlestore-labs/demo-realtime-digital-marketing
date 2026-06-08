@@ -1,4 +1,4 @@
-import { ChevronDownIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, RepeatIcon } from "@chakra-ui/icons";
 import {
   Box,
   Container,
@@ -20,6 +20,7 @@ import {
   Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
   useColorModeValue,
   useMediaQuery,
@@ -31,7 +32,7 @@ import * as React from "react";
 import { IconType } from "react-icons";
 import { BsGearFill } from "react-icons/bs";
 import { HiBell, HiOfficeBuilding, HiRefresh } from "react-icons/hi";
-import { MdAttachMoney, MdMonetizationOn, MdTrendingUp } from "react-icons/md";
+import { MdAttachMoney, MdMonetizationOn } from "react-icons/md";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
@@ -144,12 +145,14 @@ const DashboardContainerChild = () => {
         <NotificationZoneMap />
       </Stack>
       <Stack spacing={3}>
-        <Stack spacing={2}>
-          <Heading fontSize="xl">Top Performing Customers</Heading>
-          <Text overflowWrap="break-word">
-            Companies with the highest conversion rate
-          </Text>
-        </Stack>
+        <Flex justifyContent="space-between" alignItems="center">
+          <Stack spacing={2}>
+            <Heading fontSize="xl">Top Performing Customers</Heading>
+            <Text overflowWrap="break-word">
+              Companies with the highest conversion rate
+            </Text>
+          </Stack>
+        </Flex>
         <ConversionTable />
       </Stack>
     </Stack>
@@ -218,11 +221,17 @@ const ConversionTable = () => {
   const config = useRecoilValue(connectionConfig);
   const [sortColumn, setSortColumn] =
     React.useState<keyof CustomerMetrics>("conversionRate");
+  const [lastUpdate, setLastUpdate] = React.useState(new Date());
 
   const metricsTableData = useSWR(
     ["customerMetrics", config, sortColumn],
     () => customerMetrics(config, "purchases", sortColumn, 10),
-    { refreshInterval: 1000 }
+    {
+      refreshInterval: 1000,
+      onSuccess: () => {
+        setLastUpdate(new Date());
+      },
+    }
   );
   const activeColor = useColorModeValue("#820DDF", "#D199FF");
   const cellLeftPadding = "10px";
@@ -231,7 +240,7 @@ const ConversionTable = () => {
     if (metricsTableData.isValidating && !metricsTableData.data) {
       return (
         <Tr>
-          <Td colSpan={7}>
+          <Td colSpan={6}>
             <Loader size="small" centered />
           </Td>
         </Tr>
@@ -239,7 +248,7 @@ const ConversionTable = () => {
     } else if (!metricsTableData.data) {
       return (
         <Tr>
-          <Td colSpan={7}>
+          <Td colSpan={6}>
             <Text display="flex" justifyContent="center" width="100%">
               No data
             </Text>
@@ -275,7 +284,6 @@ const ConversionTable = () => {
             </Box>
           </Box>
         </Td>
-        <Td paddingLeft={cellLeftPadding}>{formatPct(c.ctr)}</Td>
         <Td paddingLeft={cellLeftPadding}>{formatROAS(c.roas)}x</Td>
         <Td paddingLeft={cellLeftPadding}>{formatCurrency(c.totalSpend)}</Td>
       </Tr>
@@ -314,8 +322,41 @@ const ConversionTable = () => {
     );
   };
 
+  const timeSinceUpdate = React.useMemo(() => {
+    const seconds = Math.floor((new Date().getTime() - lastUpdate.getTime()) / 1000);
+    return seconds;
+  }, [lastUpdate]);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      // Force re-render every second to update "updated X seconds ago"
+      setLastUpdate((prev) => new Date(prev));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Box overflowX="auto">
+      <Flex justifyContent="space-between" alignItems="center" mb={2}>
+        <Tooltip
+          label={`Auto-refreshing every second. Last updated ${timeSinceUpdate}s ago`}
+          hasArrow
+        >
+          <Flex alignItems="center" gap={2} fontSize="sm" color="gray.500">
+            <Icon
+              as={RepeatIcon}
+              animation={metricsTableData.isValidating ? "spin 1s linear infinite" : undefined}
+              sx={{
+                "@keyframes spin": {
+                  "0%": { transform: "rotate(0deg)" },
+                  "100%": { transform: "rotate(360deg)" },
+                },
+              }}
+            />
+            <Text>Live updates</Text>
+          </Flex>
+        </Tooltip>
+      </Flex>
       <TableContainer>
         <Table size="sm" variant="striped">
           <Thead background={useColorModeValue("#ECE8FD", "#360061")}>
@@ -338,12 +379,7 @@ const ConversionTable = () => {
               <THContentWrapper
                 sortColumnValue="conversionRate"
                 icon={BsGearFill}
-                title="Conv. Rate"
-              />
-              <THContentWrapper
-                sortColumnValue="ctr"
-                icon={MdTrendingUp}
-                title="CTR"
+                title="Conversion Rate"
               />
               <THContentWrapper
                 sortColumnValue="roas"

@@ -98,7 +98,13 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   latLngToPixel,
   bounds,
 }) => {
-  const timestampCursor = React.useRef(toISOStringNoTZ(new Date()));
+  // Start 30 seconds in the past to populate initial dots faster
+  const getInitialTimestamp = () => {
+    const initialTime = new Date();
+    initialTime.setSeconds(initialTime.getSeconds() - 30);
+    return toISOStringNoTZ(initialTime);
+  };
+  const timestampCursor = React.useRef(getInitialTimestamp());
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 50);
