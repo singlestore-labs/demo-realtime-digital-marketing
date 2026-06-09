@@ -1,0 +1,802 @@
+[
+  {
+    "id": 500,
+    "vendor": "Feednation",
+    "tld": "org",
+    "category": "beauty",
+    "popularity": 1.24,
+    "cdf": 1
+  },
+  {
+    "id": 206,
+    "vendor": "Zoombox",
+    "tld": "net",
+    "category": "garden",
+    "popularity": 1.23,
+    "cdf": 2
+  },
+  {
+    "id": 975,
+    "vendor": "Zoombeat",
+    "tld": "com",
+    "category": "outdoors",
+    "popularity": 1.21,
+    "cdf": 3
+  },
+  {
+    "id": 101,
+    "vendor": "Babblestorm",
+    "tld": "name",
+    "category": "industrial",
+    "popularity": 1.18,
+    "cdf": 4
+  },
+  {
+    "id": 864,
+    "vendor": "Twitterlist",
+    "tld": "info",
+    "category": "books",
+    "popularity": 1.16,
+    "cdf": 5
+  },
+  {
+    "id": 103,
+    "vendor": "Roombo",
+    "tld": "edu",
+    "category": "garden",
+    "popularity": 1.16,
+    "cdf": 6
+  },
+  {
+    "id": 388,
+    "vendor": "Zoomdog",
+    "tld": "name",
+    "category": "beauty",
+    "popularity": 1.13,
+    "cdf": 7
+  },
+  {
+    "id": 619,
+    "vendor": "Skaboo",
+    "tld": "com",
+    "category": "sports",
+    "popularity": 1.1,
+    "cdf": 8
+  },
+  {
+    "id": 696,
+    "vendor": "Oyoba",
+    "tld": "com",
+    "category": "movies",
+    "popularity": 1.08,
+    "cdf": 9
+  },
+  {
+    "id": 751,
+    "vendor": "Skipstorm",
+    "tld": "name",
+    "category": "movies",
+    "popularity": 1.07,
+    "cdf": 10
+  },
+  {
+    "id": 450,
+    "vendor": "Viva",
+    "tld": "mil",
+    "category": "grocery",
+    "popularity": 1.07,
+    "cdf": 11
+  },
+  {
+    "id": 961,
+    "vendor": "Edgetag",
+    "tld": "org",
+    "category": "beauty",
+    "popularity": 1.05,
+    "cdf": 12
+  },
+  {
+    "id": 504,
+    "vendor": "Rhycero",
+    "tld": "info",
+    "category": "books",
+    "popularity": 1.05,
+    "cdf": 13
+  },
+  {
+    "id": 319,
+    "vendor": "Babbleblab",
+    "tld": "net",
+    "category": "computers",
+    "popularity": 1.05,
+    "cdf": 14
+  },
+  {
+    "id": 411,
+    "vendor": "Livepath",
+    "tld": "net",
+    "category": "beauty",
+    "popularity": 1.03,
+    "cdf": 15
+  },
+  {
+    "id": 717,
+    "vendor": "Yozio",
+    "tld": "com",
+    "category": "automotive",
+    "popularity": 1.02,
+    "cdf": 16
+  },
+  {
+    "id": 35,
+    "vendor": "Skyvu",
+    "tld": "org",
+    "category": "sports",
+    "popularity": 1.02,
+    "cdf": 17
+  },
+  {
+    "id": 21,
+    "vendor": "Aibox",
+    "tld": "net",
+    "category": "toys",
+    "popularity": 1.02,
+    "cdf": 18
+  },
+  {
+    "id": 871,
+    "vendor": "Zooxo",
+    "tld": "gov",
+    "category": "beauty",
+    "popularity": 1.01,
+    "cdf": 19
+  },
+  {
+    "id": 994,
+    "vendor": "Feedmix",
+    "tld": "net",
+    "category": "computers",
+    "popularity": 1,
+    "cdf": 20
+  },
+  {
+    "id": 947,
+    "vendor": "Jetpulse",
+    "tld": "edu",
+    "category": "games",
+    "popularity": 1,
+    "cdf": 21
+  },
+  {
+    "id": 708,
+    "vendor": "Camido",
+    "tld": "mil",
+    "category": "movies",
+    "popularity": 1,
+    "cdf": 22
+  },
+  {
+    "id": 310,
+    "vendor": "Roombo",
+    "tld": "biz",
+    "category": "industrial",
+    "popularity": 1,
+    "cdf": 23
+  },
+  {
+    "id": 868,
+    "vendor": "Midel",
+    "tld": "net",
+    "category": "automotive",
+    "popularity": 0.99,
+    "cdf": 24
+  },
+  {
+    "id": 578,
+    "vendor": "Dynabox",
+    "tld": "edu",
+    "category": "music",
+    "popularity": 0.99,
+    "cdf": 25
+  },
+  {
+    "id": 455,
+    "vendor": "Dynava",
+    "tld": "org",
+    "category": "automotive",
+    "popularity": 0.99,
+    "cdf": 26
+  },
+  {
+    "id": 936,
+    "vendor": "Browsebug",
+    "tld": "edu",
+    "category": "shoes",
+    "popularity": 0.98,
+    "cdf": 27
+  },
+  {
+    "id": 98,
+    "vendor": "Trudeo",
+    "tld": "edu",
+    "category": "movies",
+    "popularity": 0.98,
+    "cdf": 28
+  },
+  {
+    "id": 646,
+    "vendor": "Feedfire",
+    "tld": "edu",
+    "category": "music",
+    "popularity": 0.97,
+    "cdf": 29
+  },
+  {
+    "id": 385,
+    "vendor": "Oyonder",
+    "tld": "name",
+    "category": "games",
+    "popularity": 0.97,
+    "cdf": 30
+  },
+  {
+    "id": 266,
+    "vendor": "Zoombox",
+    "tld": "mil",
+    "category": "grocery",
+    "popularity": 0.97,
+    "cdf": 31
+  },
+  {
+    "id": 236,
+    "vendor": "Brainverse",
+    "tld": "biz",
+    "category": "electronics",
+    "popularity": 0.97,
+    "cdf": 32
+  },
+  {
+    "id": 216,
+    "vendor": "Oyope",
+    "tld": "gov",
+    "category": "computers",
+    "popularity": 0.97,
+    "cdf": 33
+  },
+  {
+    "id": 582,
+    "vendor": "Snaptags",
+    "tld": "edu",
+    "category": "music",
+    "popularity": 0.96,
+    "cdf": 34
+  },
+  {
+    "id": 242,
+    "vendor": "Centizu",
+    "tld": "info",
+    "category": "sports",
+    "popularity": 0.96,
+    "cdf": 35
+  },
+  {
+    "id": 208,
+    "vendor": "Youspan",
+    "tld": "biz",
+    "category": "jewelry",
+    "popularity": 0.96,
+    "cdf": 36
+  },
+  {
+    "id": 104,
+    "vendor": "Twimm",
+    "tld": "info",
+    "category": "baby",
+    "popularity": 0.96,
+    "cdf": 37
+  },
+  {
+    "id": 478,
+    "vendor": "Tavu",
+    "tld": "name",
+    "category": "movies",
+    "popularity": 0.95,
+    "cdf": 38
+  },
+  {
+    "id": 404,
+    "vendor": "Shuffledrive",
+    "tld": "gov",
+    "category": "garden",
+    "popularity": 0.95,
+    "cdf": 39
+  },
+  {
+    "id": 382,
+    "vendor": "Dabshots",
+    "tld": "mil",
+    "category": "industrial",
+    "popularity": 0.95,
+    "cdf": 40
+  },
+  {
+    "id": 991,
+    "vendor": "Topdrive",
+    "tld": "info",
+    "category": "electronics",
+    "popularity": 0.94,
+    "cdf": 41
+  },
+  {
+    "id": 498,
+    "vendor": "Dynabox",
+    "tld": "edu",
+    "category": "computers",
+    "popularity": 0.94,
+    "cdf": 42
+  },
+  {
+    "id": 396,
+    "vendor": "Flashspan",
+    "tld": "edu",
+    "category": "tools",
+    "popularity": 0.94,
+    "cdf": 43
+  },
+  {
+    "id": 373,
+    "vendor": "Skyndu",
+    "tld": "com",
+    "category": "tools",
+    "popularity": 0.94,
+    "cdf": 44
+  },
+  {
+    "id": 786,
+    "vendor": "Bubblebox",
+    "tld": "gov",
+    "category": "jewelry",
+    "popularity": 0.93,
+    "cdf": 45
+  },
+  {
+    "id": 548,
+    "vendor": "Voolith",
+    "tld": "info",
+    "category": "jewelry",
+    "popularity": 0.93,
+    "cdf": 46
+  },
+  {
+    "id": 492,
+    "vendor": "Jabbercube",
+    "tld": "edu",
+    "category": "kids",
+    "popularity": 0.93,
+    "cdf": 47
+  },
+  {
+    "id": 449,
+    "vendor": "Skyble",
+    "tld": "mil",
+    "category": "tools",
+    "popularity": 0.93,
+    "cdf": 48
+  },
+  {
+    "id": 416,
+    "vendor": "Twitterwire",
+    "tld": "info",
+    "category": "games",
+    "popularity": 0.93,
+    "cdf": 49
+  },
+  {
+    "id": 146,
+    "vendor": "Wikido",
+    "tld": "mil",
+    "category": "clothing",
+    "popularity": 0.93,
+    "cdf": 50
+  },
+  {
+    "id": 100,
+    "vendor": "Skiba",
+    "tld": "com",
+    "category": "music",
+    "popularity": 0.93,
+    "cdf": 51
+  },
+  {
+    "id": 23,
+    "vendor": "Devpoint",
+    "tld": "edu",
+    "category": "garden",
+    "popularity": 0.93,
+    "cdf": 52
+  },
+  {
+    "id": 795,
+    "vendor": "Yakidoo",
+    "tld": "info",
+    "category": "books",
+    "popularity": 0.92,
+    "cdf": 53
+  },
+  {
+    "id": 439,
+    "vendor": "Brightbean",
+    "tld": "info",
+    "category": "baby",
+    "popularity": 0.92,
+    "cdf": 54
+  },
+  {
+    "id": 229,
+    "vendor": "Quatz",
+    "tld": "biz",
+    "category": "outdoors",
+    "popularity": 0.91,
+    "cdf": 55
+  },
+  {
+    "id": 882,
+    "vendor": "Ailane",
+    "tld": "edu",
+    "category": "movies",
+    "popularity": 0.9,
+    "cdf": 56
+  },
+  {
+    "id": 701,
+    "vendor": "Divanoodle",
+    "tld": "org",
+    "category": "toys",
+    "popularity": 0.89,
+    "cdf": 57
+  },
+  {
+    "id": 690,
+    "vendor": "Eadel",
+    "tld": "net",
+    "category": "industrial",
+    "popularity": 0.89,
+    "cdf": 58
+  },
+  {
+    "id": 969,
+    "vendor": "BlogXS",
+    "tld": "mil",
+    "category": "movies",
+    "popularity": 0.88,
+    "cdf": 59
+  },
+  {
+    "id": 870,
+    "vendor": "Roombo",
+    "tld": "name",
+    "category": "movies",
+    "popularity": 0.88,
+    "cdf": 60
+  },
+  {
+    "id": 726,
+    "vendor": "Oloo",
+    "tld": "name",
+    "category": "computers",
+    "popularity": 0.88,
+    "cdf": 61
+  },
+  {
+    "id": 665,
+    "vendor": "Chatterbridge",
+    "tld": "edu",
+    "category": "electronics",
+    "popularity": 0.88,
+    "cdf": 62
+  },
+  {
+    "id": 268,
+    "vendor": "Feedspan",
+    "tld": "mil",
+    "category": "outdoors",
+    "popularity": 0.88,
+    "cdf": 63
+  },
+  {
+    "id": 139,
+    "vendor": "Yotz",
+    "tld": "biz",
+    "category": "industrial",
+    "popularity": 0.88,
+    "cdf": 64
+  },
+  {
+    "id": 892,
+    "vendor": "Kazio",
+    "tld": "net",
+    "category": "books",
+    "popularity": 0.87,
+    "cdf": 65
+  },
+  {
+    "id": 634,
+    "vendor": "Quatz",
+    "tld": "edu",
+    "category": "baby",
+    "popularity": 0.87,
+    "cdf": 66
+  },
+  {
+    "id": 175,
+    "vendor": "Jatri",
+    "tld": "org",
+    "category": "baby",
+    "popularity": 0.87,
+    "cdf": 67
+  },
+  {
+    "id": 13,
+    "vendor": "Blogtags",
+    "tld": "edu",
+    "category": "toys",
+    "popularity": 0.87,
+    "cdf": 68
+  },
+  {
+    "id": 978,
+    "vendor": "Oyondu",
+    "tld": "name",
+    "category": "health",
+    "popularity": 0.86,
+    "cdf": 69
+  },
+  {
+    "id": 380,
+    "vendor": "Midel",
+    "tld": "info",
+    "category": "health",
+    "popularity": 0.86,
+    "cdf": 70
+  },
+  {
+    "id": 308,
+    "vendor": "Eare",
+    "tld": "edu",
+    "category": "toys",
+    "popularity": 0.86,
+    "cdf": 71
+  },
+  {
+    "id": 296,
+    "vendor": "Jazzy",
+    "tld": "com",
+    "category": "grocery",
+    "popularity": 0.86,
+    "cdf": 72
+  },
+  {
+    "id": 200,
+    "vendor": "Flashdog",
+    "tld": "biz",
+    "category": "games",
+    "popularity": 0.86,
+    "cdf": 73
+  },
+  {
+    "id": 179,
+    "vendor": "Teklist",
+    "tld": "org",
+    "category": "tools",
+    "popularity": 0.86,
+    "cdf": 74
+  },
+  {
+    "id": 155,
+    "vendor": "Photojam",
+    "tld": "edu",
+    "category": "movies",
+    "popularity": 0.86,
+    "cdf": 75
+  },
+  {
+    "id": 691,
+    "vendor": "Dabjam",
+    "tld": "biz",
+    "category": "tools",
+    "popularity": 0.85,
+    "cdf": 76
+  },
+  {
+    "id": 486,
+    "vendor": "Shufflebeat",
+    "tld": "info",
+    "category": "automotive",
+    "popularity": 0.85,
+    "cdf": 77
+  },
+  {
+    "id": 417,
+    "vendor": "Livefish",
+    "tld": "edu",
+    "category": "garden",
+    "popularity": 0.85,
+    "cdf": 78
+  },
+  {
+    "id": 210,
+    "vendor": "Reallinks",
+    "tld": "gov",
+    "category": "grocery",
+    "popularity": 0.85,
+    "cdf": 79
+  },
+  {
+    "id": 96,
+    "vendor": "Jazzy",
+    "tld": "gov",
+    "category": "automotive",
+    "popularity": 0.85,
+    "cdf": 80
+  },
+  {
+    "id": 793,
+    "vendor": "Meemm",
+    "tld": "biz",
+    "category": "automotive",
+    "popularity": 0.84,
+    "cdf": 81
+  },
+  {
+    "id": 628,
+    "vendor": "Quimba",
+    "tld": "edu",
+    "category": "toys",
+    "popularity": 0.84,
+    "cdf": 82
+  },
+  {
+    "id": 41,
+    "vendor": "Photobug",
+    "tld": "net",
+    "category": "books",
+    "popularity": 0.84,
+    "cdf": 83
+  },
+  {
+    "id": 733,
+    "vendor": "Trilia",
+    "tld": "biz",
+    "category": "home",
+    "popularity": 0.83,
+    "cdf": 84
+  },
+  {
+    "id": 684,
+    "vendor": "Feedbug",
+    "tld": "net",
+    "category": "home",
+    "popularity": 0.83,
+    "cdf": 85
+  },
+  {
+    "id": 611,
+    "vendor": "Ailane",
+    "tld": "org",
+    "category": "electronics",
+    "popularity": 0.83,
+    "cdf": 86
+  },
+  {
+    "id": 609,
+    "vendor": "Zoonoodle",
+    "tld": "name",
+    "category": "automotive",
+    "popularity": 0.83,
+    "cdf": 87
+  },
+  {
+    "id": 518,
+    "vendor": "Trupe",
+    "tld": "edu",
+    "category": "movies",
+    "popularity": 0.83,
+    "cdf": 88
+  },
+  {
+    "id": 491,
+    "vendor": "Quimba",
+    "tld": "com",
+    "category": "books",
+    "popularity": 0.83,
+    "cdf": 89
+  },
+  {
+    "id": 189,
+    "vendor": "Centizu",
+    "tld": "biz",
+    "category": "kids",
+    "popularity": 0.83,
+    "cdf": 90
+  },
+  {
+    "id": 93,
+    "vendor": "Jaloo",
+    "tld": "gov",
+    "category": "jewelry",
+    "popularity": 0.83,
+    "cdf": 91
+  },
+  {
+    "id": 59,
+    "vendor": "Flashpoint",
+    "tld": "mil",
+    "category": "beauty",
+    "popularity": 0.83,
+    "cdf": 92
+  },
+  {
+    "id": 940,
+    "vendor": "Avamm",
+    "tld": "name",
+    "category": "games",
+    "popularity": 0.82,
+    "cdf": 93
+  },
+  {
+    "id": 862,
+    "vendor": "Agivu",
+    "tld": "info",
+    "category": "games",
+    "popularity": 0.82,
+    "cdf": 94
+  },
+  {
+    "id": 731,
+    "vendor": "Flashdog",
+    "tld": "mil",
+    "category": "books",
+    "popularity": 0.82,
+    "cdf": 95
+  },
+  {
+    "id": 661,
+    "vendor": "Linklinks",
+    "tld": "gov",
+    "category": "home",
+    "popularity": 0.82,
+    "cdf": 96
+  },
+  {
+    "id": 657,
+    "vendor": "Meevee",
+    "tld": "net",
+    "category": "computers",
+    "popularity": 0.82,
+    "cdf": 97
+  },
+  {
+    "id": 427,
+    "vendor": "Yodo",
+    "tld": "gov",
+    "category": "movies",
+    "popularity": 0.82,
+    "cdf": 98
+  },
+  {
+    "id": 199,
+    "vendor": "Skiba",
+    "tld": "info",
+    "category": "jewelry",
+    "popularity": 0.82,
+    "cdf": 99
+  },
+  {
+    "id": 183,
+    "vendor": "Kwideo",
+    "tld": "mil",
+    "category": "outdoors",
+    "popularity": 0.82,
+    "cdf": 100
+  }
+]
