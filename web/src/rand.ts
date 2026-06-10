@@ -16,7 +16,8 @@ export const randomIntegerInRange = (min: number, max: number) =>
 
 export const randomVendor = (): Vendor => {
   const lastVendor = TOP_VENDORS[TOP_VENDORS.length - 1];
-  const r = randomIntegerInRange(0, TOP_VENDORS_MAX_CDF);
+  // Match Go implementation: Intn(vendorMaxTotal) + 1, which gives 1-100 inclusive
+  const r = randomIntegerInRange(1, TOP_VENDORS_MAX_CDF + 1);
   const out = least(TOP_VENDORS, (v) =>
     v.cdf >= r ? v.cdf - r : Number.MAX_SAFE_INTEGER
   );
