@@ -373,17 +373,20 @@ export const checkPlans = async (config: ConnectionConfig) => {
 
   // Only attempt to drop plans if there are any to drop
   if (badPlans.length > 0) {
-    try {
-      await Promise.all(
-        badPlans.map(({ planId }) =>
-          Exec(config, `DROP ${planId} FROM PLANCACHE`)
-        )
-      );
-    } catch (e) {
-      if (!(e instanceof SQLError && e.isPlanMissing())) {
-        throw e;
-      }
-    }
+    // Drop each plan individually, ignoring "plan missing" errors
+    // This prevents one failed drop from blocking others
+    await Promise.all(
+      badPlans.map(async ({ planId }) => {
+        try {
+          await Exec(config, `DROP ${planId} FROM PLANCACHE`);
+        } catch (e) {
+          // Silently ignore if plan was already dropped
+          if (!(e instanceof SQLError && e.isPlanMissing())) {
+            throw e;
+          }
+        }
+      })
+    );
   }
 
   return badPlans.length > 0;
