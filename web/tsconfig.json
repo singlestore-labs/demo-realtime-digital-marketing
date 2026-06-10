@@ -19,7 +19,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/sql/*": ["../sql/*"],
-      "@/static-data/*": ["../data/*"]
+      "@/static-data/*": ["./src/static-data/*", "../data/*"]
     }
   },
   "include": ["./src"]
