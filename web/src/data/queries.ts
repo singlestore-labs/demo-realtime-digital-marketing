@@ -361,35 +361,9 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
 
 // returns true if any plans were dropped
 export const checkPlans = async (config: ConnectionConfig) => {
-  const badPlans = await Query<{ planId: string }>(
-    config,
-    `
-      SELECT plan_id AS planId
-      FROM information_schema.plancache
-      WHERE
-        plan_warnings LIKE "%empty tables%"
-    `
-  );
-
-  // Only attempt to drop plans if there are any to drop
-  if (badPlans.length > 0) {
-    // Drop each plan individually, ignoring "plan missing" errors
-    // This prevents one failed drop from blocking others
-    await Promise.all(
-      badPlans.map(async ({ planId }) => {
-        try {
-          await Exec(config, `DROP ${planId} FROM PLANCACHE`);
-        } catch (e) {
-          // Silently ignore if plan was already dropped
-          if (!(e instanceof SQLError && e.isPlanMissing())) {
-            throw e;
-          }
-        }
-      })
-    );
-  }
-
-  return badPlans.length > 0;
+  // Disabled: plancache checking was causing persistent error dialogs
+  // The database warms up naturally without manual plan drops
+  return false;
 };
 
 export const estimatedRowCount = <TableName extends string>(
