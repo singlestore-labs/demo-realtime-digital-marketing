@@ -219,6 +219,7 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
           flexDirection="column"
           zIndex={1000}
           overflow="hidden"
+          pointerEvents={isOpen ? "auto" : "none"}
         >
           {/* Custom resize handle - top-left corner */}
           <Box
