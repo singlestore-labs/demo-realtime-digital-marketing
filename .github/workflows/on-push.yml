@@ -55,9 +55,8 @@ jobs:
       - name: Build
         run: yarn run vite build
         working-directory: web
-        env:
-          VITE_ANALYST_API_KEY: ${{ secrets.VITE_ANALYST_API_KEY }}
-          VITE_ANALYST_ENDPOINT_URL: ${{ secrets.VITE_ANALYST_ENDPOINT_URL }}
+        # Note: Analyst API credentials are NOT included in public build
+        # to prevent API key exposure. Chat feature only works in local dev.
 
       - name: Add CNAME for custom domain
         if: github.ref == 'refs/heads/main'

@@ -40,6 +40,10 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
   apiKey = import.meta.env.VITE_ANALYST_API_KEY,
   endpointUrl = import.meta.env.VITE_ANALYST_ENDPOINT_URL,
 }) => {
+  // Only show chat if API credentials are configured (local dev only)
+  if (!apiKey || !endpointUrl) {
+    return null;
+  }
   const [isOpen, setIsOpen] = React.useState(false);
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState("");
