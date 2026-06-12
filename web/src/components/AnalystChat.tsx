@@ -301,13 +301,13 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
             spacing={3}
             align="stretch"
           >
-            {messages.length === 0 && !apiKey && (
+            {messages.length === 0 && (!apiKey || !endpointUrl) && (
               <Text color="gray.500" textAlign="center" mt={8}>
                 Aura Analyst is not configured. Please set VITE_ANALYST_API_KEY
                 and VITE_ANALYST_ENDPOINT_URL environment variables.
               </Text>
             )}
-            {messages.length === 0 && apiKey && (
+            {messages.length === 0 && apiKey && endpointUrl && (
               <Text color="gray.500" textAlign="center" mt={8}>
                 Ask me anything about your MarTech campaign data!
                 <br />
