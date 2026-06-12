@@ -55,6 +55,9 @@ jobs:
       - name: Build
         run: yarn run vite build
         working-directory: web
+        env:
+          VITE_ANALYST_API_KEY: ${{ secrets.VITE_ANALYST_API_KEY }}
+          VITE_ANALYST_ENDPOINT_URL: ${{ secrets.VITE_ANALYST_ENDPOINT_URL }}
 
       - name: Add CNAME for custom domain
         if: github.ref == 'refs/heads/main'
