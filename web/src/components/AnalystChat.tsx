@@ -48,6 +48,7 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
   const [size, setSize] = React.useState({ width: 450, height: 600 });
   const [isResizing, setIsResizing] = React.useState(false);
   const isMountedRef = React.useRef(true);
+  const isProcessingRef = React.useRef(false);
 
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -109,7 +110,7 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
   }, [isResizing]);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || isProcessingRef.current) return;
 
     if (!apiKey || !endpointUrl) {
       alert(
@@ -118,6 +119,7 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
       return;
     }
 
+    isProcessingRef.current = true;
     const userMessage: Message = { role: "user", content: input };
     const messageText = input;
     setMessages((prev) => [...prev, userMessage]);
@@ -163,6 +165,7 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
+      isProcessingRef.current = false;
       if (isMountedRef.current) {
         setIsLoading(false);
       }
