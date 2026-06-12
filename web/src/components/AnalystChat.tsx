@@ -140,7 +140,13 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
       if (!isMountedRef.current) return;
 
       // Handle multiple results (agent can return more than one)
-      if (response.results.length === 0) {
+      if (!response.results || !Array.isArray(response.results)) {
+        const malformedMessage: Message = {
+          role: "assistant",
+          content: "Received malformed response from Analyst API.",
+        };
+        setMessages((prev) => [...prev, malformedMessage]);
+      } else if (response.results.length === 0) {
         const emptyMessage: Message = {
           role: "assistant",
           content: "The agent returned no results.",
