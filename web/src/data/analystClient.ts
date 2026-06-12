@@ -61,10 +61,16 @@ export async function queryAnalyst(
   console.log("[Analyst] Trace ID:", traceId);
 
   if (!response.ok) {
-    const errorData = (await response.json()) as AnalystError;
-    throw new Error(
-      `Analyst API error: ${errorData.error.code} - ${errorData.error.message}`
-    );
+    let errorMessage = `Analyst API error: ${response.status} ${response.statusText}`;
+    try {
+      const errorData = (await response.json()) as AnalystError;
+      if (errorData.error?.code && errorData.error?.message) {
+        errorMessage = `Analyst API error: ${errorData.error.code} - ${errorData.error.message}`;
+      }
+    } catch {
+      // Non-JSON response, use status text
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();

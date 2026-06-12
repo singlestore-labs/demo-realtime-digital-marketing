@@ -40,10 +40,6 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
   apiKey = import.meta.env.VITE_ANALYST_API_KEY,
   endpointUrl = import.meta.env.VITE_ANALYST_ENDPOINT_URL,
 }) => {
-  // Only show chat if API credentials are configured (local dev only)
-  if (!apiKey || !endpointUrl) {
-    return null;
-  }
   const [isOpen, setIsOpen] = React.useState(false);
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState("");
@@ -51,11 +47,18 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
   const [sessionId] = React.useState<string>(() => crypto.randomUUID());
   const [size, setSize] = React.useState({ width: 450, height: 600 });
   const [isResizing, setIsResizing] = React.useState(false);
+  const isMountedRef = React.useRef(true);
 
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const userBgColor = useColorModeValue("#820DDF", "#9333EA");
   const assistantBgColor = useColorModeValue("gray.100", "gray.700");
+
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const resizeStartRef = React.useRef({ x: 0, y: 0, width: 0, height: 0 });
@@ -116,6 +119,7 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
     }
 
     const userMessage: Message = { role: "user", content: input };
+    const messageText = input;
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -123,7 +127,7 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
     try {
       const response = await queryAnalyst(
         {
-          message: input,
+          message: messageText,
           output_modes: ["data", "text"],
           session_id: sessionId,
         },
@@ -131,24 +135,37 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
         endpointUrl
       );
 
+      if (!isMountedRef.current) return;
+
       // Handle multiple results (agent can return more than one)
-      for (const result of response.results) {
-        const formatted = formatAnalystResult(result);
-        const assistantMessage: Message = {
+      if (response.results.length === 0) {
+        const emptyMessage: Message = {
           role: "assistant",
-          content: formatted.content,
-          result: result,
+          content: "The agent returned no results.",
         };
-        setMessages((prev) => [...prev, assistantMessage]);
+        setMessages((prev) => [...prev, emptyMessage]);
+      } else {
+        for (const result of response.results) {
+          const formatted = formatAnalystResult(result);
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: formatted.content,
+            result: result,
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+        }
       }
     } catch (error) {
+      if (!isMountedRef.current) return;
       const errorMessage: Message = {
         role: "assistant",
         content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -281,7 +298,13 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
             spacing={3}
             align="stretch"
           >
-            {messages.length === 0 && (
+            {messages.length === 0 && !apiKey && (
+              <Text color="gray.500" textAlign="center" mt={8}>
+                Aura Analyst is not configured. Please set VITE_ANALYST_API_KEY
+                and VITE_ANALYST_ENDPOINT_URL environment variables.
+              </Text>
+            )}
+            {messages.length === 0 && apiKey && (
               <Text color="gray.500" textAlign="center" mt={8}>
                 Ask me anything about your MarTech campaign data!
                 <br />
