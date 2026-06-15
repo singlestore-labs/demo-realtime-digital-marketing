@@ -233,3 +233,19 @@ export const analystChatOpen = atom({
   default: false,
   effects: [localStorageEffect()],
 });
+
+export const analystChatMessages = atom<Array<{
+  role: "user" | "assistant";
+  content: string;
+  result?: any;
+}>>({
+  key: "analystChatMessages",
+  default: [],
+  effects: [localStorageEffect()],
+});
+
+export const analystSessionId = atom({
+  key: "analystSessionId",
+  default: "",
+  effects: [localStorageEffect()],
+});

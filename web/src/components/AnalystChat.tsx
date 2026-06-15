@@ -16,8 +16,12 @@ import {
   Td,
   TableContainer,
   Spinner,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
-import { CloseIcon, ChatIcon } from "@chakra-ui/icons";
+import { CloseIcon, ChatIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import * as React from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { Link as RouterLink } from "react-router-dom";
@@ -26,7 +30,7 @@ import {
   formatAnalystResult,
   AnalystQueryResult,
 } from "@/data/analystClient";
-import { analystApiKey, analystEndpointUrl, analystChatOpen } from "@/data/recoil";
+import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId } from "@/data/recoil";
 
 interface Message {
   role: "user" | "assistant";
@@ -38,10 +42,17 @@ export const AnalystChat: React.FC = () => {
   const apiKey = useRecoilValue(analystApiKey);
   const endpointUrl = useRecoilValue(analystEndpointUrl);
   const [isOpen, setIsOpen] = useRecoilState(analystChatOpen);
-  const [messages, setMessages] = React.useState<Message[]>([]);
+  const [messages, setMessages] = useRecoilState(analystChatMessages);
+  const [sessionId, setSessionId] = useRecoilState(analystSessionId);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const [sessionId] = React.useState<string>(() => crypto.randomUUID());
+
+  // Initialize session ID if not set
+  React.useEffect(() => {
+    if (!sessionId) {
+      setSessionId(crypto.randomUUID());
+    }
+  }, [sessionId, setSessionId]);
   const [size, setSize] = React.useState({ width: 450, height: 600 });
   const [isResizing, setIsResizing] = React.useState(false);
   const isMountedRef = React.useRef(true);
@@ -283,14 +294,36 @@ export const AnalystChat: React.FC = () => {
               <ChatIcon />
               <Text fontWeight="bold">Aura Analyst</Text>
             </Flex>
-            <IconButton
-              aria-label="Close chat"
-              icon={<CloseIcon />}
-              size="sm"
-              variant="ghost"
-              color="white"
-              onClick={() => setIsOpen(false)}
-            />
+            <Flex gap={2}>
+              <Menu>
+                <MenuButton
+                  as={IconButton}
+                  icon={<ChevronDownIcon />}
+                  size="sm"
+                  variant="ghost"
+                  color="white"
+                  aria-label="Options"
+                />
+                <MenuList>
+                  <MenuItem
+                    onClick={() => {
+                      setMessages([]);
+                      setSessionId(crypto.randomUUID());
+                    }}
+                  >
+                    Clear Chat
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+              <IconButton
+                aria-label="Close chat"
+                icon={<CloseIcon />}
+                size="sm"
+                variant="ghost"
+                color="white"
+                onClick={() => setIsOpen(false)}
+              />
+            </Flex>
           </Flex>
 
           {/* Messages */}
