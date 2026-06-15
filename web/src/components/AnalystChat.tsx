@@ -137,7 +137,8 @@ export const AnalystChat: React.FC = () => {
           session_id: currentSessionId,
         },
         apiKey,
-        endpointUrl
+        endpointUrl,
+        abortControllerRef.current?.signal
       );
 
       // Ignore response if session has changed (chat was cleared)
@@ -319,6 +320,8 @@ export const AnalystChat: React.FC = () => {
                         abortControllerRef.current.abort();
                         abortControllerRef.current = null;
                       }
+                      // Clear processing locks
+                      isProcessingRef.current = false;
                       setMessages([]);
                       setSessionId(crypto.randomUUID());
                       setIsLoading(false);
