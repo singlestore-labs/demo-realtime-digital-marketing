@@ -19,11 +19,14 @@ import {
 } from "@chakra-ui/react";
 import { CloseIcon, ChatIcon } from "@chakra-ui/icons";
 import * as React from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { Link as RouterLink } from "react-router-dom";
 import {
   queryAnalyst,
   formatAnalystResult,
   AnalystQueryResult,
 } from "@/data/analystClient";
+import { analystApiKey, analystEndpointUrl, analystChatOpen } from "@/data/recoil";
 
 interface Message {
   role: "user" | "assistant";
@@ -31,16 +34,10 @@ interface Message {
   result?: AnalystQueryResult;
 }
 
-interface AnalystChatProps {
-  apiKey?: string;
-  endpointUrl?: string;
-}
-
-export const AnalystChat: React.FC<AnalystChatProps> = ({
-  apiKey = import.meta.env.VITE_ANALYST_API_KEY,
-  endpointUrl = import.meta.env.VITE_ANALYST_ENDPOINT_URL,
-}) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+export const AnalystChat: React.FC = () => {
+  const apiKey = useRecoilValue(analystApiKey);
+  const endpointUrl = useRecoilValue(analystEndpointUrl);
+  const [isOpen, setIsOpen] = useRecoilState(analystChatOpen);
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -113,9 +110,6 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
     if (!input.trim() || isLoading || isProcessingRef.current) return;
 
     if (!apiKey || !endpointUrl) {
-      alert(
-        "Aura Analyst is not configured. Please set VITE_ANALYST_API_KEY and VITE_ANALYST_ENDPOINT_URL"
-      );
       return;
     }
 
@@ -308,10 +302,18 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
             align="stretch"
           >
             {messages.length === 0 && (!apiKey || !endpointUrl) && (
-              <Text color="gray.500" textAlign="center" mt={8}>
-                Aura Analyst is not configured. Please set VITE_ANALYST_API_KEY
-                and VITE_ANALYST_ENDPOINT_URL environment variables.
-              </Text>
+              <VStack spacing={3} color="gray.500" textAlign="center" mt={8}>
+                <Text>Aura Analyst is not configured.</Text>
+                <Button
+                  as={RouterLink}
+                  to="/configure"
+                  size="sm"
+                  colorScheme="purple"
+                  variant="outline"
+                >
+                  Configure Analyst →
+                </Button>
+              </VStack>
             )}
             {messages.length === 0 && apiKey && endpointUrl && (
               <Text color="gray.500" textAlign="center" mt={8}>

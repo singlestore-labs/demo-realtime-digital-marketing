@@ -31,6 +31,7 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  VStack,
   useBoolean,
   useColorMode,
   useColorModeValue,
@@ -64,6 +65,8 @@ import {
   runUpdateSegments,
 } from "@/data/queries";
 import {
+  analystApiKey,
+  analystEndpointUrl,
   configScaleFactor,
   connectionConfig,
   connectionDatabase,
@@ -940,6 +943,118 @@ const MatchingSection = ({
   );
 };
 
+const AnalystConfigSection = ({
+  previousStepCompleted,
+}: {
+  previousStepCompleted: boolean;
+}) => {
+  const [apiKey, setApiKey] = useRecoilState(analystApiKey);
+  const [endpointUrl, setEndpointUrl] = useRecoilState(analystEndpointUrl);
+  const [showHelp, setShowHelp] = React.useState(false);
+
+  const isConfigured = !!apiKey && !!endpointUrl;
+
+  return (
+    <Section
+      completed={isConfigured}
+      title="Aura Analyst (Optional)"
+      previousStepCompleted={previousStepCompleted}
+      left={
+        <>
+          <Text>
+            Aura Analyst enables AI-powered chat to query your MarTech campaign data using natural language.
+            Each deployment needs its own Analyst domain pointing to this database.
+          </Text>
+          <br />
+          <Button
+            size="sm"
+            variant="link"
+            colorScheme="purple"
+            onClick={() => setShowHelp(!showHelp)}
+          >
+            {showHelp ? "Hide" : "Show"} setup instructions
+          </Button>
+          <Collapse in={showHelp} animateOpacity>
+            <Box
+              mt={4}
+              p={4}
+              border="1px solid"
+              borderColor="gray.200"
+              borderRadius="md"
+              bg={useColorModeValue("gray.50", "gray.700")}
+            >
+              <Text fontWeight="bold" mb={2}>
+                How to set up Aura Analyst:
+              </Text>
+              <ol style={{ paddingLeft: "20px", lineHeight: "1.8" }}>
+                <li>Go to SingleStore Portal → Analyst</li>
+                <li>Click "Create Domain"</li>
+                <li>Point it to your <Code>martech</Code> database</li>
+                <li>Add context about this demo (optional but recommended)</li>
+                <li>Go to API Keys tab and create a new API key</li>
+                <li>Copy the API Key and Endpoint URL below</li>
+              </ol>
+            </Box>
+          </Collapse>
+          <br />
+          <Stack spacing={3}>
+            <FormControl>
+              <FormLabel>API Key</FormLabel>
+              <Input
+                placeholder="eyJhbGciOiJFUzUxMiIsImtpZCI..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                size="sm"
+              />
+            </FormControl>
+            <FormControl>
+              <FormLabel>Endpoint URL</FormLabel>
+              <Input
+                placeholder="https://apps.us-east-1.cloud.singlestore.com/v1/..."
+                value={endpointUrl}
+                onChange={(e) => setEndpointUrl(e.target.value)}
+                size="sm"
+              />
+            </FormControl>
+          </Stack>
+        </>
+      }
+      right={
+        <Flex
+          direction="column"
+          gap={4}
+          padding="15px"
+          border="1px solid"
+          borderRadius="15px"
+          borderColor="#777582"
+          minHeight="300px"
+          justifyContent="center"
+          alignItems="center"
+        >
+          {isConfigured ? (
+            <VStack spacing={3}>
+              <CheckCircleIcon fontSize="4xl" color="green.500" />
+              <Text textAlign="center" fontWeight="bold">
+                Aura Analyst Configured
+              </Text>
+              <Text textAlign="center" fontSize="sm" color="gray.500">
+                The chat widget is now available on the Analytics page
+              </Text>
+            </VStack>
+          ) : (
+            <VStack spacing={3}>
+              <WarningIcon fontSize="4xl" color="gray.400" />
+              <Text textAlign="center" color="gray.500">
+                Configure your Analyst credentials to enable AI-powered chat
+              </Text>
+            </VStack>
+          )}
+        </Flex>
+      }
+    />
+  );
+};
+
 const CompleteToast = () => {
   const database = useRecoilValue(connectionDatabase);
   const navigate = useNavigate();
@@ -1077,6 +1192,17 @@ export const Configure = () => {
           key="matching"
           previousStepCompleted={
             (tableCounts && tableCounts.subscriber_segments > 0) || false
+          }
+        />
+      ),
+    },
+    {
+      completed: false, // Optional section, never blocks progress
+      component: (
+        <AnalystConfigSection
+          key="analyst"
+          previousStepCompleted={
+            (tableCounts && tableCounts.notifications > 0) || false
           }
         />
       ),

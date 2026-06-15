@@ -215,3 +215,21 @@ export const resettingSchema = atom({
   key: "resettingSchema",
   default: false,
 });
+
+export const analystApiKey = atom({
+  key: "analystApiKey",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystEndpointUrl = atom({
+  key: "analystEndpointUrl",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystChatOpen = atom({
+  key: "analystChatOpen",
+  default: false,
+  effects: [localStorageEffect()],
+});
