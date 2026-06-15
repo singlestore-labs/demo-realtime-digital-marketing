@@ -215,3 +215,37 @@ export const resettingSchema = atom({
   key: "resettingSchema",
   default: false,
 });
+
+export const analystApiKey = atom({
+  key: "analystApiKey",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystEndpointUrl = atom({
+  key: "analystEndpointUrl",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystChatOpen = atom({
+  key: "analystChatOpen",
+  default: false,
+  effects: [localStorageEffect()],
+});
+
+export const analystChatMessages = atom<Array<{
+  role: "user" | "assistant";
+  content: string;
+  result?: any;
+}>>({
+  key: "analystChatMessages",
+  default: [],
+  effects: [localStorageEffect()],
+});
+
+export const analystSessionId = atom({
+  key: "analystSessionId",
+  default: crypto.randomUUID(),
+  effects: [localStorageEffect()],
+});

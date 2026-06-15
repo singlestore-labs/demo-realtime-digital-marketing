@@ -44,7 +44,8 @@ export interface AnalystError {
 export async function queryAnalyst(
   request: AnalystQueryRequest,
   apiKey: string,
-  endpointUrl: string
+  endpointUrl: string,
+  signal?: AbortSignal
 ): Promise<AnalystQueryResponse> {
   const url = endpointUrl.replace("/chat", "/query");
 
@@ -55,6 +56,7 @@ export async function queryAnalyst(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(request),
+    signal,
   });
 
   const traceId = response.headers.get("singlestore-trace-id");

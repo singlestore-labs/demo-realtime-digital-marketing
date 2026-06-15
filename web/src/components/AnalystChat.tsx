@@ -16,14 +16,21 @@ import {
   Td,
   TableContainer,
   Spinner,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
-import { CloseIcon, ChatIcon } from "@chakra-ui/icons";
+import { CloseIcon, ChatIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import * as React from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { Link as RouterLink } from "react-router-dom";
 import {
   queryAnalyst,
   formatAnalystResult,
   AnalystQueryResult,
 } from "@/data/analystClient";
+import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId } from "@/data/recoil";
 
 interface Message {
   role: "user" | "assistant";
@@ -31,20 +38,15 @@ interface Message {
   result?: AnalystQueryResult;
 }
 
-interface AnalystChatProps {
-  apiKey?: string;
-  endpointUrl?: string;
-}
-
-export const AnalystChat: React.FC<AnalystChatProps> = ({
-  apiKey = import.meta.env.VITE_ANALYST_API_KEY,
-  endpointUrl = import.meta.env.VITE_ANALYST_ENDPOINT_URL,
-}) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [messages, setMessages] = React.useState<Message[]>([]);
+export const AnalystChat: React.FC = () => {
+  const apiKey = useRecoilValue(analystApiKey);
+  const endpointUrl = useRecoilValue(analystEndpointUrl);
+  const [isOpen, setIsOpen] = useRecoilState(analystChatOpen);
+  const [messages, setMessages] = useRecoilState(analystChatMessages);
+  const [sessionId, setSessionId] = useRecoilState(analystSessionId);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const [sessionId] = React.useState<string>(() => crypto.randomUUID());
+  const abortControllerRef = React.useRef<AbortController | null>(null);
   const [size, setSize] = React.useState({ width: 450, height: 600 });
   const [isResizing, setIsResizing] = React.useState(false);
   const isMountedRef = React.useRef(true);
@@ -113,29 +115,34 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
     if (!input.trim() || isLoading || isProcessingRef.current) return;
 
     if (!apiKey || !endpointUrl) {
-      alert(
-        "Aura Analyst is not configured. Please set VITE_ANALYST_API_KEY and VITE_ANALYST_ENDPOINT_URL"
-      );
       return;
     }
 
     isProcessingRef.current = true;
     const userMessage: Message = { role: "user", content: input };
     const messageText = input;
+    const currentSessionId = sessionId;
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       const response = await queryAnalyst(
         {
           message: messageText,
           output_modes: ["data", "text"],
-          session_id: sessionId,
+          session_id: currentSessionId,
         },
         apiKey,
-        endpointUrl
+        endpointUrl,
+        abortControllerRef.current?.signal
       );
+
+      // Ignore response if session has changed (chat was cleared)
+      if (currentSessionId !== sessionId) return;
 
       if (!isMountedRef.current) return;
 
@@ -165,6 +172,11 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
       }
     } catch (error) {
       if (!isMountedRef.current) return;
+      // Ignore aborted requests
+      if (error instanceof Error && error.name === 'AbortError') return;
+      // Ignore errors if session changed (chat was cleared)
+      if (currentSessionId !== sessionId) return;
+
       const errorMessage: Message = {
         role: "assistant",
         content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -172,6 +184,7 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       isProcessingRef.current = false;
+      abortControllerRef.current = null;
       if (isMountedRef.current) {
         setIsLoading(false);
       }
@@ -289,14 +302,46 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
               <ChatIcon />
               <Text fontWeight="bold">Aura Analyst</Text>
             </Flex>
-            <IconButton
-              aria-label="Close chat"
-              icon={<CloseIcon />}
-              size="sm"
-              variant="ghost"
-              color="white"
-              onClick={() => setIsOpen(false)}
-            />
+            <Flex gap={2}>
+              <Menu>
+                <MenuButton
+                  as={IconButton}
+                  icon={<ChevronDownIcon />}
+                  size="sm"
+                  variant="ghost"
+                  color="white"
+                  aria-label="Options"
+                />
+                <MenuList>
+                  <MenuItem
+                    onClick={() => {
+                      // Abort any in-flight requests
+                      if (abortControllerRef.current) {
+                        abortControllerRef.current.abort();
+                        abortControllerRef.current = null;
+                      }
+                      // Clear processing locks
+                      isProcessingRef.current = false;
+                      setMessages([]);
+                      setSessionId(crypto.randomUUID());
+                      setIsLoading(false);
+                    }}
+                    color={useColorModeValue("gray.800", "white")}
+                    fontWeight="medium"
+                  >
+                    Clear Chat
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+              <IconButton
+                aria-label="Close chat"
+                icon={<CloseIcon />}
+                size="sm"
+                variant="ghost"
+                color="white"
+                onClick={() => setIsOpen(false)}
+              />
+            </Flex>
           </Flex>
 
           {/* Messages */}
@@ -308,10 +353,18 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({
             align="stretch"
           >
             {messages.length === 0 && (!apiKey || !endpointUrl) && (
-              <Text color="gray.500" textAlign="center" mt={8}>
-                Aura Analyst is not configured. Please set VITE_ANALYST_API_KEY
-                and VITE_ANALYST_ENDPOINT_URL environment variables.
-              </Text>
+              <VStack spacing={3} color="gray.500" textAlign="center" mt={8}>
+                <Text>Aura Analyst is not configured.</Text>
+                <Button
+                  as={RouterLink}
+                  to="/configure"
+                  size="sm"
+                  colorScheme="purple"
+                  variant="outline"
+                >
+                  Configure Analyst →
+                </Button>
+              </VStack>
             )}
             {messages.length === 0 && apiKey && endpointUrl && (
               <Text color="gray.500" textAlign="center" mt={8}>
