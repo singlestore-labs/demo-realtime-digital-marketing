@@ -310,6 +310,8 @@ export const AnalystChat: React.FC = () => {
                       setMessages([]);
                       setSessionId(crypto.randomUUID());
                     }}
+                    color={useColorModeValue("gray.800", "white")}
+                    fontWeight="medium"
                   >
                     Clear Chat
                   </MenuItem>
