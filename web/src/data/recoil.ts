@@ -246,6 +246,6 @@ export const analystChatMessages = atom<Array<{
 
 export const analystSessionId = atom({
   key: "analystSessionId",
-  default: "",
+  default: crypto.randomUUID(),
   effects: [localStorageEffect()],
 });

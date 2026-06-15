@@ -46,13 +46,7 @@ export const AnalystChat: React.FC = () => {
   const [sessionId, setSessionId] = useRecoilState(analystSessionId);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-
-  // Initialize session ID if not set
-  React.useEffect(() => {
-    if (!sessionId) {
-      setSessionId(crypto.randomUUID());
-    }
-  }, [sessionId, setSessionId]);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
   const [size, setSize] = React.useState({ width: 450, height: 600 });
   const [isResizing, setIsResizing] = React.useState(false);
   const isMountedRef = React.useRef(true);
@@ -127,20 +121,27 @@ export const AnalystChat: React.FC = () => {
     isProcessingRef.current = true;
     const userMessage: Message = { role: "user", content: input };
     const messageText = input;
+    const currentSessionId = sessionId;
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       const response = await queryAnalyst(
         {
           message: messageText,
           output_modes: ["data", "text"],
-          session_id: sessionId,
+          session_id: currentSessionId,
         },
         apiKey,
         endpointUrl
       );
+
+      // Ignore response if session has changed (chat was cleared)
+      if (currentSessionId !== sessionId) return;
 
       if (!isMountedRef.current) return;
 
@@ -170,6 +171,11 @@ export const AnalystChat: React.FC = () => {
       }
     } catch (error) {
       if (!isMountedRef.current) return;
+      // Ignore aborted requests
+      if (error instanceof Error && error.name === 'AbortError') return;
+      // Ignore errors if session changed (chat was cleared)
+      if (currentSessionId !== sessionId) return;
+
       const errorMessage: Message = {
         role: "assistant",
         content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -177,6 +183,7 @@ export const AnalystChat: React.FC = () => {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       isProcessingRef.current = false;
+      abortControllerRef.current = null;
       if (isMountedRef.current) {
         setIsLoading(false);
       }
@@ -307,8 +314,14 @@ export const AnalystChat: React.FC = () => {
                 <MenuList>
                   <MenuItem
                     onClick={() => {
+                      // Abort any in-flight requests
+                      if (abortControllerRef.current) {
+                        abortControllerRef.current.abort();
+                        abortControllerRef.current = null;
+                      }
                       setMessages([]);
                       setSessionId(crypto.randomUUID());
+                      setIsLoading(false);
                     }}
                     color={useColorModeValue("gray.800", "white")}
                     fontWeight="medium"
