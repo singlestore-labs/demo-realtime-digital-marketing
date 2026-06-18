@@ -4,10 +4,15 @@ on:
   push:
     branches:
       - "main"
+    # Skip if this is a fork (not the upstream singlestore-labs repo)
+    # Forks don't have permission to push to singlestore-labs GHCR
+  workflow_dispatch: # Allow manual triggers
 
 jobs:
   docker:
     runs-on: ubuntu-latest
+    # Only run on the upstream repo, not forks
+    if: github.repository == 'singlestore-labs/demo-realtime-digital-marketing'
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
