@@ -159,10 +159,11 @@ const fetchEndpoint = async (
 
     if (!response.ok) {
       const errorText = await response.text();
+      // Don't pass HTTP status as code - let SQLError parse the error message
+      // for SQL error codes (e.g., "Error 1049: Unknown database")
       throw new SQLError(
         errorText || `HTTP ${response.status}: ${response.statusText}`,
-        sql,
-        response.status
+        sql
       );
     }
 

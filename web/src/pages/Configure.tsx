@@ -971,12 +971,13 @@ const AnalystConfigSection = ({
   }, [localApiKey, localEndpointUrl, apiKey, endpointUrl]);
 
   const handleSave = () => {
-    setApiKey(localApiKey);
-    setEndpointUrl(localEndpointUrl);
+    setApiKey(localApiKey.trim());
+    setEndpointUrl(localEndpointUrl.trim());
   };
 
   const isConfigured = !!apiKey && !!endpointUrl;
-  const canSave = localApiKey.trim() !== "" && localEndpointUrl.trim() !== "";
+  // Allow saving if there are changes (including clearing both fields)
+  const canSave = hasUnsavedChanges;
 
   const setupInstructions = (
     <>
@@ -1049,7 +1050,7 @@ const AnalystConfigSection = ({
             <PrimaryButton
               type="submit"
               size="sm"
-              isDisabled={!canSave || !hasUnsavedChanges}
+              isDisabled={!canSave}
               alignSelf="flex-start"
             >
               Save Configuration
