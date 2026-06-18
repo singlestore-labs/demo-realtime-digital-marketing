@@ -90,6 +90,14 @@ export const useCities = (onSuccess: (cities: Array<City>) => void) => {
   return useSWR(["cities", config, initialized], () => getCities(config), {
     isPaused: () => !initialized,
     onSuccess,
+    onError: (error) => {
+      // Silently ignore abort errors
+      if (error.name === "AbortError") {
+        return;
+      }
+      console.warn("Failed to fetch cities:", error);
+    },
+    shouldRetryOnError: false,
   });
 };
 
@@ -125,7 +133,7 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
       refreshInterval: REFRESH_INTERVAL,
       isPaused: () => !initialized,
       onSuccess: (newNotifications) => {
-        if (newNotifications.length > 0) {
+        if (newNotifications && newNotifications.length > 0) {
           // we just want to log new notications once to avoid a lot of noise
           if (!trackedNotifications.current) {
             trackAnalyticsEvent("new-notifications");
@@ -140,6 +148,16 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
           }
         }
       },
+      onError: (error) => {
+        // Silently ignore abort errors - they're expected when map moves/zooms
+        if (error.name === "AbortError") {
+          return;
+        }
+        // Log other errors but don't crash
+        console.warn("Failed to fetch notifications:", error);
+      },
+      // Prevent SWR from retrying on errors to avoid hammering the API
+      shouldRetryOnError: false,
     }
   );
 

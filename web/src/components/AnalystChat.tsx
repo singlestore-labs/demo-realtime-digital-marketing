@@ -51,6 +51,7 @@ export const AnalystChat: React.FC = () => {
   const [isResizing, setIsResizing] = React.useState(false);
   const isMountedRef = React.useRef(true);
   const isProcessingRef = React.useRef(false);
+  const currentSessionIdRef = React.useRef(sessionId);
 
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -62,6 +63,11 @@ export const AnalystChat: React.FC = () => {
       isMountedRef.current = false;
     };
   }, []);
+
+  // Keep session ID ref in sync with Recoil state
+  React.useEffect(() => {
+    currentSessionIdRef.current = sessionId;
+  }, [sessionId]);
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const resizeStartRef = React.useRef({ x: 0, y: 0, width: 0, height: 0 });
@@ -121,7 +127,7 @@ export const AnalystChat: React.FC = () => {
     isProcessingRef.current = true;
     const userMessage: Message = { role: "user", content: input };
     const messageText = input;
-    const currentSessionId = sessionId;
+    const requestSessionId = sessionId;
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -134,7 +140,7 @@ export const AnalystChat: React.FC = () => {
         {
           message: messageText,
           output_modes: ["data", "text"],
-          session_id: currentSessionId,
+          session_id: requestSessionId,
         },
         apiKey,
         endpointUrl,
@@ -142,7 +148,7 @@ export const AnalystChat: React.FC = () => {
       );
 
       // Ignore response if session has changed (chat was cleared)
-      if (currentSessionId !== sessionId) return;
+      if (requestSessionId !== currentSessionIdRef.current) return;
 
       if (!isMountedRef.current) return;
 
@@ -160,22 +166,23 @@ export const AnalystChat: React.FC = () => {
         };
         setMessages((prev) => [...prev, emptyMessage]);
       } else {
-        for (const result of response.results) {
+        // Batch all assistant messages into a single state update
+        const assistantMessages: Message[] = response.results.map((result) => {
           const formatted = formatAnalystResult(result);
-          const assistantMessage: Message = {
+          return {
             role: "assistant",
             content: formatted.content,
             result: result,
           };
-          setMessages((prev) => [...prev, assistantMessage]);
-        }
+        });
+        setMessages((prev) => [...prev, ...assistantMessages]);
       }
     } catch (error) {
       if (!isMountedRef.current) return;
       // Ignore aborted requests
       if (error instanceof Error && error.name === 'AbortError') return;
       // Ignore errors if session changed (chat was cleared)
-      if (currentSessionId !== sessionId) return;
+      if (requestSessionId !== currentSessionIdRef.current) return;
 
       const errorMessage: Message = {
         role: "assistant",
@@ -183,10 +190,13 @@ export const AnalystChat: React.FC = () => {
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      isProcessingRef.current = false;
-      abortControllerRef.current = null;
-      if (isMountedRef.current) {
-        setIsLoading(false);
+      // Only update state if this request is still valid (session hasn't changed)
+      if (requestSessionId === currentSessionIdRef.current) {
+        isProcessingRef.current = false;
+        abortControllerRef.current = null;
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
     }
   };
@@ -420,8 +430,11 @@ export const AnalystChat: React.FC = () => {
               placeholder="Ask about your campaign data..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") handleSend();
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
               }}
               disabled={isLoading}
             />

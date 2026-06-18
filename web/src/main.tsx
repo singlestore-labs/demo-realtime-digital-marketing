@@ -10,10 +10,20 @@ import { ClientErrorBoundary, ErrorBoundary } from "@/components/ErrorHandler";
 import { chakraTheme } from "@/components/theme";
 import { resettingSchema } from "@/data/recoil";
 
+const DEBUG = false;
+
 const SWRWrapper = ({ children }: { children: React.ReactNode }) => {
   const isResettingSchema = useRecoilValue(resettingSchema);
   const toast = useToast();
   const handleError = (err: Error) => {
+    // Ignore aborted requests - these are expected when components unmount
+    if (err.name === "AbortError") {
+      if (DEBUG) {
+        console.log("Request aborted (expected)", err);
+      }
+      return;
+    }
+
     if (isResettingSchema) {
       console.warn("Ignoring error while resetting schema", err);
     } else {

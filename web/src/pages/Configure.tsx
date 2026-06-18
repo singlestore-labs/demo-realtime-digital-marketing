@@ -31,6 +31,7 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  Tooltip,
   VStack,
   useBoolean,
   useColorMode,
@@ -950,9 +951,49 @@ const AnalystConfigSection = ({
 }) => {
   const [apiKey, setApiKey] = useRecoilState(analystApiKey);
   const [endpointUrl, setEndpointUrl] = useRecoilState(analystEndpointUrl);
-  const [showHelp, setShowHelp] = React.useState(false);
+
+  // Local form state
+  const [localApiKey, setLocalApiKey] = React.useState(apiKey);
+  const [localEndpointUrl, setLocalEndpointUrl] = React.useState(endpointUrl);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+
+  // Sync local state when saved values change
+  React.useEffect(() => {
+    setLocalApiKey(apiKey);
+    setLocalEndpointUrl(endpointUrl);
+  }, [apiKey, endpointUrl]);
+
+  // Track unsaved changes
+  React.useEffect(() => {
+    setHasUnsavedChanges(
+      localApiKey !== apiKey || localEndpointUrl !== endpointUrl
+    );
+  }, [localApiKey, localEndpointUrl, apiKey, endpointUrl]);
+
+  const handleSave = () => {
+    setApiKey(localApiKey.trim());
+    setEndpointUrl(localEndpointUrl.trim());
+  };
 
   const isConfigured = !!apiKey && !!endpointUrl;
+  // Allow saving if there are changes (including clearing both fields)
+  const canSave = hasUnsavedChanges;
+
+  const setupInstructions = (
+    <>
+      <Text fontWeight="bold" mb={2}>
+        How to set up Aura Analyst:
+      </Text>
+      <ol style={{ paddingLeft: "20px", lineHeight: "1.8" }}>
+        <li>Go to SingleStore Portal → Analyst</li>
+        <li>Click "Create Domain"</li>
+        <li>Point it to your <Code>martech</Code> database</li>
+        <li>Add context about this demo (optional but recommended)</li>
+        <li>Go to API Keys tab and create a new API key</li>
+        <li>Copy the API Key and Endpoint URL below</li>
+      </ol>
+    </>
+  );
 
   return (
     <Section
@@ -966,44 +1007,34 @@ const AnalystConfigSection = ({
             Each deployment needs its own Analyst domain pointing to this database.
           </Text>
           <br />
-          <Button
-            size="sm"
-            variant="link"
-            colorScheme="purple"
-            onClick={() => setShowHelp(!showHelp)}
+          <Tooltip
+            label={setupInstructions}
+            placement="right"
+            hasArrow
+            bg={useColorModeValue("gray.50", "gray.700")}
+            color={useColorModeValue("gray.800", "white")}
+            borderColor={useColorModeValue("gray.200", "gray.600")}
+            borderWidth="1px"
+            p={4}
+            borderRadius="md"
+            maxW="400px"
           >
-            {showHelp ? "Hide" : "Show"} setup instructions
-          </Button>
-          <Collapse in={showHelp} animateOpacity>
-            <Box
-              mt={4}
-              p={4}
-              border="1px solid"
-              borderColor="gray.200"
-              borderRadius="md"
-              bg={useColorModeValue("gray.50", "gray.700")}
+            <Button
+              size="sm"
+              variant="link"
+              colorScheme="purple"
             >
-              <Text fontWeight="bold" mb={2}>
-                How to set up Aura Analyst:
-              </Text>
-              <ol style={{ paddingLeft: "20px", lineHeight: "1.8" }}>
-                <li>Go to SingleStore Portal → Analyst</li>
-                <li>Click "Create Domain"</li>
-                <li>Point it to your <Code>martech</Code> database</li>
-                <li>Add context about this demo (optional but recommended)</li>
-                <li>Go to API Keys tab and create a new API key</li>
-                <li>Copy the API Key and Endpoint URL below</li>
-              </ol>
-            </Box>
-          </Collapse>
+              Show setup instructions
+            </Button>
+          </Tooltip>
           <br />
-          <Stack spacing={3}>
+          <Stack spacing={3} as="form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <FormControl>
               <FormLabel>API Key</FormLabel>
               <Input
                 placeholder="eyJhbGciOiJFUzUxMiIsImtpZCI..."
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                value={localApiKey}
+                onChange={(e) => setLocalApiKey(e.target.value)}
                 size="sm"
               />
             </FormControl>
@@ -1011,11 +1042,19 @@ const AnalystConfigSection = ({
               <FormLabel>Endpoint URL</FormLabel>
               <Input
                 placeholder="https://apps.us-east-1.cloud.singlestore.com/v1/..."
-                value={endpointUrl}
-                onChange={(e) => setEndpointUrl(e.target.value)}
+                value={localEndpointUrl}
+                onChange={(e) => setLocalEndpointUrl(e.target.value)}
                 size="sm"
               />
             </FormControl>
+            <PrimaryButton
+              type="submit"
+              size="sm"
+              isDisabled={!canSave}
+              alignSelf="flex-start"
+            >
+              Save Configuration
+            </PrimaryButton>
           </Stack>
         </>
       }
