@@ -166,15 +166,16 @@ export const AnalystChat: React.FC = () => {
         };
         setMessages((prev) => [...prev, emptyMessage]);
       } else {
-        for (const result of response.results) {
+        // Batch all assistant messages into a single state update
+        const assistantMessages: Message[] = response.results.map((result) => {
           const formatted = formatAnalystResult(result);
-          const assistantMessage: Message = {
+          return {
             role: "assistant",
             content: formatted.content,
             result: result,
           };
-          setMessages((prev) => [...prev, assistantMessage]);
-        }
+        });
+        setMessages((prev) => [...prev, ...assistantMessages]);
       }
     } catch (error) {
       if (!isMountedRef.current) return;
@@ -429,8 +430,11 @@ export const AnalystChat: React.FC = () => {
               placeholder="Ask about your campaign data..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") handleSend();
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
               }}
               disabled={isLoading}
             />
