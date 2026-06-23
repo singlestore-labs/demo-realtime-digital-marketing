@@ -25,6 +25,8 @@ jobs:
 
   deploy-web:
     runs-on: ubuntu-latest
+    # Only deploy from upstream repo, not forks
+    if: github.repository == 'singlestore-labs/demo-realtime-digital-marketing'
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
