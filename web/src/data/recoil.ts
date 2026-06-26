@@ -238,6 +238,7 @@ export const analystChatMessages = atom<Array<{
   role: "user" | "assistant";
   content: string;
   result?: any;
+  processingSteps?: Array<{ type: "status" | "query"; content: string }>;
 }>>({
   key: "analystChatMessages",
   default: [],
