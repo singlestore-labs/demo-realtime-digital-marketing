@@ -25,12 +25,18 @@ import { CloseIcon, ChatIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import * as React from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { Link as RouterLink } from "react-router-dom";
+import Plotly from "plotly.js-dist-min";
+import createPlotlyComponent from "react-plotly.js/factory";
 import {
   queryAnalyst,
   formatAnalystResult,
   AnalystQueryResult,
+  AnalystChart,
+  AnalystTable,
 } from "@/data/analystClient";
 import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId } from "@/data/recoil";
+
+const Plot = createPlotlyComponent(Plotly);
 
 interface Message {
   role: "user" | "assistant";
@@ -236,6 +242,137 @@ export const AnalystChat: React.FC = () => {
     );
   };
 
+  const renderTables = (result: AnalystQueryResult) => {
+    if (!result.tables || result.tables.length === 0) return null;
+
+    return (
+      <>
+        {result.tables.map((table, tableIdx) => {
+          const maxRows = 10;
+          const columns = table.columns.map((col) => col.name);
+          const rows = table.table_data;
+
+          return (
+            <Box key={tableIdx} mt={3}>
+              {table.title && (
+                <Text fontWeight="bold" mb={2} fontSize="sm">
+                  {table.title}
+                </Text>
+              )}
+              <TableContainer maxW="100%" overflowX="auto">
+                <Table size="sm" variant="simple">
+                  <Thead>
+                    <Tr>
+                      {columns.map((col, idx) => (
+                        <Th key={idx}>{col}</Th>
+                      ))}
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {rows.slice(0, maxRows).map((row, rowIdx) => (
+                      <Tr key={rowIdx}>
+                        {row.map((cell, cellIdx) => (
+                          <Td key={cellIdx}>{String(cell)}</Td>
+                        ))}
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+                {rows.length > maxRows && (
+                  <Text fontSize="xs" color="gray.500" mt={2}>
+                    Showing {maxRows} of {rows.length} rows
+                  </Text>
+                )}
+              </TableContainer>
+            </Box>
+          );
+        })}
+      </>
+    );
+  };
+
+  const renderCharts = (result: AnalystQueryResult) => {
+    if (!result.charts || result.charts.length === 0) return null;
+
+    // Call hooks at the top level
+    const isDark = useColorModeValue(false, true);
+    const bgColor = useColorModeValue("white", "gray.700");
+    const textColor = useColorModeValue("black", "white");
+
+    return (
+      <>
+        {result.charts.map((chart, chartIdx) => {
+          // Deep clone to avoid frozen object errors
+          const chartCopy = JSON.parse(JSON.stringify(chart));
+
+          // Convert string values to numbers in chart data for Plotly
+          const processedData = chartCopy.figure.data.map((trace: any) => ({
+            ...trace,
+            y: Array.isArray(trace.y)
+              ? trace.y.map((val: any) => {
+                  if (typeof val === "string") {
+                    const parsed = parseFloat(val);
+                    return !isNaN(parsed) ? parsed : val;
+                  }
+                  return val;
+                })
+              : trace.y,
+            x: Array.isArray(trace.x)
+              ? trace.x.map((val: any) => {
+                  if (typeof val === "string") {
+                    const parsed = parseFloat(val);
+                    return !isNaN(parsed) ? parsed : val;
+                  }
+                  return val;
+                })
+              : trace.x,
+          }));
+
+          // Deep clone the layout
+          const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout));
+
+          const plotLayout = {
+            ...layoutCopy,
+            paper_bgcolor: isDark ? "#2D3748" : "white",
+            plot_bgcolor: isDark ? "#2D3748" : "#E5ECF6",
+            font: {
+              ...layoutCopy.font,
+              color: isDark ? "white" : "#2a3f5f",
+            },
+            autosize: true,
+            margin: { l: 50, r: 50, b: 50, t: 50, pad: 4 },
+          };
+
+          return (
+            <Box
+              key={`chart-${chartIdx}-${chart.title}`}
+              mt={3}
+              width="100%"
+              bg={bgColor}
+              p={2}
+              borderRadius="md"
+            >
+              {chart.title && (
+                <Text fontWeight="bold" mb={2} fontSize="sm" color={textColor}>
+                  {chart.title}
+                </Text>
+              )}
+              <Box width="100%" height="400px">
+                <Plot
+                  key={`plot-${chartIdx}`}
+                  data={processedData}
+                  layout={plotLayout}
+                  config={{ responsive: true, displayModeBar: true }}
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </Box>
+            </Box>
+          );
+        })}
+      </>
+    );
+  };
+
   return (
     <>
       {/* Floating toggle button */}
@@ -401,6 +538,8 @@ export const AnalystChat: React.FC = () => {
                   <Text fontSize="sm" whiteSpace="pre-wrap">
                     {msg.content}
                   </Text>
+                  {msg.result && renderCharts(msg.result)}
+                  {msg.result && renderTables(msg.result)}
                   {msg.result && renderData(msg.result)}
                 </Box>
               </Flex>
