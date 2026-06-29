@@ -173,7 +173,6 @@ export const AnalystChat: React.FC = () => {
             processingSteps.push({ type: "query", content: query });
           },
         },
-        undefined, // callbacks - not used yet
         abortControllerRef.current?.signal
       );
 
@@ -682,9 +681,6 @@ export const AnalystChat: React.FC = () => {
                       )}
                     </Accordion>
                   )}
-                  <Text fontSize="sm" whiteSpace="pre-wrap">
-                    {msg.content}
-                  </Text>
                   {msg.result && renderCharts(msg.result)}
                   {msg.result && renderTables(msg.result)}
                   {msg.result && renderData(msg.result)}
