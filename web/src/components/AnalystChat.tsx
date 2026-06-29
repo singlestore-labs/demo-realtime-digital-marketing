@@ -359,7 +359,7 @@ export const AnalystChat: React.FC = () => {
             paper_bgcolor: chartIsDark ? "#2D3748" : "white",
             plot_bgcolor: chartIsDark ? "#2D3748" : "#E5ECF6",
             font: {
-              ...chart.layout.font,
+              ...(chart.layout.font || {}),
               color: chartIsDark ? "white" : "#2a3f5f",
             },
             autosize: true,
