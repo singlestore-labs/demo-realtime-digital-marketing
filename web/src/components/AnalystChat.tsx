@@ -74,6 +74,7 @@ export const AnalystChat: React.FC = () => {
   const chartBgColor = useColorModeValue("white", "gray.700");
   const chartTextColor = useColorModeValue("black", "white");
   const chartIsDark = useColorModeValue(false, true);
+  const reasoningBgColor = useColorModeValue("gray.50", "gray.700");
 
   React.useEffect(() => {
     return () => {
@@ -195,13 +196,14 @@ export const AnalystChat: React.FC = () => {
         setMessages((prev) => [...prev, emptyMessage]);
       } else {
         // Batch all assistant messages into a single state update
-        const assistantMessages: Message[] = response.results.map((result) => {
+        // Only attach processingSteps to the first result to avoid duplication
+        const assistantMessages: Message[] = response.results.map((result, idx) => {
           const formatted = formatAnalystResult(result);
           return {
             role: "assistant",
             content: formatted.content,
             result: result,
-            processingSteps: processingSteps.length > 0 ? processingSteps : undefined,
+            processingSteps: idx === 0 && processingSteps.length > 0 ? processingSteps : undefined,
           };
         });
         setMessages((prev) => [...prev, ...assistantMessages]);
@@ -321,6 +323,15 @@ export const AnalystChat: React.FC = () => {
       .filter((charts): charts is AnalystChart[] => !!charts && charts.length > 0)
       .flat()
       .map((chart) => {
+        // Guard against malformed charts
+        if (!chart.figure || !chart.figure.data || !Array.isArray(chart.figure.data)) {
+          return {
+            title: chart.title || "Malformed chart",
+            data: [],
+            layout: {},
+          };
+        }
+
         // Deep clone to avoid frozen object errors
         const chartCopy = JSON.parse(JSON.stringify(chart));
 
@@ -342,7 +353,7 @@ export const AnalystChat: React.FC = () => {
           x: Array.isArray(trace.x) ? trace.x.map(maybeParseNumber) : trace.x,
         }));
 
-        const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout));
+        const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout || {}));
 
         return {
           title: chart.title,
@@ -614,7 +625,7 @@ export const AnalystChat: React.FC = () => {
                                     borderRadius="md"
                                     fontSize="xs"
                                     whiteSpace="pre-wrap"
-                                    bg={useColorModeValue("gray.50", "gray.700")}
+                                    bg={reasoningBgColor}
                                     borderLeft="3px solid"
                                     borderColor="purple.400"
                                   >
