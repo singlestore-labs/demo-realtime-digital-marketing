@@ -79,24 +79,20 @@ export async function queryAnalyst(
   request: AnalystQueryRequest,
   apiKey: string,
   endpointUrl: string,
-  callbacks?: StreamCallback
+  callbacks?: StreamCallback,
+  signal?: AbortSignal
 ): Promise<AnalystQueryResponse> {
   const url = endpointUrl;
 
-  let response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-  } catch (error) {
-    console.error("[Analyst] Network fetch error:", error);
-    throw new Error(`Network error: ${error instanceof Error ? error.message : "Unknown error"}`);
-  }
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+    signal,
+  });
 
   const traceId = response.headers.get("singlestore-trace-id");
   console.log("[Analyst] Trace ID:", traceId);

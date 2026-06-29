@@ -20,44 +20,22 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  Wrap,
-  WrapItem,
-  Tag,
-  useDisclosure,
 } from "@chakra-ui/react";
-import { CloseIcon, ChatIcon, ChevronDownIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { CloseIcon, ChatIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import * as React from "react";
-import ReactMarkdown from "react-markdown";
-import ChakraUIRenderer from "chakra-ui-markdown-renderer";
 import { useRecoilState, useRecoilValue } from "recoil";
+import { Link as RouterLink } from "react-router-dom";
 import {
   queryAnalyst,
   formatAnalystResult,
   AnalystQueryResult,
-  AnalystChart,
 } from "@/data/analystClient";
-import Plotly from "plotly.js-dist-min";
-import createPlotlyComponent from "react-plotly.js/factory";
-
-const Plot = createPlotlyComponent(Plotly);
-import {
-  analystApiKey,
-  analystEndpointUrl,
-  analystChatOpen,
-  analystChatMessages,
-  analystSessionId,
-} from "@/data/recoil";
-
-interface ProcessingStep {
-  type: "status" | "query";
-  content: string;
-}
+import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId } from "@/data/recoil";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   result?: AnalystQueryResult;
-  processingSteps?: ProcessingStep[];
 }
 
 export const AnalystChat: React.FC = () => {
@@ -68,18 +46,12 @@ export const AnalystChat: React.FC = () => {
   const [sessionId, setSessionId] = useRecoilState(analystSessionId);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const [processingSteps, setProcessingSteps] = React.useState<ProcessingStep[]>([]);
-
-  // Initialize session ID if not set
-  React.useEffect(() => {
-    if (!sessionId) {
-      setSessionId(crypto.randomUUID());
-    }
-  }, [sessionId, setSessionId]);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
   const [size, setSize] = React.useState({ width: 450, height: 600 });
   const [isResizing, setIsResizing] = React.useState(false);
   const isMountedRef = React.useRef(true);
   const isProcessingRef = React.useRef(false);
+  const currentSessionIdRef = React.useRef(sessionId);
 
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -91,6 +63,11 @@ export const AnalystChat: React.FC = () => {
       isMountedRef.current = false;
     };
   }, []);
+
+  // Keep session ID ref in sync with Recoil state
+  React.useEffect(() => {
+    currentSessionIdRef.current = sessionId;
+  }, [sessionId]);
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const resizeStartRef = React.useRef({ x: 0, y: 0, width: 0, height: 0 });
@@ -144,468 +121,118 @@ export const AnalystChat: React.FC = () => {
     if (!input.trim() || isLoading || isProcessingRef.current) return;
 
     if (!apiKey || !endpointUrl) {
-      alert(
-        "Aura Analyst is not configured. Please set VITE_ANALYST_API_KEY and VITE_ANALYST_ENDPOINT_URL"
-      );
       return;
     }
 
     isProcessingRef.current = true;
     const userMessage: Message = { role: "user", content: input };
     const messageText = input;
+    const requestSessionId = sessionId;
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
-    // Initialize processing steps
-    const steps: ProcessingStep[] = [];
-    const addStep = (step: ProcessingStep) => {
-      steps.push(step);
-      setProcessingSteps([...steps]);
-    };
-
-    addStep({ type: "status", content: "Thinking..." });
-
-    // Create placeholder assistant message for progressive updates
-    const placeholderMessage: Message = {
-      role: "assistant",
-      content: "",
-      processingSteps: [...steps],
-      result: {
-        sql: null,
-        data: null,
-        chart: null,
-        text: null,
-        error: null,
-        tables: [],
-        followUpQueries: [],
-      },
-    };
-    setMessages((prev) => [...prev, placeholderMessage]);
-    const messageIndex = messages.length + 1; // +1 for the user message we just added
+    // Create abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       const response = await queryAnalyst(
         {
           message: messageText,
           output_modes: ["data", "text"],
-          session_id: sessionId,
+          session_id: requestSessionId,
         },
         apiKey,
         endpointUrl,
-        {
-          // Progressive rendering callbacks
-          onQuery: (query: string) => {
-            if (!isMountedRef.current) return;
-            addStep({ type: "query", content: query });
-            setMessages((prev) => {
-              const updated = [...prev];
-              const msg = updated[messageIndex];
-              if (msg && msg.role === "assistant") {
-                updated[messageIndex] = {
-                  ...msg,
-                  processingSteps: [...steps],
-                };
-              }
-              return updated;
-            });
-          },
-          onTextDelta: (delta: string) => {
-            if (!isMountedRef.current) return;
-            setMessages((prev) => {
-              const updated = [...prev];
-              const msg = updated[messageIndex];
-              if (msg && msg.role === "assistant") {
-                updated[messageIndex] = {
-                  ...msg,
-                  content: msg.content + delta,
-                };
-              }
-              return updated;
-            });
-          },
-          onTable: (table) => {
-            if (!isMountedRef.current) return;
-            setMessages((prev) => {
-              const updated = [...prev];
-              const msg = updated[messageIndex];
-              if (msg && msg.role === "assistant" && msg.result) {
-                updated[messageIndex] = {
-                  ...msg,
-                  result: {
-                    ...msg.result,
-                    tables: [...(msg.result.tables || []), table],
-                  },
-                };
-              }
-              return updated;
-            });
-          },
-          onChart: (chart) => {
-            if (!isMountedRef.current) return;
-            setMessages((prev) => {
-              const updated = [...prev];
-              const msg = updated[messageIndex];
-              if (msg && msg.role === "assistant" && msg.result) {
-                updated[messageIndex] = {
-                  ...msg,
-                  result: {
-                    ...msg.result,
-                    charts: [...(msg.result.charts || []), chart],
-                  },
-                };
-              }
-              return updated;
-            });
-          },
-          onFollowUpQueries: (queries) => {
-            if (!isMountedRef.current) return;
-            setMessages((prev) => {
-              const updated = [...prev];
-              const msg = updated[messageIndex];
-              if (msg && msg.role === "assistant" && msg.result) {
-                updated[messageIndex] = {
-                  ...msg,
-                  result: {
-                    ...msg.result,
-                    followUpQueries: queries,
-                  },
-                };
-              }
-              return updated;
-            });
-          },
-        }
+        abortControllerRef.current?.signal
       );
+
+      // Ignore response if session has changed (chat was cleared)
+      if (requestSessionId !== currentSessionIdRef.current) return;
 
       if (!isMountedRef.current) return;
 
-      // Remove status steps, keep only query steps
-      const finalSteps = steps.filter(step => step.type === "query");
-
-      // Final update with complete result
+      // Handle multiple results (agent can return more than one)
       if (!response.results || !Array.isArray(response.results)) {
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[messageIndex] = {
-            role: "assistant",
-            content: "Received malformed response from Analyst API.",
-            processingSteps: finalSteps,
-          };
-          return updated;
-        });
+        const malformedMessage: Message = {
+          role: "assistant",
+          content: "Received malformed response from Analyst API.",
+        };
+        setMessages((prev) => [...prev, malformedMessage]);
       } else if (response.results.length === 0) {
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[messageIndex] = {
-            role: "assistant",
-            content: "The agent returned no results.",
-            processingSteps: finalSteps,
-          };
-          return updated;
-        });
+        const emptyMessage: Message = {
+          role: "assistant",
+          content: "The agent returned no results.",
+        };
+        setMessages((prev) => [...prev, emptyMessage]);
       } else {
-        // Update with final result (may contain additional metadata)
-        const result = response.results[0];
-        setMessages((prev) => {
-          const updated = [...prev];
-          const msg = updated[messageIndex];
-          if (msg && msg.role === "assistant") {
-            updated[messageIndex] = {
-              ...msg,
-              content: result.text || msg.content || "No response",
-              result: result,
-              processingSteps: finalSteps,
-            };
-          }
-          return updated;
+        // Batch all assistant messages into a single state update
+        const assistantMessages: Message[] = response.results.map((result) => {
+          const formatted = formatAnalystResult(result);
+          return {
+            role: "assistant",
+            content: formatted.content,
+            result: result,
+          };
         });
+        setMessages((prev) => [...prev, ...assistantMessages]);
       }
     } catch (error) {
       if (!isMountedRef.current) return;
-      const finalSteps = steps.filter(step => step.type === "query");
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[messageIndex] = {
-          role: "assistant",
-          content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-          processingSteps: finalSteps,
-        };
-        return updated;
-      });
+      // Ignore aborted requests
+      if (error instanceof Error && error.name === 'AbortError') return;
+      // Ignore errors if session changed (chat was cleared)
+      if (requestSessionId !== currentSessionIdRef.current) return;
+
+      const errorMessage: Message = {
+        role: "assistant",
+        content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      isProcessingRef.current = false;
-      if (isMountedRef.current) {
-        setIsLoading(false);
-        setProcessingSteps([]);
+      // Only update state if this request is still valid (session hasn't changed)
+      if (requestSessionId === currentSessionIdRef.current) {
+        isProcessingRef.current = false;
+        abortControllerRef.current = null;
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
     }
   };
 
-  const renderTables = (result: AnalystQueryResult) => {
-    if (!result.tables || result.tables.length === 0) return null;
+  const renderData = (result: AnalystQueryResult) => {
+    if (!result.data || result.data.row_count === 0) return null;
+
+    const { columns, rows } = result.data;
+    const maxRows = 10;
 
     return (
-      <>
-        {result.tables.map((table, tableIdx) => {
-          const maxRows = 10;
-          const columns = table.columns.map((col) => col.name);
-          const rows = table.table_data;
-
-          return (
-            <Box key={tableIdx} mt={3}>
-              {table.title && (
-                <Text fontWeight="bold" mb={2} fontSize="sm">
-                  {table.title}
-                </Text>
-              )}
-              <TableContainer maxW="100%" overflowX="auto">
-                <Table size="sm" variant="simple">
-                  <Thead>
-                    <Tr>
-                      {columns.map((col, idx) => (
-                        <Th key={idx}>{col}</Th>
-                      ))}
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {rows.slice(0, maxRows).map((row, rowIdx) => (
-                      <Tr key={rowIdx}>
-                        {row.map((cell, cellIdx) => (
-                          <Td key={cellIdx}>{String(cell)}</Td>
-                        ))}
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-                {rows.length > maxRows && (
-                  <Text fontSize="xs" color="gray.500" mt={2}>
-                    Showing {maxRows} of {rows.length} rows
-                  </Text>
-                )}
-              </TableContainer>
-            </Box>
-          );
-        })}
-      </>
-    );
-  };
-
-  const renderFollowUpQueries = (result: AnalystQueryResult) => {
-    if (!result.followUpQueries || result.followUpQueries.length === 0) return null;
-
-    return (
-      <Wrap mt={3} spacing={2}>
-        {result.followUpQueries.map((query, idx) => (
-          <WrapItem key={idx}>
-            <Tag
-              size="md"
-              variant="outline"
-              colorScheme="purple"
-              cursor="pointer"
-              _hover={{ bg: useColorModeValue("purple.50", "purple.900") }}
-              onClick={() => {
-                setInput(query);
-              }}
-            >
-              {query}
-            </Tag>
-          </WrapItem>
-        ))}
-      </Wrap>
-    );
-  };
-
-  const ProcessingSteps: React.FC<{ steps: ProcessingStep[] }> = ({ steps }) => {
-    const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true });
-    const stepBgColor = useColorModeValue("gray.50", "gray.600");
-    const stepTextColor = useColorModeValue("gray.600", "gray.300");
-    const queryBgColor = useColorModeValue("gray.100", "gray.700");
-    const queryTextColor = useColorModeValue("gray.700", "gray.200");
-
-    if (!steps || steps.length === 0) return null;
-
-    return (
-      <Box mt={2} mb={3}>
-        <Flex
-          alignItems="center"
-          cursor="pointer"
-          onClick={onToggle}
-          py={1}
-          _hover={{ opacity: 0.8 }}
-        >
-          <IconButton
-            aria-label="Toggle processing steps"
-            icon={isOpen ? <ChevronDownIcon /> : <ChevronRightIcon />}
-            size="xs"
-            variant="ghost"
-            mr={1}
-          />
-          <Text fontSize="xs" fontWeight="medium" color={stepTextColor}>
-            Processing steps
-          </Text>
-        </Flex>
-        <Collapse in={isOpen} animateOpacity>
-          <VStack align="stretch" spacing={2} pl={6} mt={2}>
-            {steps.map((step, idx) => (
-              <Box key={idx}>
-                {step.type === "status" ? (
-                  <Flex alignItems="center" fontSize="xs" color={stepTextColor}>
-                    <Spinner size="xs" mr={2} />
-                    <Text>{step.content}</Text>
-                  </Flex>
-                ) : (
-                  <Box
-                    bg={queryBgColor}
-                    p={2}
-                    borderRadius="md"
-                    fontSize="xs"
-                    fontFamily="monospace"
-                    color={queryTextColor}
-                    overflowX="auto"
-                    whiteSpace="pre-wrap"
-                    wordBreak="break-word"
-                  >
-                    {step.content}
-                  </Box>
-                )}
-              </Box>
+      <TableContainer maxW="100%" overflowX="auto" mt={2}>
+        <Table size="sm" variant="simple">
+          <Thead>
+            <Tr>
+              {columns.map((col, idx) => (
+                <Th key={idx}>{col}</Th>
+              ))}
+            </Tr>
+          </Thead>
+          <Tbody>
+            {rows.slice(0, maxRows).map((row, rowIdx) => (
+              <Tr key={rowIdx}>
+                {row.map((cell, cellIdx) => (
+                  <Td key={cellIdx}>{String(cell)}</Td>
+                ))}
+              </Tr>
             ))}
-          </VStack>
-        </Collapse>
-      </Box>
-    );
-  };
-
-  const renderCharts = (result: AnalystQueryResult) => {
-    console.log("[renderCharts] Called with result:", result);
-    console.log("[renderCharts] Charts array:", result.charts);
-    console.log("[renderCharts] Plotly object:", Plotly);
-    console.log("[renderCharts] Plotly version:", (Plotly as any)?.version);
-    console.log("[renderCharts] Plot component:", Plot);
-
-    if (!result.charts || result.charts.length === 0) {
-      console.log("[renderCharts] No charts to render");
-      return null;
-    }
-
-    console.log(`[renderCharts] Rendering ${result.charts.length} chart(s)`);
-
-    // Call hooks at the top level, outside the map
-    const isDark = useColorModeValue(false, true);
-    const bgColor = useColorModeValue("white", "gray.700");
-    const textColor = useColorModeValue("black", "white");
-
-    return (
-      <>
-        {result.charts.map((chart, chartIdx) => {
-          console.log(`[renderCharts] Processing chart ${chartIdx}:`, chart);
-          console.log(`[renderCharts] Chart ${chartIdx} figure data:`, chart.figure.data);
-
-          // Convert string values to numbers in chart data for Plotly
-          // Deep clone to avoid "read only property" errors
-          const processedData = chart.figure.data.map((trace: any) => {
-            console.log(`[renderCharts] Original trace:`, trace);
-            console.log(`[renderCharts] Original y values:`, trace.y);
-            console.log(`[renderCharts] Y value types:`, trace.y?.map((v: any) => typeof v));
-
-            // Create a deep copy using JSON parse/stringify to avoid frozen object issues
-            const traceCopy = JSON.parse(JSON.stringify(trace));
-
-            const processed = {
-              ...traceCopy,
-              y: Array.isArray(traceCopy.y)
-                ? traceCopy.y.map((val: any) => {
-                    if (typeof val === "string") {
-                      const parsed = parseFloat(val);
-                      return !isNaN(parsed) ? parsed : val;
-                    }
-                    return val;
-                  })
-                : traceCopy.y,
-              x: Array.isArray(traceCopy.x)
-                ? traceCopy.x.map((val: any) => {
-                    if (typeof val === "string") {
-                      const parsed = parseFloat(val);
-                      return !isNaN(parsed) ? parsed : val;
-                    }
-                    return val;
-                  })
-                : traceCopy.x,
-            };
-
-            console.log(`[renderCharts] Processed trace:`, processed);
-            console.log(`[renderCharts] Processed y values:`, processed.y);
-            return processed;
-          });
-
-          console.log(`[renderCharts] All processed data for chart ${chartIdx}:`, processedData);
-          console.log(`[renderCharts] Layout for chart ${chartIdx}:`, chart.figure.layout);
-
-          // Deep clone the layout as well to avoid frozen object issues
-          const layoutCopy = JSON.parse(JSON.stringify(chart.figure.layout));
-
-          const plotLayout = {
-            ...layoutCopy,
-            paper_bgcolor: isDark ? "#2D3748" : "white",
-            plot_bgcolor: isDark ? "#2D3748" : "#E5ECF6",
-            font: {
-              ...layoutCopy.font,
-              color: isDark ? "white" : "#2a3f5f",
-            },
-            autosize: true,
-            margin: { l: 50, r: 50, b: 50, t: 50, pad: 4 },
-          };
-
-          console.log(`[renderCharts] About to render Plot component for chart ${chartIdx}`);
-          console.log(`[renderCharts] Plot data:`, processedData);
-          console.log(`[renderCharts] Plot layout:`, plotLayout);
-
-          // Test if Plot component throws any errors
-          try {
-            return (
-              <Box key={`chart-${chartIdx}-${chart.title}`} mt={3} width="100%" bg={bgColor} p={2} borderRadius="md">
-                {chart.title && (
-                  <Text fontWeight="bold" mb={2} fontSize="sm" color={textColor}>
-                    {chart.title}
-                  </Text>
-                )}
-                <Box
-                  width="100%"
-                  height="400px"
-                  border="1px solid red"
-                  id={`plot-container-${chartIdx}`}
-                  onLoad={() => console.log(`[renderCharts] Plot container ${chartIdx} loaded`)}
-                >
-                  <Plot
-                    key={`plot-${chartIdx}`}
-                    data={processedData}
-                    layout={plotLayout}
-                    config={{ responsive: true, displayModeBar: true }}
-                    style={{ width: "100%", height: "100%" }}
-                    onInitialized={(figure: any, graphDiv: any) => {
-                      console.log(`[renderCharts] Plot ${chartIdx} initialized!`, { figure, graphDiv });
-                    }}
-                    onUpdate={(figure: any, graphDiv: any) => {
-                      console.log(`[renderCharts] Plot ${chartIdx} updated!`, { figure, graphDiv });
-                    }}
-                    onError={(err: any) => {
-                      console.error(`[renderCharts] Plot ${chartIdx} error:`, err);
-                    }}
-                  />
-                </Box>
-              </Box>
-            );
-          } catch (err) {
-            console.error(`[renderCharts] Error rendering Plot component ${chartIdx}:`, err);
-            return (
-              <Box key={`chart-error-${chartIdx}`} mt={3} width="100%" bg="red.100" p={2} borderRadius="md">
-                <Text color="red.700">Error rendering chart: {String(err)}</Text>
-              </Box>
-            );
-          }
-        })}
-      </>
+          </Tbody>
+        </Table>
+        {rows.length > maxRows && (
+          <Text fontSize="xs" color="gray.500" mt={2}>
+            Showing {maxRows} of {rows.length} rows
+          </Text>
+        )}
+      </TableContainer>
     );
   };
 
@@ -698,10 +325,19 @@ export const AnalystChat: React.FC = () => {
                 <MenuList>
                   <MenuItem
                     onClick={() => {
+                      // Abort any in-flight requests
+                      if (abortControllerRef.current) {
+                        abortControllerRef.current.abort();
+                        abortControllerRef.current = null;
+                      }
+                      // Clear processing locks
+                      isProcessingRef.current = false;
                       setMessages([]);
                       setSessionId(crypto.randomUUID());
+                      setIsLoading(false);
                     }}
-                    color={useColorModeValue("gray.800", "inherit")}
+                    color={useColorModeValue("gray.800", "white")}
+                    fontWeight="medium"
                   >
                     Clear Chat
                   </MenuItem>
@@ -727,10 +363,18 @@ export const AnalystChat: React.FC = () => {
             align="stretch"
           >
             {messages.length === 0 && (!apiKey || !endpointUrl) && (
-              <Text color="gray.500" textAlign="center" mt={8}>
-                Aura Analyst is not configured. Please set VITE_ANALYST_API_KEY
-                and VITE_ANALYST_ENDPOINT_URL environment variables.
-              </Text>
+              <VStack spacing={3} color="gray.500" textAlign="center" mt={8}>
+                <Text>Aura Analyst is not configured.</Text>
+                <Button
+                  as={RouterLink}
+                  to="/configure"
+                  size="sm"
+                  colorScheme="purple"
+                  variant="outline"
+                >
+                  Configure Analyst →
+                </Button>
+              </VStack>
             )}
             {messages.length === 0 && apiKey && endpointUrl && (
               <Text color="gray.500" textAlign="center" mt={8}>
@@ -754,21 +398,14 @@ export const AnalystChat: React.FC = () => {
                   py={2}
                   borderRadius="lg"
                 >
-                  {msg.processingSteps && msg.processingSteps.length > 0 && (
-                    <ProcessingSteps steps={msg.processingSteps} />
-                  )}
-                  <Box fontSize="sm">
-                    <ReactMarkdown components={ChakraUIRenderer()} skipHtml>
-                      {msg.content}
-                    </ReactMarkdown>
-                  </Box>
-                  {msg.result && renderCharts(msg.result)}
-                  {msg.result && renderTables(msg.result)}
-                  {msg.result && renderFollowUpQueries(msg.result)}
+                  <Text fontSize="sm" whiteSpace="pre-wrap">
+                    {msg.content}
+                  </Text>
+                  {msg.result && renderData(msg.result)}
                 </Box>
               </Flex>
             ))}
-            {isLoading && processingSteps.length === 0 && (
+            {isLoading && (
               <Flex justifyContent="flex-start">
                 <Box
                   bg={assistantBgColor}
@@ -793,8 +430,11 @@ export const AnalystChat: React.FC = () => {
               placeholder="Ask about your campaign data..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") handleSend();
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
               }}
               disabled={isLoading}
             />
