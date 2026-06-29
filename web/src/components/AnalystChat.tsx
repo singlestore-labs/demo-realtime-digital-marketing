@@ -353,7 +353,9 @@ export const AnalystChat: React.FC = () => {
           x: Array.isArray(trace.x) ? trace.x.map(maybeParseNumber) : trace.x,
         }));
 
-        const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout));
+        const layoutCopy = chartCopy.figure.layout
+          ? JSON.parse(JSON.stringify(chartCopy.figure.layout))
+          : {};
 
         return {
           title: chart.title,
