@@ -144,6 +144,7 @@ export const AnalystChat: React.FC = () => {
         },
         apiKey,
         endpointUrl,
+        undefined, // callbacks - not used yet
         abortControllerRef.current?.signal
       );
 
