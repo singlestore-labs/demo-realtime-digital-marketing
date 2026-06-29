@@ -295,47 +295,71 @@ export const AnalystChat: React.FC = () => {
     );
   };
 
+  // Memoize chart processing to avoid recomputation on every render
+  const processedCharts = React.useMemo(() => {
+    return messages
+      .map((msg) => msg.result?.charts)
+      .filter((charts): charts is AnalystChart[] => !!charts && charts.length > 0)
+      .flat()
+      .map((chart) => {
+        // Deep clone to avoid frozen object errors
+        const chartCopy = JSON.parse(JSON.stringify(chart));
+
+        // Helper: only convert pure numeric strings, not dates or mixed content
+        const maybeParseNumber = (val: any) => {
+          if (typeof val !== "string") return val;
+          const trimmed = val.trim();
+          // Skip if it looks like a date (contains hyphens, slashes, or colons)
+          if (/[-/:]/.test(trimmed)) return val;
+          // Skip if it's not purely numeric (allowing decimals and negatives)
+          if (!/^-?\d+\.?\d*$/.test(trimmed)) return val;
+          const parsed = parseFloat(trimmed);
+          return !isNaN(parsed) ? parsed : val;
+        };
+
+        const processedData = chartCopy.figure.data.map((trace: any) => ({
+          ...trace,
+          y: Array.isArray(trace.y) ? trace.y.map(maybeParseNumber) : trace.y,
+          x: Array.isArray(trace.x) ? trace.x.map(maybeParseNumber) : trace.x,
+        }));
+
+        const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout));
+
+        return {
+          title: chart.title,
+          data: processedData,
+          layout: layoutCopy,
+        };
+      });
+  }, [messages]);
+
   const renderCharts = (result: AnalystQueryResult) => {
     if (!result.charts || result.charts.length === 0) return null;
 
+    // Find processed charts matching this result
+    const resultCharts = processedCharts.filter((_, idx) => {
+      // Match by scanning messages for this result's charts
+      let chartsSoFar = 0;
+      for (const msg of messages) {
+        if (msg.result === result && result.charts) {
+          return idx >= chartsSoFar && idx < chartsSoFar + result.charts.length;
+        }
+        if (msg.result?.charts) {
+          chartsSoFar += msg.result.charts.length;
+        }
+      }
+      return false;
+    });
+
     return (
       <>
-        {result.charts.map((chart, chartIdx) => {
-          // Deep clone to avoid frozen object errors
-          const chartCopy = JSON.parse(JSON.stringify(chart));
-
-          // Convert string values to numbers in chart data for Plotly
-          const processedData = chartCopy.figure.data.map((trace: any) => ({
-            ...trace,
-            y: Array.isArray(trace.y)
-              ? trace.y.map((val: any) => {
-                  if (typeof val === "string") {
-                    const parsed = parseFloat(val);
-                    return !isNaN(parsed) ? parsed : val;
-                  }
-                  return val;
-                })
-              : trace.y,
-            x: Array.isArray(trace.x)
-              ? trace.x.map((val: any) => {
-                  if (typeof val === "string") {
-                    const parsed = parseFloat(val);
-                    return !isNaN(parsed) ? parsed : val;
-                  }
-                  return val;
-                })
-              : trace.x,
-          }));
-
-          // Deep clone the layout
-          const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout));
-
+        {resultCharts.map((chart, chartIdx) => {
           const plotLayout = {
-            ...layoutCopy,
+            ...chart.layout,
             paper_bgcolor: chartIsDark ? "#2D3748" : "white",
             plot_bgcolor: chartIsDark ? "#2D3748" : "#E5ECF6",
             font: {
-              ...layoutCopy.font,
+              ...chart.layout.font,
               color: chartIsDark ? "white" : "#2a3f5f",
             },
             autosize: true,
@@ -359,7 +383,7 @@ export const AnalystChat: React.FC = () => {
               <Box width="100%" height="400px">
                 <Plot
                   key={`plot-${chartIdx}`}
-                  data={processedData}
+                  data={chart.data}
                   layout={plotLayout}
                   config={{ responsive: true, displayModeBar: true }}
                   style={{ width: "100%", height: "100%" }}
