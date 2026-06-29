@@ -20,11 +20,18 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Code,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from "@chakra-ui/react";
 import { CloseIcon, ChatIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import * as React from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { Link as RouterLink } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import Plotly from "plotly.js-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 import {
@@ -42,6 +49,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   result?: AnalystQueryResult;
+  processingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string }>;
 }
 
 export const AnalystChat: React.FC = () => {
@@ -66,6 +74,7 @@ export const AnalystChat: React.FC = () => {
   const chartBgColor = useColorModeValue("white", "gray.700");
   const chartTextColor = useColorModeValue("black", "white");
   const chartIsDark = useColorModeValue(false, true);
+  const reasoningBgColor = useColorModeValue("gray.50", "gray.700");
 
   React.useEffect(() => {
     return () => {
@@ -144,6 +153,9 @@ export const AnalystChat: React.FC = () => {
     // Create abort controller for this request
     abortControllerRef.current = new AbortController();
 
+    // Track processing steps (reasoning and queries executed)
+    const processingSteps: Array<{ type: "status" | "query" | "reasoning"; content: string }> = [];
+
     try {
       const response = await queryAnalyst(
         {
@@ -153,7 +165,14 @@ export const AnalystChat: React.FC = () => {
         },
         apiKey,
         endpointUrl,
-        undefined, // callbacks - not used yet
+        {
+          onReasoning: (reasoning: string) => {
+            processingSteps.push({ type: "reasoning", content: reasoning });
+          },
+          onQuery: (query: string) => {
+            processingSteps.push({ type: "query", content: query });
+          },
+        },
         abortControllerRef.current?.signal
       );
 
@@ -177,12 +196,14 @@ export const AnalystChat: React.FC = () => {
         setMessages((prev) => [...prev, emptyMessage]);
       } else {
         // Batch all assistant messages into a single state update
-        const assistantMessages: Message[] = response.results.map((result) => {
+        // Only attach processingSteps to the first result to avoid duplication
+        const assistantMessages: Message[] = response.results.map((result, idx) => {
           const formatted = formatAnalystResult(result);
           return {
             role: "assistant",
             content: formatted.content,
             result: result,
+            processingSteps: idx === 0 && processingSteps.length > 0 ? processingSteps : undefined,
           };
         });
         setMessages((prev) => [...prev, ...assistantMessages]);
@@ -302,6 +323,15 @@ export const AnalystChat: React.FC = () => {
       .filter((charts): charts is AnalystChart[] => !!charts && charts.length > 0)
       .flat()
       .map((chart) => {
+        // Guard against malformed charts
+        if (!chart.figure || !chart.figure.data || !Array.isArray(chart.figure.data)) {
+          return {
+            title: chart.title || "Malformed chart",
+            data: [],
+            layout: {},
+          };
+        }
+
         // Deep clone to avoid frozen object errors
         const chartCopy = JSON.parse(JSON.stringify(chart));
 
@@ -323,7 +353,9 @@ export const AnalystChat: React.FC = () => {
           x: Array.isArray(trace.x) ? trace.x.map(maybeParseNumber) : trace.x,
         }));
 
-        const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout));
+        const layoutCopy = chartCopy.figure.layout
+          ? JSON.parse(JSON.stringify(chartCopy.figure.layout))
+          : {};
 
         return {
           title: chart.title,
@@ -558,9 +590,99 @@ export const AnalystChat: React.FC = () => {
                   py={2}
                   borderRadius="lg"
                 >
-                  <Text fontSize="sm" whiteSpace="pre-wrap">
-                    {msg.content}
-                  </Text>
+                  {msg.role === "user" ? (
+                    <Text fontSize="sm" whiteSpace="pre-wrap">
+                      {msg.content}
+                    </Text>
+                  ) : (
+                    <Box fontSize="sm">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => <Text mb={2}>{children}</Text>,
+                          strong: ({ children }) => <Text as="strong" fontWeight="bold">{children}</Text>,
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    </Box>
+                  )}
+                  {msg.processingSteps && msg.processingSteps.length > 0 && (
+                    <Accordion allowToggle mt={2}>
+                      {msg.processingSteps.some(s => s.type === "reasoning") && (
+                        <AccordionItem border="none">
+                          <AccordionButton px={0} _hover={{ bg: "transparent" }}>
+                            <Box flex="1" textAlign="left" fontSize="xs" fontWeight="medium">
+                              💭 View Reasoning
+                            </Box>
+                            <AccordionIcon />
+                          </AccordionButton>
+                          <AccordionPanel px={0} pb={2}>
+                            <VStack align="stretch" spacing={2}>
+                              {msg.processingSteps
+                                .filter(step => step.type === "reasoning")
+                                .map((step, stepIdx) => (
+                                  <Box
+                                    key={stepIdx}
+                                    p={3}
+                                    borderRadius="md"
+                                    fontSize="xs"
+                                    whiteSpace="pre-wrap"
+                                    bg={reasoningBgColor}
+                                    borderLeft="3px solid"
+                                    borderColor="purple.400"
+                                  >
+                                    <ReactMarkdown
+                                      components={{
+                                        p: ({ children }) => <Text mb={1} fontSize="xs">{children}</Text>,
+                                        code: ({ inline, children }) =>
+                                          inline ? (
+                                            <Code fontSize="xs">{children}</Code>
+                                          ) : (
+                                            <Code display="block" p={2} fontSize="xs" whiteSpace="pre-wrap">
+                                              {children}
+                                            </Code>
+                                          ),
+                                      }}
+                                    >
+                                      {step.content}
+                                    </ReactMarkdown>
+                                  </Box>
+                                ))}
+                            </VStack>
+                          </AccordionPanel>
+                        </AccordionItem>
+                      )}
+                      {msg.processingSteps.some(s => s.type === "query") && (
+                        <AccordionItem border="none">
+                          <AccordionButton px={0} _hover={{ bg: "transparent" }}>
+                            <Box flex="1" textAlign="left" fontSize="xs" fontWeight="medium">
+                              📊 View Queries ({msg.processingSteps.filter(s => s.type === "query").length})
+                            </Box>
+                            <AccordionIcon />
+                          </AccordionButton>
+                          <AccordionPanel px={0} pb={2}>
+                            <VStack align="stretch" spacing={2}>
+                              {msg.processingSteps
+                                .filter(step => step.type === "query")
+                                .map((step, stepIdx) => (
+                                  <Code
+                                    key={stepIdx}
+                                    p={2}
+                                    borderRadius="md"
+                                    fontSize="xs"
+                                    whiteSpace="pre-wrap"
+                                    display="block"
+                                    colorScheme="purple"
+                                  >
+                                    {step.content}
+                                  </Code>
+                                ))}
+                            </VStack>
+                          </AccordionPanel>
+                        </AccordionItem>
+                      )}
+                    </Accordion>
+                  )}
                   {msg.result && renderCharts(msg.result)}
                   {msg.result && renderTables(msg.result)}
                   {msg.result && renderData(msg.result)}
