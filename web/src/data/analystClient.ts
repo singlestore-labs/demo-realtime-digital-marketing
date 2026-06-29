@@ -65,6 +65,7 @@ export interface StreamCallback {
   onChart?: (chart: AnalystChart) => void;
   onFollowUpQueries?: (queries: string[]) => void;
   onQuery?: (query: string) => void;
+  onReasoning?: (reasoning: string) => void;
 }
 
 /**
@@ -141,8 +142,13 @@ export async function queryAnalyst(
         try {
           const parsed = JSON.parse(data);
 
-          // Capture SQL query from reasoning events
+          // Capture reasoning and SQL query from reasoning events
           if (parsed.type === "response.reasoning.done" && parsed.text) {
+            // Send full reasoning text to callback
+            if (callbacks?.onReasoning) {
+              callbacks.onReasoning(parsed.text);
+            }
+
             // Extract SQL query from the reasoning text
             const sqlMatch = parsed.text.match(/```sql\s*([\s\S]*?)\s*```/);
             if (sqlMatch && sqlMatch[1]) {

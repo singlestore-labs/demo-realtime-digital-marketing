@@ -49,7 +49,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   result?: AnalystQueryResult;
-  processingSteps?: Array<{ type: "status" | "query"; content: string }>;
+  processingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string }>;
 }
 
 export const AnalystChat: React.FC = () => {
@@ -152,8 +152,8 @@ export const AnalystChat: React.FC = () => {
     // Create abort controller for this request
     abortControllerRef.current = new AbortController();
 
-    // Track processing steps (queries executed)
-    const processingSteps: Array<{ type: "status" | "query"; content: string }> = [];
+    // Track processing steps (reasoning and queries executed)
+    const processingSteps: Array<{ type: "status" | "query" | "reasoning"; content: string }> = [];
 
     try {
       const response = await queryAnalyst(
@@ -165,6 +165,9 @@ export const AnalystChat: React.FC = () => {
         apiKey,
         endpointUrl,
         {
+          onReasoning: (reasoning: string) => {
+            processingSteps.push({ type: "reasoning", content: reasoning });
+          },
           onQuery: (query: string) => {
             processingSteps.push({ type: "query", content: query });
           },
@@ -592,32 +595,79 @@ export const AnalystChat: React.FC = () => {
                   )}
                   {msg.processingSteps && msg.processingSteps.length > 0 && (
                     <Accordion allowToggle mt={2}>
-                      <AccordionItem border="none">
-                        <AccordionButton px={0} _hover={{ bg: "transparent" }}>
-                          <Box flex="1" textAlign="left" fontSize="xs" fontWeight="medium">
-                            View Queries ({msg.processingSteps.filter(s => s.type === "query").length})
-                          </Box>
-                          <AccordionIcon />
-                        </AccordionButton>
-                        <AccordionPanel px={0} pb={2}>
-                          <VStack align="stretch" spacing={2}>
-                            {msg.processingSteps
-                              .filter(step => step.type === "query")
-                              .map((step, stepIdx) => (
-                                <Code
-                                  key={stepIdx}
-                                  p={2}
-                                  borderRadius="md"
-                                  fontSize="xs"
-                                  whiteSpace="pre-wrap"
-                                  display="block"
-                                >
-                                  {step.content}
-                                </Code>
-                              ))}
-                          </VStack>
-                        </AccordionPanel>
-                      </AccordionItem>
+                      {msg.processingSteps.some(s => s.type === "reasoning") && (
+                        <AccordionItem border="none">
+                          <AccordionButton px={0} _hover={{ bg: "transparent" }}>
+                            <Box flex="1" textAlign="left" fontSize="xs" fontWeight="medium">
+                              💭 View Reasoning
+                            </Box>
+                            <AccordionIcon />
+                          </AccordionButton>
+                          <AccordionPanel px={0} pb={2}>
+                            <VStack align="stretch" spacing={2}>
+                              {msg.processingSteps
+                                .filter(step => step.type === "reasoning")
+                                .map((step, stepIdx) => (
+                                  <Box
+                                    key={stepIdx}
+                                    p={3}
+                                    borderRadius="md"
+                                    fontSize="xs"
+                                    whiteSpace="pre-wrap"
+                                    bg={useColorModeValue("gray.50", "gray.700")}
+                                    borderLeft="3px solid"
+                                    borderColor="purple.400"
+                                  >
+                                    <ReactMarkdown
+                                      components={{
+                                        p: ({ children }) => <Text mb={1} fontSize="xs">{children}</Text>,
+                                        code: ({ inline, children }) =>
+                                          inline ? (
+                                            <Code fontSize="xs">{children}</Code>
+                                          ) : (
+                                            <Code display="block" p={2} fontSize="xs" whiteSpace="pre-wrap">
+                                              {children}
+                                            </Code>
+                                          ),
+                                      }}
+                                    >
+                                      {step.content}
+                                    </ReactMarkdown>
+                                  </Box>
+                                ))}
+                            </VStack>
+                          </AccordionPanel>
+                        </AccordionItem>
+                      )}
+                      {msg.processingSteps.some(s => s.type === "query") && (
+                        <AccordionItem border="none">
+                          <AccordionButton px={0} _hover={{ bg: "transparent" }}>
+                            <Box flex="1" textAlign="left" fontSize="xs" fontWeight="medium">
+                              📊 View Queries ({msg.processingSteps.filter(s => s.type === "query").length})
+                            </Box>
+                            <AccordionIcon />
+                          </AccordionButton>
+                          <AccordionPanel px={0} pb={2}>
+                            <VStack align="stretch" spacing={2}>
+                              {msg.processingSteps
+                                .filter(step => step.type === "query")
+                                .map((step, stepIdx) => (
+                                  <Code
+                                    key={stepIdx}
+                                    p={2}
+                                    borderRadius="md"
+                                    fontSize="xs"
+                                    whiteSpace="pre-wrap"
+                                    display="block"
+                                    colorScheme="purple"
+                                  >
+                                    {step.content}
+                                  </Code>
+                                ))}
+                            </VStack>
+                          </AccordionPanel>
+                        </AccordionItem>
+                      )}
                     </Accordion>
                   )}
                   {msg.result && renderCharts(msg.result)}
