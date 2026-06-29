@@ -63,6 +63,9 @@ export const AnalystChat: React.FC = () => {
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const userBgColor = useColorModeValue("#820DDF", "#9333EA");
   const assistantBgColor = useColorModeValue("gray.100", "gray.700");
+  const chartBgColor = useColorModeValue("white", "gray.700");
+  const chartTextColor = useColorModeValue("black", "white");
+  const chartIsDark = useColorModeValue(false, true);
 
   React.useEffect(() => {
     return () => {
@@ -295,11 +298,6 @@ export const AnalystChat: React.FC = () => {
   const renderCharts = (result: AnalystQueryResult) => {
     if (!result.charts || result.charts.length === 0) return null;
 
-    // Call hooks at the top level
-    const isDark = useColorModeValue(false, true);
-    const bgColor = useColorModeValue("white", "gray.700");
-    const textColor = useColorModeValue("black", "white");
-
     return (
       <>
         {result.charts.map((chart, chartIdx) => {
@@ -334,11 +332,11 @@ export const AnalystChat: React.FC = () => {
 
           const plotLayout = {
             ...layoutCopy,
-            paper_bgcolor: isDark ? "#2D3748" : "white",
-            plot_bgcolor: isDark ? "#2D3748" : "#E5ECF6",
+            paper_bgcolor: chartIsDark ? "#2D3748" : "white",
+            plot_bgcolor: chartIsDark ? "#2D3748" : "#E5ECF6",
             font: {
               ...layoutCopy.font,
-              color: isDark ? "white" : "#2a3f5f",
+              color: chartIsDark ? "white" : "#2a3f5f",
             },
             autosize: true,
             margin: { l: 50, r: 50, b: 50, t: 50, pad: 4 },
@@ -349,12 +347,12 @@ export const AnalystChat: React.FC = () => {
               key={`chart-${chartIdx}-${chart.title}`}
               mt={3}
               width="100%"
-              bg={bgColor}
+              bg={chartBgColor}
               p={2}
               borderRadius="md"
             >
               {chart.title && (
-                <Text fontWeight="bold" mb={2} fontSize="sm" color={textColor}>
+                <Text fontWeight="bold" mb={2} fontSize="sm" color={chartTextColor}>
                   {chart.title}
                 </Text>
               )}
