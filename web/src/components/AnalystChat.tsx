@@ -25,12 +25,18 @@ import { CloseIcon, ChatIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import * as React from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { Link as RouterLink } from "react-router-dom";
+import Plotly from "plotly.js-dist-min";
+import createPlotlyComponent from "react-plotly.js/factory";
 import {
   queryAnalyst,
   formatAnalystResult,
   AnalystQueryResult,
+  AnalystChart,
+  AnalystTable,
 } from "@/data/analystClient";
 import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId } from "@/data/recoil";
+
+const Plot = createPlotlyComponent(Plotly);
 
 interface Message {
   role: "user" | "assistant";
@@ -57,6 +63,9 @@ export const AnalystChat: React.FC = () => {
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const userBgColor = useColorModeValue("#820DDF", "#9333EA");
   const assistantBgColor = useColorModeValue("gray.100", "gray.700");
+  const chartBgColor = useColorModeValue("white", "gray.700");
+  const chartTextColor = useColorModeValue("black", "white");
+  const chartIsDark = useColorModeValue(false, true);
 
   React.useEffect(() => {
     return () => {
@@ -237,6 +246,156 @@ export const AnalystChat: React.FC = () => {
     );
   };
 
+  const renderTables = (result: AnalystQueryResult) => {
+    if (!result.tables || result.tables.length === 0) return null;
+
+    return (
+      <>
+        {result.tables.map((table, tableIdx) => {
+          const maxRows = 10;
+          const columns = table.columns.map((col) => col.name);
+          const rows = table.table_data;
+
+          return (
+            <Box key={tableIdx} mt={3}>
+              {table.title && (
+                <Text fontWeight="bold" mb={2} fontSize="sm">
+                  {table.title}
+                </Text>
+              )}
+              <TableContainer maxW="100%" overflowX="auto">
+                <Table size="sm" variant="simple">
+                  <Thead>
+                    <Tr>
+                      {columns.map((col, idx) => (
+                        <Th key={idx}>{col}</Th>
+                      ))}
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {rows.slice(0, maxRows).map((row, rowIdx) => (
+                      <Tr key={rowIdx}>
+                        {row.map((cell, cellIdx) => (
+                          <Td key={cellIdx}>{String(cell)}</Td>
+                        ))}
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+                {rows.length > maxRows && (
+                  <Text fontSize="xs" color="gray.500" mt={2}>
+                    Showing {maxRows} of {rows.length} rows
+                  </Text>
+                )}
+              </TableContainer>
+            </Box>
+          );
+        })}
+      </>
+    );
+  };
+
+  // Memoize chart processing to avoid recomputation on every render
+  const processedCharts = React.useMemo(() => {
+    return messages
+      .map((msg) => msg.result?.charts)
+      .filter((charts): charts is AnalystChart[] => !!charts && charts.length > 0)
+      .flat()
+      .map((chart) => {
+        // Deep clone to avoid frozen object errors
+        const chartCopy = JSON.parse(JSON.stringify(chart));
+
+        // Helper: only convert pure numeric strings, not dates or mixed content
+        const maybeParseNumber = (val: any) => {
+          if (typeof val !== "string") return val;
+          const trimmed = val.trim();
+          // Skip if it looks like a date (contains hyphens, slashes, or colons)
+          if (/[-/:]/.test(trimmed)) return val;
+          // Skip if it's not purely numeric (allowing decimals and negatives)
+          if (!/^-?\d+\.?\d*$/.test(trimmed)) return val;
+          const parsed = parseFloat(trimmed);
+          return !isNaN(parsed) ? parsed : val;
+        };
+
+        const processedData = chartCopy.figure.data.map((trace: any) => ({
+          ...trace,
+          y: Array.isArray(trace.y) ? trace.y.map(maybeParseNumber) : trace.y,
+          x: Array.isArray(trace.x) ? trace.x.map(maybeParseNumber) : trace.x,
+        }));
+
+        const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout));
+
+        return {
+          title: chart.title,
+          data: processedData,
+          layout: layoutCopy,
+        };
+      });
+  }, [messages]);
+
+  const renderCharts = (result: AnalystQueryResult) => {
+    if (!result.charts || result.charts.length === 0) return null;
+
+    // Find processed charts matching this result
+    const resultCharts = processedCharts.filter((_, idx) => {
+      // Match by scanning messages for this result's charts
+      let chartsSoFar = 0;
+      for (const msg of messages) {
+        if (msg.result === result && result.charts) {
+          return idx >= chartsSoFar && idx < chartsSoFar + result.charts.length;
+        }
+        if (msg.result?.charts) {
+          chartsSoFar += msg.result.charts.length;
+        }
+      }
+      return false;
+    });
+
+    return (
+      <>
+        {resultCharts.map((chart, chartIdx) => {
+          const plotLayout = {
+            ...chart.layout,
+            paper_bgcolor: chartIsDark ? "#2D3748" : "white",
+            plot_bgcolor: chartIsDark ? "#2D3748" : "#E5ECF6",
+            font: {
+              ...(chart.layout.font || {}),
+              color: chartIsDark ? "white" : "#2a3f5f",
+            },
+            autosize: true,
+            margin: { l: 50, r: 50, b: 50, t: 50, pad: 4 },
+          };
+
+          return (
+            <Box
+              key={`chart-${chartIdx}-${chart.title}`}
+              mt={3}
+              width="100%"
+              bg={chartBgColor}
+              p={2}
+              borderRadius="md"
+            >
+              {chart.title && (
+                <Text fontWeight="bold" mb={2} fontSize="sm" color={chartTextColor}>
+                  {chart.title}
+                </Text>
+              )}
+              <Box width="100%" height="400px">
+                <Plot
+                  key={`plot-${chartIdx}`}
+                  data={chart.data}
+                  layout={plotLayout}
+                  config={{ responsive: true, displayModeBar: true }}
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </Box>
+            </Box>
+          );
+        })}
+      </>
+    );
+  };
+
   return (
     <>
       {/* Floating toggle button */}
@@ -402,6 +561,8 @@ export const AnalystChat: React.FC = () => {
                   <Text fontSize="sm" whiteSpace="pre-wrap">
                     {msg.content}
                   </Text>
+                  {msg.result && renderCharts(msg.result)}
+                  {msg.result && renderTables(msg.result)}
                   {msg.result && renderData(msg.result)}
                 </Box>
               </Flex>
