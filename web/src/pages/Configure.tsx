@@ -3,6 +3,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   WarningIcon,
+  ViewIcon,
+  ViewOffIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -20,7 +22,10 @@ import {
   GridItem,
   Heading,
   HStack,
+  IconButton,
   Input,
+  InputGroup,
+  InputRightElement,
   Link,
   Modal,
   ModalBody,
@@ -956,6 +961,7 @@ const AnalystConfigSection = ({
   const [localApiKey, setLocalApiKey] = React.useState(apiKey);
   const [localEndpointUrl, setLocalEndpointUrl] = React.useState(endpointUrl);
   const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+  const [showApiKey, setShowApiKey] = React.useState(false);
 
   // Sync local state when saved values change
   React.useEffect(() => {
@@ -1031,12 +1037,23 @@ const AnalystConfigSection = ({
           <Stack spacing={3} as="form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <FormControl>
               <FormLabel>API Key</FormLabel>
-              <Input
-                placeholder="eyJhbGciOiJFUzUxMiIsImtpZCI..."
-                value={localApiKey}
-                onChange={(e) => setLocalApiKey(e.target.value)}
-                size="sm"
-              />
+              <InputGroup size="sm">
+                <Input
+                  type={showApiKey ? "text" : "password"}
+                  placeholder="eyJhbGciOiJFUzUxMiIsImtpZCI..."
+                  value={localApiKey}
+                  onChange={(e) => setLocalApiKey(e.target.value)}
+                />
+                <InputRightElement>
+                  <IconButton
+                    aria-label={showApiKey ? "Hide API key" : "Show API key"}
+                    icon={showApiKey ? <ViewOffIcon /> : <ViewIcon />}
+                    size="xs"
+                    variant="ghost"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  />
+                </InputRightElement>
+              </InputGroup>
             </FormControl>
             <FormControl>
               <FormLabel>Endpoint URL</FormLabel>
