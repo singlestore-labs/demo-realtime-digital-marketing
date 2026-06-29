@@ -173,6 +173,7 @@ export const AnalystChat: React.FC = () => {
             processingSteps.push({ type: "query", content: query });
           },
         },
+        undefined, // callbacks - not used yet
         abortControllerRef.current?.signal
       );
 
@@ -353,7 +354,7 @@ export const AnalystChat: React.FC = () => {
           x: Array.isArray(trace.x) ? trace.x.map(maybeParseNumber) : trace.x,
         }));
 
-        const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout || {}));
+        const layoutCopy = JSON.parse(JSON.stringify(chartCopy.figure.layout));
 
         return {
           title: chart.title,
@@ -681,6 +682,9 @@ export const AnalystChat: React.FC = () => {
                       )}
                     </Accordion>
                   )}
+                  <Text fontSize="sm" whiteSpace="pre-wrap">
+                    {msg.content}
+                  </Text>
                   {msg.result && renderCharts(msg.result)}
                   {msg.result && renderTables(msg.result)}
                   {msg.result && renderData(msg.result)}
