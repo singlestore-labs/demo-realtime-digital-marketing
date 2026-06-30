@@ -25,6 +25,8 @@ jobs:
 
   deploy-web:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to push to gh-pages branch
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
