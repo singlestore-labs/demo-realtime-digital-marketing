@@ -25,6 +25,8 @@ jobs:
 
   deploy-web:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to push to gh-pages branch
     # Only deploy from upstream repo, not forks
     if: github.repository == 'singlestore-labs/demo-realtime-digital-marketing'
     steps:
