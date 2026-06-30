@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - "main"
+    # Skip if this is a fork (not the upstream singlestore-labs repo)
+    # Forks don't have permission to push to singlestore-labs GHCR
+  workflow_dispatch: # Allow manual triggers
 
 jobs:
   docker:
@@ -11,7 +14,12 @@ jobs:
     permissions:
       contents: read
       packages: write
+    # Only run on the upstream repo, not forks
+    if: github.repository == 'singlestore-labs/demo-realtime-digital-marketing'
     steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -25,8 +33,19 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine Docker tags
+        id: tags
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "tags=ghcr.io/singlestore-labs/demo-realtime-digital-marketing:latest" >> $GITHUB_OUTPUT
+          else
+            # For non-main branches, use branch name as tag
+            BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///' | sed 's/\//-/g')
+            echo "tags=ghcr.io/singlestore-labs/demo-realtime-digital-marketing:$BRANCH_NAME" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: ghcr.io/singlestore-labs/demo-realtime-digital-marketing:latest
+          tags: ${{ steps.tags.outputs.tags }}
