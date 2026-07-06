@@ -133,6 +133,18 @@ export const useTick = (
         if (e instanceof DOMException && e.name === "AbortError") {
           return;
         }
+        // Handle connection timeout errors gracefully
+        if (e instanceof Error) {
+          const errorMessage = e.message.toLowerCase();
+          if (errorMessage.includes('timeout') ||
+              errorMessage.includes('connection') ||
+              errorMessage.includes('network')) {
+            console.warn(`${tickID}: Connection issue, will retry on next tick:`, e.message);
+            // Continue the tick loop instead of crashing
+            setTimeout(outerTick, intervalMS);
+            return;
+          }
+        }
         throw e;
       } finally {
         console.timeEnd(tickID);
