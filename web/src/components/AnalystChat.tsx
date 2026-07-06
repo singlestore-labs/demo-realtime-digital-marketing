@@ -186,16 +186,17 @@ export const AnalystChat: React.FC = () => {
     };
   }, [isResizing]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading || isProcessingRef.current) return;
+  const handleSend = async (messageOverride?: string) => {
+    const messageToSend = messageOverride || input;
+    if (!messageToSend.trim() || isLoading || isProcessingRef.current) return;
 
     if (!apiKey || !endpointUrl) {
       return;
     }
 
     isProcessingRef.current = true;
-    const userMessage: Message = { role: "user", content: input };
-    const messageText = input;
+    const userMessage: Message = { role: "user", content: messageToSend };
+    const messageText = messageToSend;
     const requestSessionId = sessionId;
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
@@ -238,7 +239,7 @@ export const AnalystChat: React.FC = () => {
                     ...msg,
                     streamingSteps: [
                       ...(msg.streamingSteps || []),
-                      { type: "reasoning", content: reasoning, timestamp: Date.now() }
+                      { type: "reasoning" as const, content: reasoning, timestamp: Date.now() }
                     ]
                   };
                 }
@@ -258,7 +259,7 @@ export const AnalystChat: React.FC = () => {
                     ...msg,
                     streamingSteps: [
                       ...(msg.streamingSteps || []),
-                      { type: "query", content: query, timestamp: Date.now() }
+                      { type: "query" as const, content: query, timestamp: Date.now() }
                     ]
                   };
                 }
@@ -498,7 +499,7 @@ export const AnalystChat: React.FC = () => {
               color: chartIsDark ? "white" : "#2a3f5f",
             },
             autosize: true,
-            margin: { l: 50, r: 50, b: 50, t: 50, pad: 4 },
+            margin: { l: 50, r: 50, b: 50, t: 80, pad: 4 },
           };
 
           return (
@@ -831,6 +832,37 @@ export const AnalystChat: React.FC = () => {
                   {msg.result && renderCharts(msg.result)}
                   {msg.result && renderTables(msg.result)}
                   {msg.result && renderData(msg.result)}
+                  {msg.result?.followUpQueries && msg.result.followUpQueries.length > 0 && (
+                    <VStack align="stretch" spacing={2} mt={3} pt={3} borderTop="1px solid" borderColor={borderColor}>
+                      <Text fontSize="xs" fontWeight="bold" color="gray.600">
+                        💡 You might also ask:
+                      </Text>
+                      {msg.result.followUpQueries.slice(0, 3).map((question: string, qIdx: number) => (
+                        <Button
+                          key={qIdx}
+                          size="sm"
+                          variant="outline"
+                          colorScheme="purple"
+                          justifyContent="flex-start"
+                          textAlign="left"
+                          whiteSpace="normal"
+                          height="auto"
+                          py={2}
+                          px={3}
+                          fontSize="xs"
+                          onClick={() => {
+                            if (!isLoading && !isProcessingRef.current) {
+                              handleSend(question);
+                            }
+                          }}
+                          disabled={isLoading || isProcessingRef.current}
+                          _hover={{ bg: useColorModeValue("purple.50", "purple.900") }}
+                        >
+                          {question}
+                        </Button>
+                      ))}
+                    </VStack>
+                  )}
                 </Box>
               </Flex>
             ))}
@@ -853,7 +885,7 @@ export const AnalystChat: React.FC = () => {
             />
             <Button
               colorScheme="purple"
-              onClick={handleSend}
+              onClick={() => handleSend()}
               disabled={isLoading || !input.trim()}
             >
               Send
