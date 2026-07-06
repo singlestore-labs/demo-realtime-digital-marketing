@@ -120,7 +120,7 @@ export const AnalystChat: React.FC = () => {
         setCurrentThinkingStatus(
           THINKING_STATUSES[Math.floor(Math.random() * THINKING_STATUSES.length)]
         );
-      }, 2000);
+      }, 4000); // Changed from 2000ms to 4000ms
     } else if (thinkingIntervalRef.current) {
       clearInterval(thinkingIntervalRef.current);
       thinkingIntervalRef.current = null;
@@ -228,32 +228,42 @@ export const AnalystChat: React.FC = () => {
         endpointUrl,
         {
           onReasoning: (reasoning: string) => {
+            console.log('[Analyst] Received reasoning:', reasoning.substring(0, 100));
             processingSteps.push({ type: "reasoning", content: reasoning });
             // Update the streaming message with new reasoning in real-time
             setMessages((prev) => {
-              const updated = [...prev];
-              const msg = updated[streamingMessageIndex];
-              if (msg && msg.isStreaming) {
-                msg.streamingSteps = [
-                  ...(msg.streamingSteps || []),
-                  { type: "reasoning", content: reasoning, timestamp: Date.now() }
-                ];
-              }
+              const updated = prev.map((msg, idx) => {
+                if (idx === streamingMessageIndex && msg.isStreaming) {
+                  return {
+                    ...msg,
+                    streamingSteps: [
+                      ...(msg.streamingSteps || []),
+                      { type: "reasoning", content: reasoning, timestamp: Date.now() }
+                    ]
+                  };
+                }
+                return msg;
+              });
               return updated;
             });
           },
           onQuery: (query: string) => {
+            console.log('[Analyst] Received query:', query.substring(0, 100));
             processingSteps.push({ type: "query", content: query });
             // Update the streaming message with new query in real-time
             setMessages((prev) => {
-              const updated = [...prev];
-              const msg = updated[streamingMessageIndex];
-              if (msg && msg.isStreaming) {
-                msg.streamingSteps = [
-                  ...(msg.streamingSteps || []),
-                  { type: "query", content: query, timestamp: Date.now() }
-                ];
-              }
+              const updated = prev.map((msg, idx) => {
+                if (idx === streamingMessageIndex && msg.isStreaming) {
+                  return {
+                    ...msg,
+                    streamingSteps: [
+                      ...(msg.streamingSteps || []),
+                      { type: "query", content: query, timestamp: Date.now() }
+                    ]
+                  };
+                }
+                return msg;
+              });
               return updated;
             });
           },
