@@ -108,6 +108,9 @@ export const AnalystChat: React.FC = () => {
   const chartTextColor = useColorModeValue("black", "white");
   const chartIsDark = useColorModeValue(false, true);
   const reasoningBgColor = useColorModeValue("gray.50", "gray.700");
+  const followUpButtonHoverBg = useColorModeValue("purple.50", "purple.900");
+  const followUpTextColor = useColorModeValue("gray.600", "gray.400");
+  const clearChatTextColor = useColorModeValue("gray.800", "white");
 
   React.useEffect(() => {
     return () => {
@@ -211,8 +214,10 @@ export const AnalystChat: React.FC = () => {
     abortControllerRef.current = new AbortController();
 
     // Set a 2 minute timeout
+    let wasTimedOut = false;
     const timeoutId = setTimeout(() => {
       console.log('[Analyst] Request timeout after 2 minutes');
+      wasTimedOut = true;
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -303,18 +308,32 @@ export const AnalystChat: React.FC = () => {
       // Handle multiple results (agent can return more than one)
       if (!response.results || !Array.isArray(response.results)) {
         console.log('[Analyst] Malformed response');
-        const malformedMessage: Message = {
-          role: "assistant",
-          content: "Received malformed response from Analyst API.",
-        };
-        setMessages((prev) => [...prev, malformedMessage]);
+        // Remove streaming message and show error
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated.splice(streamingMessageIndex, 1);
+          return [
+            ...updated,
+            {
+              role: "assistant",
+              content: "Received malformed response from Analyst API.",
+            }
+          ];
+        });
       } else if (response.results.length === 0) {
         console.log('[Analyst] Empty results');
-        const emptyMessage: Message = {
-          role: "assistant",
-          content: "The agent returned no results.",
-        };
-        setMessages((prev) => [...prev, emptyMessage]);
+        // Remove streaming message and show error
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated.splice(streamingMessageIndex, 1);
+          return [
+            ...updated,
+            {
+              role: "assistant",
+              content: "The agent returned no results.",
+            }
+          ];
+        });
       } else {
         console.log('[Analyst] Updating UI with results');
         // Update the streaming message to show final results
@@ -346,8 +365,9 @@ export const AnalystChat: React.FC = () => {
       // Handle aborted requests
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('[Analyst] Request was aborted');
-        // Remove streaming message and show timeout error
-        if (requestSessionId === currentSessionIdRef.current) {
+
+        // Only show timeout message if it was actually a timeout (not user clearing chat)
+        if (wasTimedOut && requestSessionId === currentSessionIdRef.current) {
           setMessages((prev) => {
             const updated = [...prev];
             updated.splice(streamingMessageIndex, 1);
@@ -358,6 +378,13 @@ export const AnalystChat: React.FC = () => {
                 content: "Request timed out after 2 minutes. Please try a simpler question or check your connection.",
               }
             ];
+          });
+        } else {
+          // User cleared chat - just remove the streaming message silently
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated.splice(streamingMessageIndex, 1);
+            return updated;
           });
         }
         return;
@@ -687,7 +714,7 @@ export const AnalystChat: React.FC = () => {
                       setSessionId(crypto.randomUUID());
                       setIsLoading(false);
                     }}
-                    color={useColorModeValue("gray.800", "white")}
+                    color={clearChatTextColor}
                     fontWeight="medium"
                   >
                     Clear Chat
@@ -889,7 +916,7 @@ export const AnalystChat: React.FC = () => {
                   {msg.result && renderData(msg.result)}
                   {msg.result?.followUpQueries && msg.result.followUpQueries.length > 0 && (
                     <VStack align="stretch" spacing={2} mt={3} pt={3} borderTop="1px solid" borderColor={borderColor}>
-                      <Text fontSize="xs" fontWeight="bold" color="gray.600">
+                      <Text fontSize="xs" fontWeight="bold" color={followUpTextColor}>
                         💡 You might also ask:
                       </Text>
                       {msg.result.followUpQueries.slice(0, 3).map((question: string, qIdx: number) => (
@@ -911,7 +938,7 @@ export const AnalystChat: React.FC = () => {
                             }
                           }}
                           disabled={isLoading || isProcessingRef.current}
-                          _hover={{ bg: useColorModeValue("purple.50", "purple.900") }}
+                          _hover={{ bg: followUpButtonHoverBg }}
                         >
                           {question}
                         </Button>
