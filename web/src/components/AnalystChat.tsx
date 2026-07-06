@@ -50,7 +50,33 @@ interface Message {
   content: string;
   result?: AnalystQueryResult;
   processingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string }>;
+  isStreaming?: boolean;
+  streamingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string; timestamp: number }>;
 }
+
+// Fun thinking status messages inspired by Claude
+const THINKING_STATUSES = [
+  "Thinking",
+  "Pondering",
+  "Cogitating",
+  "Contemplating",
+  "Ruminating",
+  "Analyzing",
+  "Processing",
+  "Deliberating",
+  "Examining",
+  "Investigating",
+  "Mulling over",
+  "Reflecting",
+  "Scrutinizing",
+  "Perusing",
+  "Reasoning",
+  "Calculating",
+  "Computing",
+  "Evaluating",
+  "Puzzling through",
+  "Working on it",
+];
 
 export const AnalystChat: React.FC = () => {
   const apiKey = useRecoilValue(analystApiKey);
@@ -60,12 +86,14 @@ export const AnalystChat: React.FC = () => {
   const [sessionId, setSessionId] = useRecoilState(analystSessionId);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [currentThinkingStatus, setCurrentThinkingStatus] = React.useState("Thinking");
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const [size, setSize] = React.useState({ width: 450, height: 600 });
   const [isResizing, setIsResizing] = React.useState(false);
   const isMountedRef = React.useRef(true);
   const isProcessingRef = React.useRef(false);
   const currentSessionIdRef = React.useRef(sessionId);
+  const thinkingIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -79,8 +107,31 @@ export const AnalystChat: React.FC = () => {
   React.useEffect(() => {
     return () => {
       isMountedRef.current = false;
+      if (thinkingIntervalRef.current) {
+        clearInterval(thinkingIntervalRef.current);
+      }
     };
   }, []);
+
+  // Rotate thinking status messages
+  React.useEffect(() => {
+    if (isLoading) {
+      thinkingIntervalRef.current = setInterval(() => {
+        setCurrentThinkingStatus(
+          THINKING_STATUSES[Math.floor(Math.random() * THINKING_STATUSES.length)]
+        );
+      }, 2000);
+    } else if (thinkingIntervalRef.current) {
+      clearInterval(thinkingIntervalRef.current);
+      thinkingIntervalRef.current = null;
+    }
+
+    return () => {
+      if (thinkingIntervalRef.current) {
+        clearInterval(thinkingIntervalRef.current);
+      }
+    };
+  }, [isLoading]);
 
   // Keep session ID ref in sync with Recoil state
   React.useEffect(() => {
@@ -156,6 +207,16 @@ export const AnalystChat: React.FC = () => {
     // Track processing steps (reasoning and queries executed)
     const processingSteps: Array<{ type: "status" | "query" | "reasoning"; content: string }> = [];
 
+    // Create a streaming assistant message that will be updated in real-time
+    const streamingMessageIndex = messages.length + 1;
+    const streamingMessage: Message = {
+      role: "assistant",
+      content: "",
+      isStreaming: true,
+      streamingSteps: [],
+    };
+    setMessages((prev) => [...prev, streamingMessage]);
+
     try {
       const response = await queryAnalyst(
         {
@@ -168,9 +229,33 @@ export const AnalystChat: React.FC = () => {
         {
           onReasoning: (reasoning: string) => {
             processingSteps.push({ type: "reasoning", content: reasoning });
+            // Update the streaming message with new reasoning in real-time
+            setMessages((prev) => {
+              const updated = [...prev];
+              const msg = updated[streamingMessageIndex];
+              if (msg && msg.isStreaming) {
+                msg.streamingSteps = [
+                  ...(msg.streamingSteps || []),
+                  { type: "reasoning", content: reasoning, timestamp: Date.now() }
+                ];
+              }
+              return updated;
+            });
           },
           onQuery: (query: string) => {
             processingSteps.push({ type: "query", content: query });
+            // Update the streaming message with new query in real-time
+            setMessages((prev) => {
+              const updated = [...prev];
+              const msg = updated[streamingMessageIndex];
+              if (msg && msg.isStreaming) {
+                msg.streamingSteps = [
+                  ...(msg.streamingSteps || []),
+                  { type: "query", content: query, timestamp: Date.now() }
+                ];
+              }
+              return updated;
+            });
           },
         },
         abortControllerRef.current?.signal
@@ -195,18 +280,26 @@ export const AnalystChat: React.FC = () => {
         };
         setMessages((prev) => [...prev, emptyMessage]);
       } else {
-        // Batch all assistant messages into a single state update
-        // Only attach processingSteps to the first result to avoid duplication
-        const assistantMessages: Message[] = response.results.map((result, idx) => {
-          const formatted = formatAnalystResult(result);
-          return {
-            role: "assistant",
-            content: formatted.content,
-            result: result,
-            processingSteps: idx === 0 && processingSteps.length > 0 ? processingSteps : undefined,
-          };
+        // Update the streaming message to show final results
+        setMessages((prev) => {
+          const updated = [...prev];
+          // Remove the streaming message
+          updated.splice(streamingMessageIndex, 1);
+
+          // Add final assistant messages
+          const assistantMessages: Message[] = response.results.map((result, idx) => {
+            const formatted = formatAnalystResult(result);
+            return {
+              role: "assistant",
+              content: formatted.content,
+              result: result,
+              processingSteps: idx === 0 && processingSteps.length > 0 ? processingSteps : undefined,
+              isStreaming: false,
+            };
+          });
+
+          return [...updated, ...assistantMessages];
         });
-        setMessages((prev) => [...prev, ...assistantMessages]);
       }
     } catch (error) {
       if (!isMountedRef.current) return;
@@ -594,6 +687,48 @@ export const AnalystChat: React.FC = () => {
                     <Text fontSize="sm" whiteSpace="pre-wrap">
                       {msg.content}
                     </Text>
+                  ) : msg.isStreaming ? (
+                    <VStack align="stretch" spacing={2}>
+                      <Flex alignItems="center" gap={2}>
+                        <Spinner size="sm" />
+                        <Text fontSize="sm" fontWeight="medium">{currentThinkingStatus}...</Text>
+                      </Flex>
+                      {msg.streamingSteps && msg.streamingSteps.length > 0 && (
+                        <VStack align="stretch" spacing={1} mt={2}>
+                          {msg.streamingSteps.map((step, stepIdx) => (
+                            <Box
+                              key={stepIdx}
+                              p={2}
+                              borderRadius="md"
+                              fontSize="xs"
+                              bg={reasoningBgColor}
+                              borderLeft="3px solid"
+                              borderColor={step.type === "query" ? "blue.400" : "purple.400"}
+                            >
+                              <Flex alignItems="center" gap={1} mb={1}>
+                                <Text fontWeight="bold">
+                                  {step.type === "query" ? "🔍 Running query" : "💭 Reasoning"}
+                                </Text>
+                              </Flex>
+                              {step.type === "query" ? (
+                                <Code
+                                  fontSize="xs"
+                                  whiteSpace="pre-wrap"
+                                  display="block"
+                                  p={1}
+                                >
+                                  {step.content}
+                                </Code>
+                              ) : (
+                                <Text whiteSpace="pre-wrap" noOfLines={3}>
+                                  {step.content}
+                                </Text>
+                              )}
+                            </Box>
+                          ))}
+                        </VStack>
+                      )}
+                    </VStack>
                   ) : (
                     <Box fontSize="sm">
                       <ReactMarkdown
@@ -606,7 +741,7 @@ export const AnalystChat: React.FC = () => {
                       </ReactMarkdown>
                     </Box>
                   )}
-                  {msg.processingSteps && msg.processingSteps.length > 0 && (
+                  {!msg.isStreaming && msg.processingSteps && msg.processingSteps.length > 0 && (
                     <Accordion allowToggle mt={2}>
                       {msg.processingSteps.some(s => s.type === "reasoning") && (
                         <AccordionItem border="none">
@@ -689,22 +824,6 @@ export const AnalystChat: React.FC = () => {
                 </Box>
               </Flex>
             ))}
-            {isLoading && (
-              <Flex justifyContent="flex-start">
-                <Box
-                  bg={assistantBgColor}
-                  px={4}
-                  py={2}
-                  borderRadius="lg"
-                  display="flex"
-                  alignItems="center"
-                  gap={2}
-                >
-                  <Spinner size="sm" />
-                  <Text fontSize="sm">Thinking...</Text>
-                </Box>
-              </Flex>
-            )}
             <div ref={messagesEndRef} />
           </VStack>
 
