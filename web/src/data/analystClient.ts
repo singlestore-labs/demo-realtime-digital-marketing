@@ -119,14 +119,24 @@ export async function queryAnalyst(
   const tables: AnalystTable[] = [];
   const charts: AnalystChart[] = [];
   let followUpQueries: string[] = [];
+  let chunkCount = 0;
 
   if (!reader) {
     throw new Error("Response body is not readable");
   }
 
+  console.log("[Analyst] Starting to read streaming response");
+
   while (true) {
     const { done, value } = await reader.read();
-    if (done) break;
+    chunkCount++;
+    if (chunkCount % 10 === 0) {
+      console.log(`[Analyst] Processed ${chunkCount} chunks`);
+    }
+    if (done) {
+      console.log(`[Analyst] Stream complete after ${chunkCount} chunks`);
+      break;
+    }
 
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split("\n");

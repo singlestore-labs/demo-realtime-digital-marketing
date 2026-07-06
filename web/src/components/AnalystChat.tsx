@@ -78,6 +78,11 @@ const THINKING_STATUSES = [
   "Working on it",
 ];
 
+// Helper function to clean reasoning text by removing redundant headers
+const cleanReasoningText = (text: string): string => {
+  return text.replace(/^\*\*Reasoning:\*\*\s*/i, '').trim();
+};
+
 export const AnalystChat: React.FC = () => {
   const apiKey = useRecoilValue(analystApiKey);
   const endpointUrl = useRecoilValue(analystEndpointUrl);
@@ -205,6 +210,14 @@ export const AnalystChat: React.FC = () => {
     // Create abort controller for this request
     abortControllerRef.current = new AbortController();
 
+    // Set a 2 minute timeout
+    const timeoutId = setTimeout(() => {
+      console.log('[Analyst] Request timeout after 2 minutes');
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    }, 120000); // 2 minutes
+
     // Track processing steps (reasoning and queries executed)
     const processingSteps: Array<{ type: "status" | "query" | "reasoning"; content: string }> = [];
 
@@ -272,25 +285,38 @@ export const AnalystChat: React.FC = () => {
         abortControllerRef.current?.signal
       );
 
-      // Ignore response if session has changed (chat was cleared)
-      if (requestSessionId !== currentSessionIdRef.current) return;
+      console.log('[Analyst] Query complete, processing response');
 
-      if (!isMountedRef.current) return;
+      // Ignore response if session has changed (chat was cleared)
+      if (requestSessionId !== currentSessionIdRef.current) {
+        console.log('[Analyst] Session changed, ignoring response');
+        return;
+      }
+
+      if (!isMountedRef.current) {
+        console.log('[Analyst] Component unmounted, ignoring response');
+        return;
+      }
+
+      console.log('[Analyst] Response results:', response.results?.length || 0);
 
       // Handle multiple results (agent can return more than one)
       if (!response.results || !Array.isArray(response.results)) {
+        console.log('[Analyst] Malformed response');
         const malformedMessage: Message = {
           role: "assistant",
           content: "Received malformed response from Analyst API.",
         };
         setMessages((prev) => [...prev, malformedMessage]);
       } else if (response.results.length === 0) {
+        console.log('[Analyst] Empty results');
         const emptyMessage: Message = {
           role: "assistant",
           content: "The agent returned no results.",
         };
         setMessages((prev) => [...prev, emptyMessage]);
       } else {
+        console.log('[Analyst] Updating UI with results');
         // Update the streaming message to show final results
         setMessages((prev) => {
           const updated = [...prev];
@@ -311,20 +337,49 @@ export const AnalystChat: React.FC = () => {
 
           return [...updated, ...assistantMessages];
         });
+        console.log('[Analyst] UI update complete');
       }
     } catch (error) {
+      clearTimeout(timeoutId);
       if (!isMountedRef.current) return;
-      // Ignore aborted requests
-      if (error instanceof Error && error.name === 'AbortError') return;
+
+      // Handle aborted requests
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('[Analyst] Request was aborted');
+        // Remove streaming message and show timeout error
+        if (requestSessionId === currentSessionIdRef.current) {
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated.splice(streamingMessageIndex, 1);
+            return [
+              ...updated,
+              {
+                role: "assistant",
+                content: "Request timed out after 2 minutes. Please try a simpler question or check your connection.",
+              }
+            ];
+          });
+        }
+        return;
+      }
+
       // Ignore errors if session changed (chat was cleared)
       if (requestSessionId !== currentSessionIdRef.current) return;
 
-      const errorMessage: Message = {
-        role: "assistant",
-        content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      // Remove streaming message and show error
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated.splice(streamingMessageIndex, 1);
+        return [
+          ...updated,
+          {
+            role: "assistant",
+            content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+          }
+        ];
+      });
     } finally {
+      clearTimeout(timeoutId);
       // Only update state if this request is still valid (session hasn't changed)
       if (requestSessionId === currentSessionIdRef.current) {
         isProcessingRef.current = false;
@@ -732,7 +787,7 @@ export const AnalystChat: React.FC = () => {
                                 </Code>
                               ) : (
                                 <Text whiteSpace="pre-wrap" noOfLines={3}>
-                                  {step.content}
+                                  {cleanReasoningText(step.content)}
                                 </Text>
                               )}
                             </Box>
@@ -790,7 +845,7 @@ export const AnalystChat: React.FC = () => {
                                           ),
                                       }}
                                     >
-                                      {step.content}
+                                      {cleanReasoningText(step.content)}
                                     </ReactMarkdown>
                                   </Box>
                                 ))}
