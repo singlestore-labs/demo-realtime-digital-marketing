@@ -112,6 +112,18 @@ export const AnalystChat: React.FC = () => {
   const followUpTextColor = useColorModeValue("gray.600", "gray.400");
   const clearChatTextColor = useColorModeValue("gray.800", "white");
 
+  // Clean up orphaned streaming messages on mount (from page reload/close during request)
+  React.useEffect(() => {
+    setMessages((prev) => {
+      const hasStreaming = prev.some(msg => msg.isStreaming);
+      if (hasStreaming) {
+        console.log('[Analyst] Cleaning up orphaned streaming messages from previous session');
+        return prev.filter(msg => !msg.isStreaming);
+      }
+      return prev;
+    });
+  }, [setMessages]);
+
   React.useEffect(() => {
     return () => {
       isMountedRef.current = false;
