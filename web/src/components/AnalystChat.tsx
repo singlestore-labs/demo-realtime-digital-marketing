@@ -299,7 +299,17 @@ export const AnalystChat: React.FC = () => {
       }
 
       if (!isMountedRef.current) {
-        console.log('[Analyst] Component unmounted, ignoring response');
+        console.log('[Analyst] Component unmounted, cleaning up streaming message');
+        // Remove streaming message even though component is unmounted
+        // This prevents orphaned streaming state in Recoil localStorage
+        setMessages((prev) => {
+          const updated = [...prev];
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
+          return updated;
+        });
         return;
       }
 
@@ -311,7 +321,10 @@ export const AnalystChat: React.FC = () => {
         // Remove streaming message and show error
         setMessages((prev) => {
           const updated = [...prev];
-          updated.splice(streamingMessageIndex, 1);
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
           return [
             ...updated,
             {
@@ -325,7 +338,10 @@ export const AnalystChat: React.FC = () => {
         // Remove streaming message and show error
         setMessages((prev) => {
           const updated = [...prev];
-          updated.splice(streamingMessageIndex, 1);
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
           return [
             ...updated,
             {
@@ -340,7 +356,10 @@ export const AnalystChat: React.FC = () => {
         setMessages((prev) => {
           const updated = [...prev];
           // Remove the streaming message
-          updated.splice(streamingMessageIndex, 1);
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
 
           // Add final assistant messages
           const assistantMessages: Message[] = response.results.map((result, idx) => {
@@ -360,17 +379,40 @@ export const AnalystChat: React.FC = () => {
       }
     } catch (error) {
       clearTimeout(timeoutId);
-      if (!isMountedRef.current) return;
+
+      if (!isMountedRef.current) {
+        console.log('[Analyst] Component unmounted during error, cleaning up');
+        // Remove streaming message even though component is unmounted
+        setMessages((prev) => {
+          const updated = [...prev];
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
+          return updated;
+        });
+        return;
+      }
+
+      // Ignore errors if session changed (chat was cleared)
+      if (requestSessionId !== currentSessionIdRef.current) {
+        console.log('[Analyst] Session changed, ignoring error');
+        return;
+      }
 
       // Handle aborted requests
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('[Analyst] Request was aborted');
 
         // Only show timeout message if it was actually a timeout (not user clearing chat)
-        if (wasTimedOut && requestSessionId === currentSessionIdRef.current) {
+        if (wasTimedOut) {
           setMessages((prev) => {
             const updated = [...prev];
-            updated.splice(streamingMessageIndex, 1);
+            // Find and remove the streaming message by checking isStreaming flag
+            const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+            if (streamingIdx !== -1) {
+              updated.splice(streamingIdx, 1);
+            }
             return [
               ...updated,
               {
@@ -380,23 +422,26 @@ export const AnalystChat: React.FC = () => {
             ];
           });
         } else {
-          // User cleared chat - just remove the streaming message silently
+          // User cleared chat or other abort - remove streaming message silently
           setMessages((prev) => {
             const updated = [...prev];
-            updated.splice(streamingMessageIndex, 1);
+            const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+            if (streamingIdx !== -1) {
+              updated.splice(streamingIdx, 1);
+            }
             return updated;
           });
         }
         return;
       }
 
-      // Ignore errors if session changed (chat was cleared)
-      if (requestSessionId !== currentSessionIdRef.current) return;
-
       // Remove streaming message and show error
       setMessages((prev) => {
         const updated = [...prev];
-        updated.splice(streamingMessageIndex, 1);
+        const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+        if (streamingIdx !== -1) {
+          updated.splice(streamingIdx, 1);
+        }
         return [
           ...updated,
           {
