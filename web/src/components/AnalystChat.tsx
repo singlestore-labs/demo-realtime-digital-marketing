@@ -41,7 +41,7 @@ import {
   AnalystChart,
   AnalystTable,
 } from "@/data/analystClient";
-import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId } from "@/data/recoil";
+import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId, analystChatSize } from "@/data/recoil";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -93,7 +93,7 @@ export const AnalystChat: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [currentThinkingStatus, setCurrentThinkingStatus] = React.useState("Thinking");
   const abortControllerRef = React.useRef<AbortController | null>(null);
-  const [size, setSize] = React.useState({ width: 450, height: 600 });
+  const [size, setSize] = useRecoilState(analystChatSize);
   const [isResizing, setIsResizing] = React.useState(false);
   const isMountedRef = React.useRef(true);
   const isProcessingRef = React.useRef(false);

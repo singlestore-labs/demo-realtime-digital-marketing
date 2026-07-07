@@ -252,3 +252,9 @@ export const analystSessionId = atom({
   default: crypto.randomUUID(),
   effects: [localStorageEffect()],
 });
+
+export const analystChatSize = atom({
+  key: "analystChatSize",
+  default: { width: 450, height: 600 },
+  effects: [localStorageEffect()],
+});
