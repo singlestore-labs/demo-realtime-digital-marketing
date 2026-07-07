@@ -50,7 +50,38 @@ interface Message {
   content: string;
   result?: AnalystQueryResult;
   processingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string }>;
+  isStreaming?: boolean;
+  streamingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string; timestamp: number }>;
 }
+
+// Fun thinking status messages inspired by Claude
+const THINKING_STATUSES = [
+  "Thinking",
+  "Pondering",
+  "Cogitating",
+  "Contemplating",
+  "Ruminating",
+  "Analyzing",
+  "Processing",
+  "Deliberating",
+  "Examining",
+  "Investigating",
+  "Mulling over",
+  "Reflecting",
+  "Scrutinizing",
+  "Perusing",
+  "Reasoning",
+  "Calculating",
+  "Computing",
+  "Evaluating",
+  "Puzzling through",
+  "Working on it",
+];
+
+// Helper function to clean reasoning text by removing redundant headers
+const cleanReasoningText = (text: string): string => {
+  return text.replace(/^\*\*Reasoning:\*\*\s*/i, '').trim();
+};
 
 export const AnalystChat: React.FC = () => {
   const apiKey = useRecoilValue(analystApiKey);
@@ -60,12 +91,14 @@ export const AnalystChat: React.FC = () => {
   const [sessionId, setSessionId] = useRecoilState(analystSessionId);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [currentThinkingStatus, setCurrentThinkingStatus] = React.useState("Thinking");
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const [size, setSize] = React.useState({ width: 450, height: 600 });
   const [isResizing, setIsResizing] = React.useState(false);
   const isMountedRef = React.useRef(true);
   const isProcessingRef = React.useRef(false);
   const currentSessionIdRef = React.useRef(sessionId);
+  const thinkingIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -75,12 +108,50 @@ export const AnalystChat: React.FC = () => {
   const chartTextColor = useColorModeValue("black", "white");
   const chartIsDark = useColorModeValue(false, true);
   const reasoningBgColor = useColorModeValue("gray.50", "gray.700");
+  const followUpButtonHoverBg = useColorModeValue("purple.50", "purple.900");
+  const followUpTextColor = useColorModeValue("gray.600", "gray.400");
+  const clearChatTextColor = useColorModeValue("gray.800", "white");
+
+  // Clean up orphaned streaming messages on mount (from page reload/close during request)
+  React.useEffect(() => {
+    setMessages((prev) => {
+      const hasStreaming = prev.some(msg => msg.isStreaming);
+      if (hasStreaming) {
+        console.log('[Analyst] Cleaning up orphaned streaming messages from previous session');
+        return prev.filter(msg => !msg.isStreaming);
+      }
+      return prev;
+    });
+  }, [setMessages]);
 
   React.useEffect(() => {
     return () => {
       isMountedRef.current = false;
+      if (thinkingIntervalRef.current) {
+        clearInterval(thinkingIntervalRef.current);
+      }
     };
   }, []);
+
+  // Rotate thinking status messages
+  React.useEffect(() => {
+    if (isLoading) {
+      thinkingIntervalRef.current = setInterval(() => {
+        setCurrentThinkingStatus(
+          THINKING_STATUSES[Math.floor(Math.random() * THINKING_STATUSES.length)]
+        );
+      }, 4000); // Changed from 2000ms to 4000ms
+    } else if (thinkingIntervalRef.current) {
+      clearInterval(thinkingIntervalRef.current);
+      thinkingIntervalRef.current = null;
+    }
+
+    return () => {
+      if (thinkingIntervalRef.current) {
+        clearInterval(thinkingIntervalRef.current);
+      }
+    };
+  }, [isLoading]);
 
   // Keep session ID ref in sync with Recoil state
   React.useEffect(() => {
@@ -135,16 +206,17 @@ export const AnalystChat: React.FC = () => {
     };
   }, [isResizing]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading || isProcessingRef.current) return;
+  const handleSend = async (messageOverride?: string) => {
+    const messageToSend = messageOverride || input;
+    if (!messageToSend.trim() || isLoading || isProcessingRef.current) return;
 
     if (!apiKey || !endpointUrl) {
       return;
     }
 
     isProcessingRef.current = true;
-    const userMessage: Message = { role: "user", content: input };
-    const messageText = input;
+    const userMessage: Message = { role: "user", content: messageToSend };
+    const messageText = messageToSend;
     const requestSessionId = sessionId;
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
@@ -153,8 +225,28 @@ export const AnalystChat: React.FC = () => {
     // Create abort controller for this request
     abortControllerRef.current = new AbortController();
 
+    // Set a 2 minute timeout
+    let wasTimedOut = false;
+    const timeoutId = setTimeout(() => {
+      console.log('[Analyst] Request timeout after 2 minutes');
+      wasTimedOut = true;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    }, 120000); // 2 minutes
+
     // Track processing steps (reasoning and queries executed)
     const processingSteps: Array<{ type: "status" | "query" | "reasoning"; content: string }> = [];
+
+    // Create a streaming assistant message that will be updated in real-time
+    const streamingMessageIndex = messages.length + 1;
+    const streamingMessage: Message = {
+      role: "assistant",
+      content: "",
+      isStreaming: true,
+      streamingSteps: [],
+    };
+    setMessages((prev) => [...prev, streamingMessage]);
 
     try {
       const response = await queryAnalyst(
@@ -167,60 +259,211 @@ export const AnalystChat: React.FC = () => {
         endpointUrl,
         {
           onReasoning: (reasoning: string) => {
+            console.log('[Analyst] Received reasoning:', reasoning.substring(0, 100));
             processingSteps.push({ type: "reasoning", content: reasoning });
+            // Update the streaming message with new reasoning in real-time
+            setMessages((prev) => {
+              const updated = prev.map((msg, idx) => {
+                if (idx === streamingMessageIndex && msg.isStreaming) {
+                  return {
+                    ...msg,
+                    streamingSteps: [
+                      ...(msg.streamingSteps || []),
+                      { type: "reasoning" as const, content: reasoning, timestamp: Date.now() }
+                    ]
+                  };
+                }
+                return msg;
+              });
+              return updated;
+            });
           },
           onQuery: (query: string) => {
+            console.log('[Analyst] Received query:', query.substring(0, 100));
             processingSteps.push({ type: "query", content: query });
+            // Update the streaming message with new query in real-time
+            setMessages((prev) => {
+              const updated = prev.map((msg, idx) => {
+                if (idx === streamingMessageIndex && msg.isStreaming) {
+                  return {
+                    ...msg,
+                    streamingSteps: [
+                      ...(msg.streamingSteps || []),
+                      { type: "query" as const, content: query, timestamp: Date.now() }
+                    ]
+                  };
+                }
+                return msg;
+              });
+              return updated;
+            });
           },
         },
         abortControllerRef.current?.signal
       );
 
-      // Ignore response if session has changed (chat was cleared)
-      if (requestSessionId !== currentSessionIdRef.current) return;
+      console.log('[Analyst] Query complete, processing response');
 
-      if (!isMountedRef.current) return;
+      // Ignore response if session has changed (chat was cleared)
+      if (requestSessionId !== currentSessionIdRef.current) {
+        console.log('[Analyst] Session changed, ignoring response');
+        return;
+      }
+
+      if (!isMountedRef.current) {
+        console.log('[Analyst] Component unmounted, cleaning up streaming message');
+        // Remove streaming message even though component is unmounted
+        // This prevents orphaned streaming state in Recoil localStorage
+        setMessages((prev) => {
+          const updated = [...prev];
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
+          return updated;
+        });
+        return;
+      }
+
+      console.log('[Analyst] Response results:', response.results?.length || 0);
 
       // Handle multiple results (agent can return more than one)
       if (!response.results || !Array.isArray(response.results)) {
-        const malformedMessage: Message = {
-          role: "assistant",
-          content: "Received malformed response from Analyst API.",
-        };
-        setMessages((prev) => [...prev, malformedMessage]);
-      } else if (response.results.length === 0) {
-        const emptyMessage: Message = {
-          role: "assistant",
-          content: "The agent returned no results.",
-        };
-        setMessages((prev) => [...prev, emptyMessage]);
-      } else {
-        // Batch all assistant messages into a single state update
-        // Only attach processingSteps to the first result to avoid duplication
-        const assistantMessages: Message[] = response.results.map((result, idx) => {
-          const formatted = formatAnalystResult(result);
-          return {
-            role: "assistant",
-            content: formatted.content,
-            result: result,
-            processingSteps: idx === 0 && processingSteps.length > 0 ? processingSteps : undefined,
-          };
+        console.log('[Analyst] Malformed response');
+        // Remove streaming message and show error
+        setMessages((prev) => {
+          const updated = [...prev];
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
+          return [
+            ...updated,
+            {
+              role: "assistant",
+              content: "Received malformed response from Analyst API.",
+            }
+          ];
         });
-        setMessages((prev) => [...prev, ...assistantMessages]);
+      } else if (response.results.length === 0) {
+        console.log('[Analyst] Empty results');
+        // Remove streaming message and show error
+        setMessages((prev) => {
+          const updated = [...prev];
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
+          return [
+            ...updated,
+            {
+              role: "assistant",
+              content: "The agent returned no results.",
+            }
+          ];
+        });
+      } else {
+        console.log('[Analyst] Updating UI with results');
+        // Update the streaming message to show final results
+        setMessages((prev) => {
+          const updated = [...prev];
+          // Remove the streaming message
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
+
+          // Add final assistant messages
+          const assistantMessages: Message[] = response.results.map((result, idx) => {
+            const formatted = formatAnalystResult(result);
+            return {
+              role: "assistant",
+              content: formatted.content,
+              result: result,
+              processingSteps: idx === 0 && processingSteps.length > 0 ? processingSteps : undefined,
+              isStreaming: false,
+            };
+          });
+
+          return [...updated, ...assistantMessages];
+        });
+        console.log('[Analyst] UI update complete');
       }
     } catch (error) {
-      if (!isMountedRef.current) return;
-      // Ignore aborted requests
-      if (error instanceof Error && error.name === 'AbortError') return;
-      // Ignore errors if session changed (chat was cleared)
-      if (requestSessionId !== currentSessionIdRef.current) return;
+      clearTimeout(timeoutId);
 
-      const errorMessage: Message = {
-        role: "assistant",
-        content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      if (!isMountedRef.current) {
+        console.log('[Analyst] Component unmounted during error, cleaning up');
+        // Remove streaming message even though component is unmounted
+        setMessages((prev) => {
+          const updated = [...prev];
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+          if (streamingIdx !== -1) {
+            updated.splice(streamingIdx, 1);
+          }
+          return updated;
+        });
+        return;
+      }
+
+      // Ignore errors if session changed (chat was cleared)
+      if (requestSessionId !== currentSessionIdRef.current) {
+        console.log('[Analyst] Session changed, ignoring error');
+        return;
+      }
+
+      // Handle aborted requests
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('[Analyst] Request was aborted');
+
+        // Only show timeout message if it was actually a timeout (not user clearing chat)
+        if (wasTimedOut) {
+          setMessages((prev) => {
+            const updated = [...prev];
+            // Find and remove the streaming message by checking isStreaming flag
+            const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+            if (streamingIdx !== -1) {
+              updated.splice(streamingIdx, 1);
+            }
+            return [
+              ...updated,
+              {
+                role: "assistant",
+                content: "Request timed out after 2 minutes. Please try a simpler question or check your connection.",
+              }
+            ];
+          });
+        } else {
+          // User cleared chat or other abort - remove streaming message silently
+          setMessages((prev) => {
+            const updated = [...prev];
+            const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+            if (streamingIdx !== -1) {
+              updated.splice(streamingIdx, 1);
+            }
+            return updated;
+          });
+        }
+        return;
+      }
+
+      // Remove streaming message and show error
+      setMessages((prev) => {
+        const updated = [...prev];
+        const streamingIdx = updated.findIndex(msg => msg.isStreaming);
+        if (streamingIdx !== -1) {
+          updated.splice(streamingIdx, 1);
+        }
+        return [
+          ...updated,
+          {
+            role: "assistant",
+            content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+          }
+        ];
+      });
     } finally {
+      clearTimeout(timeoutId);
       // Only update state if this request is still valid (session hasn't changed)
       if (requestSessionId === currentSessionIdRef.current) {
         isProcessingRef.current = false;
@@ -395,7 +638,7 @@ export const AnalystChat: React.FC = () => {
               color: chartIsDark ? "white" : "#2a3f5f",
             },
             autosize: true,
-            margin: { l: 50, r: 50, b: 50, t: 50, pad: 4 },
+            margin: { l: 50, r: 50, b: 50, t: 80, pad: 4 },
           };
 
           return (
@@ -528,7 +771,7 @@ export const AnalystChat: React.FC = () => {
                       setSessionId(crypto.randomUUID());
                       setIsLoading(false);
                     }}
-                    color={useColorModeValue("gray.800", "white")}
+                    color={clearChatTextColor}
                     fontWeight="medium"
                   >
                     Clear Chat
@@ -594,6 +837,48 @@ export const AnalystChat: React.FC = () => {
                     <Text fontSize="sm" whiteSpace="pre-wrap">
                       {msg.content}
                     </Text>
+                  ) : msg.isStreaming ? (
+                    <VStack align="stretch" spacing={2}>
+                      <Flex alignItems="center" gap={2}>
+                        <Spinner size="sm" />
+                        <Text fontSize="sm" fontWeight="medium">{currentThinkingStatus}...</Text>
+                      </Flex>
+                      {msg.streamingSteps && msg.streamingSteps.length > 0 && (
+                        <VStack align="stretch" spacing={1} mt={2}>
+                          {msg.streamingSteps.map((step, stepIdx) => (
+                            <Box
+                              key={stepIdx}
+                              p={2}
+                              borderRadius="md"
+                              fontSize="xs"
+                              bg={reasoningBgColor}
+                              borderLeft="3px solid"
+                              borderColor={step.type === "query" ? "blue.400" : "purple.400"}
+                            >
+                              <Flex alignItems="center" gap={1} mb={1}>
+                                <Text fontWeight="bold">
+                                  {step.type === "query" ? "🔍 Running query" : "💭 Reasoning"}
+                                </Text>
+                              </Flex>
+                              {step.type === "query" ? (
+                                <Code
+                                  fontSize="xs"
+                                  whiteSpace="pre-wrap"
+                                  display="block"
+                                  p={1}
+                                >
+                                  {step.content}
+                                </Code>
+                              ) : (
+                                <Text whiteSpace="pre-wrap" noOfLines={3}>
+                                  {cleanReasoningText(step.content)}
+                                </Text>
+                              )}
+                            </Box>
+                          ))}
+                        </VStack>
+                      )}
+                    </VStack>
                   ) : (
                     <Box fontSize="sm">
                       <ReactMarkdown
@@ -606,7 +891,7 @@ export const AnalystChat: React.FC = () => {
                       </ReactMarkdown>
                     </Box>
                   )}
-                  {msg.processingSteps && msg.processingSteps.length > 0 && (
+                  {!msg.isStreaming && msg.processingSteps && msg.processingSteps.length > 0 && (
                     <Accordion allowToggle mt={2}>
                       {msg.processingSteps.some(s => s.type === "reasoning") && (
                         <AccordionItem border="none">
@@ -644,7 +929,7 @@ export const AnalystChat: React.FC = () => {
                                           ),
                                       }}
                                     >
-                                      {step.content}
+                                      {cleanReasoningText(step.content)}
                                     </ReactMarkdown>
                                   </Box>
                                 ))}
@@ -686,25 +971,40 @@ export const AnalystChat: React.FC = () => {
                   {msg.result && renderCharts(msg.result)}
                   {msg.result && renderTables(msg.result)}
                   {msg.result && renderData(msg.result)}
+                  {msg.result?.followUpQueries && msg.result.followUpQueries.length > 0 && (
+                    <VStack align="stretch" spacing={2} mt={3} pt={3} borderTop="1px solid" borderColor={borderColor}>
+                      <Text fontSize="xs" fontWeight="bold" color={followUpTextColor}>
+                        💡 You might also ask:
+                      </Text>
+                      {msg.result.followUpQueries.slice(0, 3).map((question: string, qIdx: number) => (
+                        <Button
+                          key={qIdx}
+                          size="sm"
+                          variant="outline"
+                          colorScheme="purple"
+                          justifyContent="flex-start"
+                          textAlign="left"
+                          whiteSpace="normal"
+                          height="auto"
+                          py={2}
+                          px={3}
+                          fontSize="xs"
+                          onClick={() => {
+                            if (!isLoading && !isProcessingRef.current) {
+                              handleSend(question);
+                            }
+                          }}
+                          disabled={isLoading || isProcessingRef.current}
+                          _hover={{ bg: followUpButtonHoverBg }}
+                        >
+                          {question}
+                        </Button>
+                      ))}
+                    </VStack>
+                  )}
                 </Box>
               </Flex>
             ))}
-            {isLoading && (
-              <Flex justifyContent="flex-start">
-                <Box
-                  bg={assistantBgColor}
-                  px={4}
-                  py={2}
-                  borderRadius="lg"
-                  display="flex"
-                  alignItems="center"
-                  gap={2}
-                >
-                  <Spinner size="sm" />
-                  <Text fontSize="sm">Thinking...</Text>
-                </Box>
-              </Flex>
-            )}
             <div ref={messagesEndRef} />
           </VStack>
 
@@ -724,7 +1024,7 @@ export const AnalystChat: React.FC = () => {
             />
             <Button
               colorScheme="purple"
-              onClick={handleSend}
+              onClick={() => handleSend()}
               disabled={isLoading || !input.trim()}
             >
               Send

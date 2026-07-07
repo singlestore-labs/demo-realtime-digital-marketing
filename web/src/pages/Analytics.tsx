@@ -40,7 +40,6 @@ import { Loader } from "@/components/customcomponents/loader/Loader";
 import { EnableSimulatorWarning } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/HeatMap";
 import { SetupDatabaseButton } from "@/components/SetupDatabaseButton";
-import { AnalystChat } from "@/components/AnalystChat";
 import {
   CustomerMetrics,
   customerMetrics,
@@ -420,12 +419,9 @@ export const AnalyticsDashboard = () => {
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
   return (
-    <>
-      <Container maxW={isSmallScreen ? undefined : "75%"} mt={10} mb="5%">
-        <DashboardContainerChild />
-      </Container>
-      <AnalystChat />
-    </>
+    <Container maxW={isSmallScreen ? undefined : "75%"} mt={10} mb="5%">
+      <DashboardContainerChild />
+    </Container>
   );
 };
 

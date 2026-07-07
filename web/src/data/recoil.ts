@@ -239,6 +239,8 @@ export const analystChatMessages = atom<Array<{
   content: string;
   result?: any;
   processingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string }>;
+  isStreaming?: boolean;
+  streamingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string; timestamp: number }>;
 }>>({
   key: "analystChatMessages",
   default: [],

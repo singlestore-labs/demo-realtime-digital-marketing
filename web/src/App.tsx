@@ -13,6 +13,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { useAnalytics } from "@/analytics";
+import { AnalystChat } from "@/components/AnalystChat";
 import { Loader } from "@/components/customcomponents/loader/Loader";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/navBar/Nav";
@@ -125,6 +126,7 @@ const LayoutContainer = ({ children }: { children: React.ReactNode }) => {
         {childComponent}
       </Box>
       <Footer />
+      {connected && <AnalystChat />}
     </>
   );
 };
