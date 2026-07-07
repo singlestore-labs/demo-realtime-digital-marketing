@@ -41,7 +41,7 @@ import {
   AnalystChart,
   AnalystTable,
 } from "@/data/analystClient";
-import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId, analystChatSize } from "@/data/recoil";
+import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId, analystChatSize, analystPendingQuestion } from "@/data/recoil";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -89,6 +89,7 @@ export const AnalystChat: React.FC = () => {
   const [isOpen, setIsOpen] = useRecoilState(analystChatOpen);
   const [messages, setMessages] = useRecoilState(analystChatMessages);
   const [sessionId, setSessionId] = useRecoilState(analystSessionId);
+  const [pendingQuestion, setPendingQuestion] = useRecoilState(analystPendingQuestion);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [currentThinkingStatus, setCurrentThinkingStatus] = React.useState("Thinking");
@@ -152,6 +153,15 @@ export const AnalystChat: React.FC = () => {
       }
     };
   }, [isLoading]);
+
+  // Handle pending questions from external triggers (e.g., Ask Aura buttons)
+  React.useEffect(() => {
+    if (pendingQuestion && !isLoading && !isProcessingRef.current) {
+      console.log('[Analyst] Processing pending question:', pendingQuestion);
+      handleSend(pendingQuestion);
+      setPendingQuestion(null);
+    }
+  }, [pendingQuestion, isLoading]);
 
   // Keep session ID ref in sync with Recoil state
   React.useEffect(() => {

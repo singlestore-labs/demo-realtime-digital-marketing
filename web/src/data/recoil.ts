@@ -258,3 +258,8 @@ export const analystChatSize = atom({
   default: { width: 450, height: 600 },
   effects: [localStorageEffect()],
 });
+
+export const analystPendingQuestion = atom<string | null>({
+  key: "analystPendingQuestion",
+  default: null,
+});
