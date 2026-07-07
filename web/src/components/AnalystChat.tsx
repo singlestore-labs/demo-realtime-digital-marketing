@@ -158,8 +158,12 @@ export const AnalystChat: React.FC = () => {
   React.useEffect(() => {
     if (pendingQuestion && !isLoading && !isProcessingRef.current) {
       console.log('[Analyst] Processing pending question:', pendingQuestion);
-      handleSend(pendingQuestion);
-      setPendingQuestion(null);
+      handleSend(pendingQuestion).then((sent) => {
+        // Only clear pending question if message was actually sent
+        if (sent) {
+          setPendingQuestion(null);
+        }
+      });
     }
   }, [pendingQuestion, isLoading]);
 
@@ -218,10 +222,10 @@ export const AnalystChat: React.FC = () => {
 
   const handleSend = async (messageOverride?: string) => {
     const messageToSend = messageOverride || input;
-    if (!messageToSend.trim() || isLoading || isProcessingRef.current) return;
+    if (!messageToSend.trim() || isLoading || isProcessingRef.current) return false;
 
     if (!apiKey || !endpointUrl) {
-      return;
+      return false;
     }
 
     isProcessingRef.current = true;
@@ -483,6 +487,7 @@ export const AnalystChat: React.FC = () => {
         }
       }
     }
+    return true;
   };
 
   const renderData = (result: AnalystQueryResult) => {
