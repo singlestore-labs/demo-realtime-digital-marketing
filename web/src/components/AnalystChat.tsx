@@ -822,13 +822,40 @@ export const AnalystChat: React.FC = () => {
               </VStack>
             )}
             {messages.length === 0 && apiKey && endpointUrl && (
-              <Text color="gray.500" textAlign="center" mt={8}>
-                Ask me anything about your MarTech campaign data!
-                <br />
-                <br />
-                Try: "What are the top performing campaigns?" or "Show me
-                conversion rates by city"
-              </Text>
+              <VStack spacing={3} mt={8}>
+                <Text color="gray.500" fontWeight="medium">
+                  Get started with these questions:
+                </Text>
+                <VStack spacing={2} w="100%">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    colorScheme="purple"
+                    w="90%"
+                    onClick={() => handleSend("What are the top performing campaigns?")}
+                  >
+                    What are the top performing campaigns?
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    colorScheme="purple"
+                    w="90%"
+                    onClick={() => handleSend("Show me conversion rates by city")}
+                  >
+                    Show me conversion rates by city
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    colorScheme="purple"
+                    w="90%"
+                    onClick={() => handleSend("Which customers have the highest ROAS?")}
+                  >
+                    Which customers have the highest ROAS?
+                  </Button>
+                </VStack>
+              </VStack>
             )}
             {messages.map((msg, idx) => (
               <Flex

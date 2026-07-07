@@ -14,8 +14,8 @@ export const AskAuraButton: React.FC<AskAuraButtonProps> = ({
 }) => {
   const setIsOpen = useSetRecoilState(analystChatOpen);
   const setPendingQuestion = useSetRecoilState(analystPendingQuestion);
-  const buttonBg = useColorModeValue("purple.500", "purple.400");
-  const buttonHoverBg = useColorModeValue("purple.600", "purple.500");
+  const iconColor = useColorModeValue("purple.500", "purple.400");
+  const iconHoverColor = useColorModeValue("purple.600", "purple.500");
 
   const handleClick = () => {
     setIsOpen(true);
@@ -28,20 +28,13 @@ export const AskAuraButton: React.FC<AskAuraButtonProps> = ({
         aria-label="Ask Aura about this"
         icon={<FiMessageSquare />}
         size="sm"
-        bg={buttonBg}
-        color="white"
-        _hover={{ bg: buttonHoverBg }}
+        variant="ghost"
+        color={iconColor}
+        _hover={{ color: iconHoverColor, bg: "transparent" }}
         onClick={handleClick}
         position="absolute"
         top={2}
         right={2}
-        opacity={0}
-        transition="opacity 0.2s"
-        sx={{
-          ".chart-container:hover &": {
-            opacity: 1,
-          },
-        }}
       />
     </Tooltip>
   );
