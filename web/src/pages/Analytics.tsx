@@ -458,7 +458,7 @@ const StatWrapper = ({
       position="relative"
       className="chart-container"
     >
-      {askAuraQuestion && <AskAuraButton question={askAuraQuestion} />}
+      {askAuraQuestion && <AskAuraButton question={askAuraQuestion} colSpan={colSpan} />}
       <Stat>
         <StatLabel>{statLabel}</StatLabel>
         <StatNumber color={useColorModeValue("#820DDF", "#D199FF")}>
