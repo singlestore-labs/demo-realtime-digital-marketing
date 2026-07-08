@@ -156,8 +156,7 @@ export const AnalystChat: React.FC = () => {
 
   // Handle pending questions from external triggers (e.g., Ask Aura buttons)
   React.useEffect(() => {
-    if (pendingQuestion && !isLoading && !isProcessingRef.current) {
-      console.log('[Analyst] Processing pending question:', pendingQuestion);
+    if (pendingQuestion && !isLoading && !isProcessingRef.current && apiKey && endpointUrl) {
       handleSend(pendingQuestion).then((sent) => {
         // Only clear pending question if message was actually sent
         if (sent) {
@@ -165,7 +164,7 @@ export const AnalystChat: React.FC = () => {
         }
       });
     }
-  }, [pendingQuestion, isLoading]);
+  }, [pendingQuestion, isLoading, apiKey, endpointUrl]);
 
   // Keep session ID ref in sync with Recoil state
   React.useEffect(() => {
@@ -321,7 +320,7 @@ export const AnalystChat: React.FC = () => {
       // Ignore response if session has changed (chat was cleared)
       if (requestSessionId !== currentSessionIdRef.current) {
         console.log('[Analyst] Session changed, ignoring response');
-        return;
+        return true; // Message was sent, just session changed
       }
 
       if (!isMountedRef.current) {
@@ -336,7 +335,7 @@ export const AnalystChat: React.FC = () => {
           }
           return updated;
         });
-        return;
+        return true; // Message was sent, just component unmounted
       }
 
       console.log('[Analyst] Response results:', response.results?.length || 0);
@@ -417,13 +416,13 @@ export const AnalystChat: React.FC = () => {
           }
           return updated;
         });
-        return;
+        return true; // Message was sent, just component unmounted
       }
 
       // Ignore errors if session changed (chat was cleared)
       if (requestSessionId !== currentSessionIdRef.current) {
         console.log('[Analyst] Session changed, ignoring error');
-        return;
+        return true; // Message was sent, just session changed
       }
 
       // Handle aborted requests
@@ -458,7 +457,7 @@ export const AnalystChat: React.FC = () => {
             return updated;
           });
         }
-        return;
+        return true; // Message was sent, just aborted
       }
 
       // Remove streaming message and show error
