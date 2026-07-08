@@ -41,7 +41,7 @@ import {
   AnalystChart,
   AnalystTable,
 } from "@/data/analystClient";
-import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId, analystChatSize } from "@/data/recoil";
+import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId, analystChatSize, analystPendingQuestion } from "@/data/recoil";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -89,6 +89,7 @@ export const AnalystChat: React.FC = () => {
   const [isOpen, setIsOpen] = useRecoilState(analystChatOpen);
   const [messages, setMessages] = useRecoilState(analystChatMessages);
   const [sessionId, setSessionId] = useRecoilState(analystSessionId);
+  const [pendingQuestion, setPendingQuestion] = useRecoilState(analystPendingQuestion);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [currentThinkingStatus, setCurrentThinkingStatus] = React.useState("Thinking");
@@ -153,6 +154,18 @@ export const AnalystChat: React.FC = () => {
     };
   }, [isLoading]);
 
+  // Handle pending questions from external triggers (e.g., Ask Aura buttons)
+  React.useEffect(() => {
+    if (pendingQuestion && !isLoading && !isProcessingRef.current && apiKey && endpointUrl) {
+      handleSend(pendingQuestion).then((sent) => {
+        // Only clear pending question if message was actually sent
+        if (sent) {
+          setPendingQuestion(null);
+        }
+      });
+    }
+  }, [pendingQuestion, isLoading, apiKey, endpointUrl]);
+
   // Keep session ID ref in sync with Recoil state
   React.useEffect(() => {
     currentSessionIdRef.current = sessionId;
@@ -208,10 +221,10 @@ export const AnalystChat: React.FC = () => {
 
   const handleSend = async (messageOverride?: string) => {
     const messageToSend = messageOverride || input;
-    if (!messageToSend.trim() || isLoading || isProcessingRef.current) return;
+    if (!messageToSend.trim() || isLoading || isProcessingRef.current) return false;
 
     if (!apiKey || !endpointUrl) {
-      return;
+      return false;
     }
 
     isProcessingRef.current = true;
@@ -307,7 +320,7 @@ export const AnalystChat: React.FC = () => {
       // Ignore response if session has changed (chat was cleared)
       if (requestSessionId !== currentSessionIdRef.current) {
         console.log('[Analyst] Session changed, ignoring response');
-        return;
+        return true; // Message was sent, just session changed
       }
 
       if (!isMountedRef.current) {
@@ -322,7 +335,7 @@ export const AnalystChat: React.FC = () => {
           }
           return updated;
         });
-        return;
+        return true; // Message was sent, just component unmounted
       }
 
       console.log('[Analyst] Response results:', response.results?.length || 0);
@@ -403,13 +416,13 @@ export const AnalystChat: React.FC = () => {
           }
           return updated;
         });
-        return;
+        return true; // Message was sent, just component unmounted
       }
 
       // Ignore errors if session changed (chat was cleared)
       if (requestSessionId !== currentSessionIdRef.current) {
         console.log('[Analyst] Session changed, ignoring error');
-        return;
+        return true; // Message was sent, just session changed
       }
 
       // Handle aborted requests
@@ -444,7 +457,7 @@ export const AnalystChat: React.FC = () => {
             return updated;
           });
         }
-        return;
+        return true; // Message was sent, just aborted
       }
 
       // Remove streaming message and show error
@@ -473,6 +486,7 @@ export const AnalystChat: React.FC = () => {
         }
       }
     }
+    return true;
   };
 
   const renderData = (result: AnalystQueryResult) => {
@@ -812,13 +826,40 @@ export const AnalystChat: React.FC = () => {
               </VStack>
             )}
             {messages.length === 0 && apiKey && endpointUrl && (
-              <Text color="gray.500" textAlign="center" mt={8}>
-                Ask me anything about your MarTech campaign data!
-                <br />
-                <br />
-                Try: "What are the top performing campaigns?" or "Show me
-                conversion rates by city"
-              </Text>
+              <VStack spacing={3} mt={8}>
+                <Text color="gray.500" fontWeight="medium">
+                  Get started with these questions:
+                </Text>
+                <VStack spacing={2} w="100%">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    colorScheme="purple"
+                    w="90%"
+                    onClick={() => handleSend("What are the top performing campaigns?")}
+                  >
+                    What are the top performing campaigns?
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    colorScheme="purple"
+                    w="90%"
+                    onClick={() => handleSend("Show me conversion rates by city")}
+                  >
+                    Show me conversion rates by city
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    colorScheme="purple"
+                    w="90%"
+                    onClick={() => handleSend("Which customers have the highest ROAS?")}
+                  >
+                    Which customers have the highest ROAS?
+                  </Button>
+                </VStack>
+              </VStack>
             )}
             {messages.map((msg, idx) => (
               <Flex
