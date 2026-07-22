@@ -630,7 +630,7 @@ BEGIN
   FROM _batch, cities;
 END`},{kind:"create",name:"run_matching_process",statement:`CREATE OR REPLACE PROCEDURE run_matching_process (
   _interval ENUM("second", "minute", "hour", "day", "week", "month")
-) RETURNS BIGINT
+)
 AS
 DECLARE
   _ts DATETIME = NOW(6);
@@ -646,7 +646,7 @@ BEGIN
   WHERE ts = _ts
   ON DUPLICATE KEY UPDATE last_notification = _ts;
 
-  RETURN _count;
+  ECHO SELECT _count AS RESULT;
 END`},{kind:"create",name:"update_segments",statement:`CREATE OR REPLACE PROCEDURE update_segments (
   _since DATETIME(6), _until DATETIME(6)
 ) AS BEGIN
@@ -1066,7 +1066,7 @@ ON DUPLICATE KEY UPDATE
         stats.database_name = minmax.database_name
         AND stats.table_name = minmax.table_name
         AND stats.count > ?
-    `,e.database,r);await Promise.all(l.map(async({tableName:T,count:F,minTs:G,maxTs:ee})=>{const Ce=(F-r)/F;if(Ce<.2)return;const we=new Date((G+Ce*(ee-G))*1e3);console.log(`removing rows from ${T} older than ${QT(we)}`),await dh(e,`DELETE FROM ${T} WHERE ts <= ?`,QT(we))}))},Mye=(e,t="minute")=>qM(e,"ECHO run_matching_process(?)",t).then(r=>r.RESULT),Cye=async(e,t,r=!0)=>{const n=QT(new Date);return await dh(e,"CALL update_segments(?, ?)",t,n),r&&await dh(e,"CALL prune_segments(?)",n),n},nut=(e,t,r,n)=>Jq(e,`
+    `,e.database,r);await Promise.all(l.map(async({tableName:T,count:F,minTs:G,maxTs:ee})=>{const Ce=(F-r)/F;if(Ce<.2)return;const we=new Date((G+Ce*(ee-G))*1e3);console.log(`removing rows from ${T} older than ${QT(we)}`),await dh(e,`DELETE FROM ${T} WHERE ts <= ?`,QT(we))}))},Mye=(e,t="minute")=>qM(e,"CALL run_matching_process(?)",t).then(r=>r.RESULT),Cye=async(e,t,r=!0)=>{const n=QT(new Date);return await dh(e,"CALL update_segments(?, ?)",t,n),r&&await dh(e,"CALL prune_segments(?)",n),n},nut=(e,t,r,n)=>Jq(e,`
       SELECT
         ts,
         GEOGRAPHY_LONGITUDE(lonlat) AS lon,
