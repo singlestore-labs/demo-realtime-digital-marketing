@@ -507,15 +507,27 @@ export type SQLIntervals =
   | "month";
 
 // returns number of notifications sent
-export const runMatchingProcess = (
+export const runMatchingProcess = async (
   config: ConnectionConfig,
   interval: SQLIntervals = "minute"
-) =>
-  QueryOne<{ RESULT: number }>(
-    config,
-    "CALL run_matching_process(?)",
-    interval
-  ).then((x) => x.RESULT);
+): Promise<number> => {
+  try {
+    const result = await QueryOne<{ RESULT: number }>(
+      config,
+      "CALL run_matching_process(?)",
+      interval
+    );
+    return result.RESULT;
+  } catch (e) {
+    if (e instanceof SQLError && e.message.includes("Expected exactly one row")) {
+      throw new SQLError(
+        "The run_matching_process procedure needs to be updated. Please reset your schema in the Configure page to apply the latest database changes.",
+        "CALL run_matching_process(?)"
+      );
+    }
+    throw e;
+  }
+};
 
 // returns the timestamp to use in the next call to runUpdateSegments
 export const runUpdateSegments = async (
