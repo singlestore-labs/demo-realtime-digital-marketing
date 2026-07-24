@@ -54,7 +54,7 @@ END //
 
 CREATE OR REPLACE PROCEDURE run_matching_process (
   _interval ENUM("second", "minute", "hour", "day", "week", "month")
-) RETURNS BIGINT
+)
 AS
 DECLARE
   _ts DATETIME = NOW(6);
@@ -70,7 +70,7 @@ BEGIN
   WHERE ts = _ts
   ON DUPLICATE KEY UPDATE last_notification = _ts;
 
-  RETURN _count;
+  ECHO SELECT _count AS RESULT FROM (SELECT 1) AS dummy;
 END //
 
 CREATE OR REPLACE PROCEDURE update_segments (
