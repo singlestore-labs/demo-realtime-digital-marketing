@@ -361,32 +361,12 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
 
 // returns true if any plans were dropped
 export const checkPlans = async (config: ConnectionConfig) => {
-  const badPlans = await Query<{ planId: string }>(
-    config,
-    `
-      SELECT plan_id AS planId
-      FROM information_schema.plancache
-      WHERE
-        plan_warnings LIKE "%empty tables%"
-    `
-  );
-
-  // Drop each plan individually, ignoring "plan missing" errors
-  // This prevents one failed drop from blocking others
-  await Promise.all(
-    badPlans.map(async ({ planId }) => {
-      try {
-        await Exec(config, `DROP ${planId} FROM PLANCACHE`);
-      } catch (e) {
-        // Silently ignore if plan was already dropped
-        if (!(e instanceof SQLError && e.isPlanMissing())) {
-          throw e;
-        }
-      }
-    })
-  );
-
-  return badPlans.length > 0;
+  // Disabled: plancache checking causes race condition errors (Error 1885)
+  // When multiple concurrent sessions query plancache and try to drop plans,
+  // one session may drop a plan between another session's SELECT and DROP,
+  // causing "plan does not exist" errors (HY000). The database warms up
+  // naturally without manual plan drops, so this check is no longer needed.
+  return false;
 };
 
 export const estimatedRowCount = <TableName extends string>(
@@ -533,7 +513,7 @@ export const runMatchingProcess = (
 ) =>
   QueryOne<{ RESULT: number }>(
     config,
-    "ECHO run_matching_process(?)",
+    "CALL run_matching_process(?)",
     interval
   ).then((x) => x.RESULT);
 
