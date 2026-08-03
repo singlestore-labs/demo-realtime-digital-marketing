@@ -52,27 +52,6 @@ BEGIN
   FROM _batch, cities;
 END //
 
-CREATE OR REPLACE FUNCTION run_matching_process (
-  _interval ENUM("second", "minute", "hour", "day", "week", "month")
-) RETURNS BIGINT
-AS
-DECLARE
-  _ts DATETIME = NOW(6);
-  _count BIGINT;
-BEGIN
-  INSERT INTO notifications SELECT _ts, * FROM match_offers_to_subscribers(_interval);
-
-  _count = row_count();
-
-  INSERT INTO subscribers_last_notification
-  SELECT city_id, subscriber_id, ts
-  FROM notifications
-  WHERE ts = _ts
-  ON DUPLICATE KEY UPDATE last_notification = _ts;
-
-  RETURN _count;
-END //
-
 CREATE OR REPLACE PROCEDURE update_segments (
   _since DATETIME(6), _until DATETIME(6)
 ) AS BEGIN
