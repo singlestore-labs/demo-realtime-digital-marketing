@@ -533,7 +533,7 @@ export const runMatchingProcess = (
 ) =>
   QueryOne<{ RESULT: number }>(
     config,
-    "SELECT run_matching_process(?) AS RESULT",
+    "CALL run_matching_process(?)",
     interval
   ).then((x) => x.RESULT);
 
