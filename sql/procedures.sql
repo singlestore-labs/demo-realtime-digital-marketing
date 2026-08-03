@@ -52,9 +52,9 @@ BEGIN
   FROM _batch, cities;
 END //
 
-CREATE OR REPLACE PROCEDURE run_matching_process (
+CREATE OR REPLACE FUNCTION run_matching_process (
   _interval ENUM("second", "minute", "hour", "day", "week", "month")
-)
+) RETURNS BIGINT
 AS
 DECLARE
   _ts DATETIME = NOW(6);
@@ -70,7 +70,7 @@ BEGIN
   WHERE ts = _ts
   ON DUPLICATE KEY UPDATE last_notification = _ts;
 
-  ECHO SELECT _count AS RESULT FROM (SELECT 1) AS dummy;
+  RETURN _count;
 END //
 
 CREATE OR REPLACE PROCEDURE update_segments (
