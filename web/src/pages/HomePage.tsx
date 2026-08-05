@@ -20,8 +20,8 @@ import { useNavigate } from "react-router-dom";
 
 import DashboardControllerImage from "@/assets/dashboard-controller-snapshot.svg";
 import GraphicalBackground2 from "@/assets/graphical-background-2.svg";
-import SingleStoreLogoLight from "@/assets/singlestore-logo-light.svg";
-import SingleStoreLogoDark from "@/assets/singlestore-logo-dark-new.svg";
+import SingleStoreLogoLight from "@/assets/singlestore-logo-light.png";
+import SingleStoreLogoDark from "@/assets/singlestore-logo-dark-new.png";
 import { DatabaseConfigFormManual } from "@/components/dataConfigForm/DatabaseConfigFormManual";
 import { NeedHelpModal } from "@/components/NeedHelpModal";
 import { useUpdateCityList } from "@/data/models/useUpdateCityList";

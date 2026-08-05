@@ -510,6 +510,7 @@ export type SQLIntervals =
 export const runMatchingProcess = async (
   config: ConnectionConfig,
   interval: SQLIntervals = "minute"
+
 ): Promise<number> => {
   try {
     const result = await QueryOne<{ RESULT: number }>(
