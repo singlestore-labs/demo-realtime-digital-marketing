@@ -70,7 +70,7 @@ BEGIN
   WHERE ts = _ts
   ON DUPLICATE KEY UPDATE last_notification = _ts;
 
-  ECHO SELECT _count AS RESULT FROM (SELECT 1) AS dummy;
+  ECHO SELECT * FROM (SELECT _count AS RESULT) AS result;
 END //
 
 CREATE OR REPLACE PROCEDURE update_segments (
