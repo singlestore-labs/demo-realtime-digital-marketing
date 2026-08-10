@@ -545,10 +545,11 @@ export const runUpdateSegments = async (
 ) => {
   const nowISO = toISOStringNoTZ(new Date());
 
-  await Exec(config, "CALL update_segments(?, ?)", since, nowISO);
+  // Use Query instead of Exec to handle any result set the procedure might return
+  await Query(config, "CALL update_segments(?, ?)", since, nowISO);
 
   if (pruneSegments) {
-    await Exec(config, "CALL prune_segments(?)", nowISO);
+    await Query(config, "CALL prune_segments(?)", nowISO);
   }
 
   return nowISO;
