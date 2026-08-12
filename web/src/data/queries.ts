@@ -383,11 +383,17 @@ export const checkPlans = async (config: ConnectionConfig) => {
       await Exec(config, `DROP ${planId} FROM PLANCACHE`);
     } catch (e) {
       // Silently ignore if plan was already dropped (error 1885)
-      if (e instanceof SQLError && e.isPlanMissing()) {
-        console.log(`Plan ${planId} was already dropped, ignoring error`);
+      // Check both the error code and the error message to be safe
+      const isPlanMissing =
+        (e instanceof SQLError && e.isPlanMissing()) ||
+        (e instanceof Error && e.message.includes("plan with plan_id") && e.message.includes("does not exist"));
+
+      if (isPlanMissing) {
+        console.log(`Plan ${planId} was already dropped, ignoring error 1885`);
         continue;
       }
       // Re-throw other errors
+      console.error(`Unexpected error dropping plan ${planId}:`, e);
       throw e;
     }
   }

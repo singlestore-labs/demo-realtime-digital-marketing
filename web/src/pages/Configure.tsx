@@ -719,7 +719,11 @@ const SegmentationSection = ({
 
     let isWarmingUp;
     if (elapsed && elapsed > 1000) {
-      isWarmingUp = await checkPlans(config);
+      try {
+        isWarmingUp = await checkPlans(config);
+      } catch (e) {
+        console.warn("Error checking plans, ignoring:", e);
+      }
     }
 
     if (isWarmingUp) {
@@ -842,7 +846,11 @@ const MatchingSection = ({
 
     let isWarmingUp;
     if (elapsed && elapsed > 1000) {
-      isWarmingUp = await checkPlans(config);
+      try {
+        isWarmingUp = await checkPlans(config);
+      } catch (e) {
+        console.warn("Error checking plans, ignoring:", e);
+      }
     }
 
     if (isWarmingUp) {
