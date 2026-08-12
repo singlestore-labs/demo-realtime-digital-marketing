@@ -185,9 +185,14 @@ export const resetSchema = async (
 };
 
 export const insertSeedData = async (config: ConnectionConfig) => {
-  for (const obj of SEED) {
+  console.log("insertSeedData: Starting to insert seed data, total items:", SEED.length);
+  for (let i = 0; i < SEED.length; i++) {
+    const obj = SEED[i];
+    console.log(`insertSeedData: Processing item ${i + 1}/${SEED.length}: ${obj.name}`);
     await Exec(config, obj.statement);
+    console.log(`insertSeedData: Completed item ${i + 1}/${SEED.length}`);
   }
+  console.log("insertSeedData: All seed data inserted successfully");
 };
 
 export const seedCityWithOffers = (
