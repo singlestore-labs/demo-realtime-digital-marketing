@@ -607,11 +607,28 @@ const OffersSection = ({
     console.log("onSeedData: Starting...");
     workingCtrl.on();
     await insertSeedData(config);
-    console.log("onSeedData: Seed data inserted, mutating table counts...");
-    await tableCounts.mutate();
-    console.log("onSeedData: Table counts after mutate:", tableCounts.data);
-    console.log("onSeedData: offers count:", tableCounts.data?.offers);
-    console.log("onSeedData: done status:", !!tableCounts.data?.offers);
+    console.log("onSeedData: Seed data inserted, waiting for pipelines to load data...");
+
+    // Poll until offers are loaded (pipelines need time to ingest)
+    let attempts = 0;
+    const maxAttempts = 30; // 30 seconds max
+    while (attempts < maxAttempts) {
+      await tableCounts.mutate();
+      console.log(`onSeedData: Polling attempt ${attempts + 1}, offers count:`, tableCounts.data?.offers);
+
+      if (tableCounts.data?.offers && tableCounts.data.offers > 0) {
+        console.log("onSeedData: Offers loaded successfully!");
+        break;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      attempts++;
+    }
+
+    if (attempts >= maxAttempts) {
+      console.warn("onSeedData: Timed out waiting for offers to load");
+    }
+
     workingCtrl.off();
     console.log("onSeedData: Complete");
   }, [config, tableCounts, workingCtrl]);
