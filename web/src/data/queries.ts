@@ -533,7 +533,7 @@ export const runMatchingProcess = (
 ) =>
   QueryOne<{ RESULT: number }>(
     config,
-    "CALL run_matching_process(?)",
+    "ECHO SELECT run_matching_process(?) AS RESULT",
     interval
   ).then((x) => x.RESULT);
 
@@ -545,11 +545,10 @@ export const runUpdateSegments = async (
 ) => {
   const nowISO = toISOStringNoTZ(new Date());
 
-  // Use Query instead of Exec to handle any result set the procedure might return
-  await Query(config, "CALL update_segments(?, ?)", since, nowISO);
+  await Exec(config, "CALL update_segments(?, ?)", since, nowISO);
 
   if (pruneSegments) {
-    await Query(config, "CALL prune_segments(?)", nowISO);
+    await Exec(config, "CALL prune_segments(?)", nowISO);
   }
 
   return nowISO;
