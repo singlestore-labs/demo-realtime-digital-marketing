@@ -528,15 +528,19 @@ export type SQLIntervals =
   | "month";
 
 // returns number of notifications sent
-export const runMatchingProcess = (
+export const runMatchingProcess = async (
   config: ConnectionConfig,
   interval: SQLIntervals = "minute"
-) =>
-  QueryOne<{ count: number }>(
+) => {
+  console.log("runMatchingProcess called with interval:", interval);
+  const result = await QueryOne<{ count: number }>(
     config,
     "CALL run_matching_process(?)",
     interval
-  ).then((x) => x.count);
+  );
+  console.log("runMatchingProcess result:", result);
+  return result.count;
+};
 
 // returns the timestamp to use in the next call to runUpdateSegments
 export const runUpdateSegments = async (
