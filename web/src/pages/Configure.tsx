@@ -604,10 +604,14 @@ const OffersSection = ({
   const tableCounts = useTableCounts(config);
 
   const onSeedData = React.useCallback(async () => {
+    console.log("onSeedData: Starting...");
     workingCtrl.on();
     await insertSeedData(config);
-    tableCounts.mutate();
+    console.log("onSeedData: Seed data inserted, mutating table counts...");
+    await tableCounts.mutate();
+    console.log("onSeedData: Table counts after mutate:", tableCounts.data);
     workingCtrl.off();
+    console.log("onSeedData: Complete");
   }, [config, tableCounts, workingCtrl]);
 
   const done = !!tableCounts.data?.offers;
