@@ -51,6 +51,7 @@ import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
 import { ConnectionConfig, Query } from "@/data/client";
+import { DEFAULT_CITY } from "@/data/offers";
 import {
   checkPlans,
   ensurePipelinesExist,
@@ -62,6 +63,7 @@ import {
   pipelineStatus,
   runMatchingProcess,
   runUpdateSegments,
+  seedCityWithOffers,
 } from "@/data/queries";
 import {
   configScaleFactor,
@@ -606,72 +608,19 @@ const OffersSection = ({
   const onSeedData = React.useCallback(async () => {
     console.log("onSeedData: Starting...");
     workingCtrl.on();
-    await insertSeedData(config);
-    console.log("onSeedData: Seed data inserted, checking pipeline status...");
 
-    // Check pipeline status after creation
-    const checkPipelineStatus = async () => {
-      try {
-        const result = await Query<{
-          pipeline_name: string;
-          state: string;
-        }>(
-          config,
-          `SELECT pipeline_name, state FROM information_schema.pipelines WHERE database_name = ? AND pipeline_name IN ('offers', 'segments')`,
-          config.database
-        );
-        console.log("Pipeline status:", result);
+    // Generate offers directly instead of using S3 pipelines
+    console.log("onSeedData: Creating offers for New York City...");
+    await seedCityWithOffers(config, DEFAULT_CITY, scaleFactor);
+    console.log("onSeedData: Offers created successfully");
 
-        // Also check pipeline files to see if any files are being processed
-        const files = await Query<{
-          pipeline_name: string;
-          file_state: string;
-        }>(
-          config,
-          `SELECT pipeline_name, file_state FROM information_schema.pipelines_files WHERE database_name = ? AND pipeline_name IN ('offers', 'segments') LIMIT 10`,
-          config.database
-        );
-        console.log("Pipeline files:", files);
-
-        return result;
-      } catch (e) {
-        console.error("Error checking pipeline status:", e);
-        return [];
-      }
-    };
-
-    await checkPipelineStatus();
-
-    console.log("onSeedData: Waiting for pipelines to load data...");
-    // Poll until offers are loaded (pipelines need time to ingest)
-    let attempts = 0;
-    const maxAttempts = 30; // 30 seconds max
-    while (attempts < maxAttempts) {
-      await tableCounts.mutate();
-      console.log(`onSeedData: Polling attempt ${attempts + 1}, offers count:`, tableCounts.data?.offers);
-
-      if (tableCounts.data?.offers && tableCounts.data.offers > 0) {
-        console.log("onSeedData: Offers loaded successfully!");
-        break;
-      }
-
-      // Check pipeline status every 5 attempts
-      if (attempts > 0 && attempts % 5 === 0) {
-        await checkPipelineStatus();
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      attempts++;
-    }
-
-    if (attempts >= maxAttempts) {
-      console.warn("onSeedData: Timed out waiting for offers to load");
-      await checkPipelineStatus();
-    }
+    // Refresh table counts
+    await tableCounts.mutate();
+    console.log("onSeedData: Offers count:", tableCounts.data?.offers);
 
     workingCtrl.off();
     console.log("onSeedData: Complete");
-  }, [config, tableCounts, workingCtrl]);
+  }, [config, tableCounts, workingCtrl, scaleFactor]);
 
   const done = !!tableCounts.data?.offers;
 
