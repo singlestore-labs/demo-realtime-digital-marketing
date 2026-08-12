@@ -615,13 +615,26 @@ const OffersSection = ({
         const result = await Query<{
           pipeline_name: string;
           state: string;
-          error: string | null;
+          batch_interval: number;
         }>(
           config,
-          `SELECT pipeline_name, state, error FROM information_schema.pipelines WHERE database_name = ? AND pipeline_name IN ('offers', 'segments')`,
+          `SELECT pipeline_name, state, batch_interval FROM information_schema.pipelines WHERE database_name = ? AND pipeline_name IN ('offers', 'segments')`,
           config.database
         );
         console.log("Pipeline status:", result);
+
+        // Also check pipeline files to see if any files are being processed
+        const files = await Query<{
+          pipeline_name: string;
+          file_state: string;
+          file_name: string;
+        }>(
+          config,
+          `SELECT pipeline_name, file_state, file_name FROM information_schema.pipelines_files WHERE database_name = ? AND pipeline_name IN ('offers', 'segments') LIMIT 10`,
+          config.database
+        );
+        console.log("Pipeline files:", files);
+
         return result;
       } catch (e) {
         console.error("Error checking pipeline status:", e);
