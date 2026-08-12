@@ -214,7 +214,7 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
   return (
     <Section
       completed={connected}
-      title="Connect to SingleStoreDB"
+      title="Connect to Singlestore Helios"
       previousStepCompleted
       left={
         <Text>
@@ -538,7 +538,7 @@ const PipelinesSection = ({
           target="_blank"
         >
           {" "}
-          SingleStoreDB Pipelines{" "}
+          Singlestore Helios Pipelines{" "}
         </Link>
         and{" "}
         <Link href="https://aws.amazon.com/s3/" target="_blank">
@@ -777,7 +777,7 @@ const SegmentationSection = ({
             rarely change.
             <br />
             <br />
-            Instead SingleStore periodically caches the mapping between
+            Instead Singlestore Helios periodically caches the mapping between
             audience segments and behavioral segments for faster results.
             <br />
             <br />
@@ -1004,7 +1004,7 @@ const CompleteToast = () => {
                 >
                   {database}
                 </Link>{" "}
-                database in SingleStore Customer Portal
+                database in Singlestore Helios Customer Portal
               </li>
             </ul>
           </Text>
@@ -1105,7 +1105,7 @@ export const Configure = () => {
         <Stack spacing={2}>
           <Heading fontSize="xl">Setting up Your Application</Heading>
           <Text size="xs" overflowWrap="break-word">
-            Connect to a SingleStoreDB workspace to see how we power the
+            Connect to a Singlestore Helios workspace to see how we power the
             real-time Digital Marketing applications. If you have any questions
             or issues, please file an issue on the{" "}
             <Link
