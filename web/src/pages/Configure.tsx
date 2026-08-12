@@ -610,6 +610,8 @@ const OffersSection = ({
     console.log("onSeedData: Seed data inserted, mutating table counts...");
     await tableCounts.mutate();
     console.log("onSeedData: Table counts after mutate:", tableCounts.data);
+    console.log("onSeedData: offers count:", tableCounts.data?.offers);
+    console.log("onSeedData: done status:", !!tableCounts.data?.offers);
     workingCtrl.off();
     console.log("onSeedData: Complete");
   }, [config, tableCounts, workingCtrl]);
