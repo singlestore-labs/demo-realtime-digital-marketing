@@ -532,11 +532,11 @@ export const runMatchingProcess = (
   config: ConnectionConfig,
   interval: SQLIntervals = "minute"
 ) =>
-  QueryOne<{ RESULT: number }>(
+  QueryOne<{ count: number }>(
     config,
-    "ECHO SELECT run_matching_process(?) AS RESULT",
+    "CALL run_matching_process(?)",
     interval
-  ).then((x) => x.RESULT);
+  ).then((x) => x.count);
 
 // returns the timestamp to use in the next call to runUpdateSegments
 export const runUpdateSegments = async (
