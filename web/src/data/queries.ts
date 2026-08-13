@@ -185,17 +185,12 @@ export const resetSchema = async (
 };
 
 export const insertSeedData = async (config: ConnectionConfig) => {
-  console.log("insertSeedData: Starting to insert seed data, total items:", SEED.length);
-  for (let i = 0; i < SEED.length; i++) {
-    const obj = SEED[i];
-    console.log(`insertSeedData: Processing item ${i + 1}/${SEED.length}: ${obj.name}`);
+  for (const obj of SEED) {
     await Exec(config, obj.statement);
-    console.log(`insertSeedData: Completed item ${i + 1}/${SEED.length}`);
   }
-  console.log("insertSeedData: All seed data inserted successfully");
 };
 
-export const seedCityWithOffers = (
+export const seedCityWithOffers = async (
   config: ConnectionConfig,
   city: CityConfig,
   scaleFactor: ScaleFactor
@@ -389,11 +384,9 @@ export const checkPlans = async (config: ConnectionConfig) => {
         (e instanceof Error && e.message.includes("plan with plan_id") && e.message.includes("does not exist"));
 
       if (isPlanMissing) {
-        console.log(`Plan ${planId} was already dropped, ignoring error 1885`);
         continue;
       }
       // Re-throw other errors
-      console.error(`Unexpected error dropping plan ${planId}:`, e);
       throw e;
     }
   }
@@ -539,19 +532,15 @@ export type SQLIntervals =
   | "month";
 
 // returns number of notifications sent
-export const runMatchingProcess = async (
+export const runMatchingProcess = (
   config: ConnectionConfig,
   interval: SQLIntervals = "minute"
-) => {
-  console.log("runMatchingProcess called with interval:", interval);
-  const result = await QueryOne<{ count: number }>(
+) =>
+  QueryOne<{ count: number }>(
     config,
     "CALL run_matching_process(?)",
     interval
-  );
-  console.log("runMatchingProcess result:", result);
-  return result.count;
-};
+  ).then((x) => x.count);
 
 // returns the timestamp to use in the next call to runUpdateSegments
 export const runUpdateSegments = async (

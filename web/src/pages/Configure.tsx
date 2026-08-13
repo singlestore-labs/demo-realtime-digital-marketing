@@ -607,20 +607,10 @@ const OffersSection = ({
   const tableCounts = useTableCounts(config);
 
   const onSeedData = React.useCallback(async () => {
-    console.log("onSeedData: Starting...");
     workingCtrl.on();
-
-    // Generate offers directly instead of using S3 pipelines
-    console.log("onSeedData: Creating offers for New York City...");
     await seedCityWithOffers(config, DEFAULT_CITY, scaleFactor);
-    console.log("onSeedData: Offers created successfully");
-
-    // Refresh table counts
     await tableCounts.mutate();
-    console.log("onSeedData: Offers count:", tableCounts.data?.offers);
-
     workingCtrl.off();
-    console.log("onSeedData: Complete");
   }, [config, tableCounts, workingCtrl, scaleFactor]);
 
   const done = !!tableCounts.data?.offers;
