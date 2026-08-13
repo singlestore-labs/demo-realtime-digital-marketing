@@ -617,6 +617,9 @@ const OffersSection = ({
 
   const onSeedData = React.useCallback(async () => {
     workingCtrl.on();
+    // Load seed data (worldcities pipeline, segments pipeline, etc.)
+    await insertSeedData(config);
+    // Generate offers directly since S3 offers pipeline doesn't have accessible data
     await seedCityWithOffers(config, DEFAULT_CITY, scaleFactor);
     await tableCounts.mutate();
     workingCtrl.off();
