@@ -747,7 +747,7 @@ const SegmentationSection = ({
     const { segments, subscriber_segments, locations, requests, purchases } =
       tableCounts.data;
     const durationFormatted = formatMs(elapsed);
-    const estRows = formatNumber(locations + requests + purchases);
+    const estRows = formatNumber((locations || 0) + (requests || 0) + (purchases || 0));
     const seg = formatNumber(segments);
     const memberships = formatNumber(subscriber_segments);
 
@@ -881,7 +881,7 @@ const MatchingSection = ({
   if (elapsed && tableCounts.data) {
     const { offers, subscribers, subscriber_segments, notifications } =
       tableCounts.data;
-    const estRows = formatNumber(offers * subscribers + notifications);
+    const estRows = formatNumber((offers || 0) * (subscribers || 0) + (notifications || 0));
     const memberships = formatNumber(subscriber_segments);
     const durationFormatted = formatMs(elapsed);
     const sentNotifs = formatNumber(sentNotifications);
