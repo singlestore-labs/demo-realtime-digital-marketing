@@ -143,27 +143,49 @@ const fetchEndpoint = async (
     console.log("running query", sql, args);
   }
 
-  const response = await fetch(
-    `${rectifyHostAddress(config.host)}/api/v2/${endpoint}`,
-    {
-      method: "POST",
-      signal: config.ctx?.signal,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${btoa(`${config.user}:${config.password}`)}`,
-      },
-      body: JSON.stringify({ sql, args, database: config.database }),
+  try {
+    const response = await fetch(
+      `${rectifyHostAddress(config.host)}/api/v2/${endpoint}`,
+      {
+        method: "POST",
+        signal: config.ctx?.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${btoa(`${config.user}:${config.password}`)}`,
+        },
+        body: JSON.stringify({ sql, args, database: config.database }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      // Don't pass HTTP status as code - let SQLError parse the error message
+      // for SQL error codes (e.g., "Error 1049: Unknown database")
+      throw new SQLError(
+        errorText || `HTTP ${response.status}: ${response.statusText}`,
+        sql
+      );
     }
-  );
 
-  if (!response.ok) {
-    throw new SQLError(await response.text(), sql);
+    const data = await response.json();
+
+    if (data.error) {
+      throw new SQLError(data.error.message, sql, data.error.code);
+    }
+    return data;
+  } catch (error) {
+    // Re-throw AbortErrors as-is so SWR can handle them properly
+    if (error instanceof Error && error.name === "AbortError") {
+      throw error;
+    }
+    // Re-throw SQLErrors as-is
+    if (error instanceof SQLError) {
+      throw error;
+    }
+    // Wrap other errors as SQLError
+    throw new SQLError(
+      error instanceof Error ? error.message : String(error),
+      sql
+    );
   }
-
-  const data = await response.json();
-
-  if (data.error) {
-    throw new SQLError(data.error.message, sql, data.error.code);
-  }
-  return data;
 };

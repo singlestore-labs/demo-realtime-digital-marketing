@@ -507,7 +507,7 @@ export type SQLIntervals =
   | "month";
 
 // returns number of notifications sent
-export const runMatchingProcess = (
+export const runMatchingProcess = async (
   config: ConnectionConfig,
   interval: SQLIntervals = "minute"
 ) =>

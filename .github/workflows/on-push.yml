@@ -25,6 +25,10 @@ jobs:
 
   deploy-web:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to push to gh-pages branch
+    # Only deploy from upstream repo, not forks
+    if: github.repository == 'singlestore-labs/demo-realtime-digital-marketing'
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
@@ -32,7 +36,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'yarn'
           cache-dependency-path: web/yarn.lock
 

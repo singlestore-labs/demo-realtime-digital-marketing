@@ -208,10 +208,12 @@ const StatsWrapper = () => {
           placement="top"
           zIndex={5}
         >
-          <SelectCityCheckbox
-            isUpdating={isUpdating}
-            totalSelectableCities={totalSelectableCities}
-          />
+          <Box>
+            <SelectCityCheckbox
+              isUpdating={isUpdating}
+              totalSelectableCities={totalSelectableCities}
+            />
+          </Box>
         </Tooltip>
         <br />
       </Stack>

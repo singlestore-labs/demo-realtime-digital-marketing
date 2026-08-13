@@ -26,8 +26,8 @@ var (
 	numPartitions  = flag.Int("partitions", 1, "number of partitions")
 	numSubscribers = flag.Int("subscribers", 100_000, "number of subscribers")
 
-	purchaseProb = flag.Float64("purchase-prob", 0.05, "purchase probability")
-	requestProb  = flag.Float64("request-prob", 0.3, "request probability")
+	purchaseProb = flag.Float64("purchase-prob", 0.15, "purchase probability")
+	requestProb  = flag.Float64("request-prob", 0.4, "request probability")
 
 	minSpeed = flag.Float64("min-speed", 0.001, "minimum speed")
 	maxSpeed = flag.Float64("max-speed", 0.01, "maximum speed")

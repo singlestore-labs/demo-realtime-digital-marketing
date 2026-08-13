@@ -215,3 +215,51 @@ export const resettingSchema = atom({
   key: "resettingSchema",
   default: false,
 });
+
+export const analystApiKey = atom({
+  key: "analystApiKey",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystEndpointUrl = atom({
+  key: "analystEndpointUrl",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystChatOpen = atom({
+  key: "analystChatOpen",
+  default: false,
+  effects: [localStorageEffect()],
+});
+
+export const analystChatMessages = atom<Array<{
+  role: "user" | "assistant";
+  content: string;
+  result?: any;
+  processingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string }>;
+  isStreaming?: boolean;
+  streamingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string; timestamp: number }>;
+}>>({
+  key: "analystChatMessages",
+  default: [],
+  effects: [localStorageEffect()],
+});
+
+export const analystSessionId = atom({
+  key: "analystSessionId",
+  default: crypto.randomUUID(),
+  effects: [localStorageEffect()],
+});
+
+export const analystChatSize = atom({
+  key: "analystChatSize",
+  default: { width: 450, height: 600 },
+  effects: [localStorageEffect()],
+});
+
+export const analystPendingQuestion = atom<string | null>({
+  key: "analystPendingQuestion",
+  default: null,
+});

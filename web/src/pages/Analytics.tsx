@@ -36,6 +36,7 @@ import { MdAttachMoney, MdMonetizationOn } from "react-icons/md";
 import { useRecoilValue } from "recoil";
 import useSWR from "swr";
 
+import { AskAuraButton } from "@/components/AskAuraButton";
 import { Loader } from "@/components/customcomponents/loader/Loader";
 import { EnableSimulatorWarning } from "@/components/EnableSimulatorButton";
 import { Heatmap } from "@/components/HeatMap";
@@ -194,24 +195,29 @@ const StatGrid = () => {
         statLabel="Ad Campaigns"
         statNumber={formatStat(tableCounts.data.offers)}
         colSpan={2}
+        askAuraQuestion="How many active ad campaigns are running and which customers have the most campaigns?"
       />
       <StatWrapper
         statLabel="Audience Segments"
         statNumber={formatStat(tableCounts.data.subscribers)}
+        askAuraQuestion="What are the largest audience segments and how are subscribers distributed across them?"
       />
       <StatWrapper
         statLabel="Notifications"
         statNumber={formatStat(tableCounts.data.notifications)}
+        askAuraQuestion="What's the trend in notifications over time and which campaigns are generating the most?"
       />
       <StatWrapper
         statLabel="Conversion Rate"
         statNumber={formatPct(overallRateRequests.data?.conversionRate || 0)}
         helpText="Requests"
+        askAuraQuestion="What's the conversion rate trend and which campaigns have the highest conversion rates?"
       />
       <StatWrapper
         statLabel="Conversion Rate"
         statNumber={formatPct(overallRatePurchases.data?.conversionRate || 0)}
         helpText="Purchases"
+        askAuraQuestion="How does purchase conversion rate vary by campaign and market?"
       />
     </Grid>
   );
@@ -430,11 +436,13 @@ const StatWrapper = ({
   statNumber,
   helpText,
   colSpan,
+  askAuraQuestion,
 }: {
   statLabel: string;
   statNumber: string;
   helpText?: string;
   colSpan?: number;
+  askAuraQuestion?: string;
 }) => {
   let helpTextContainer;
   if (helpText) {
@@ -447,7 +455,10 @@ const StatWrapper = ({
       background={useColorModeValue("#ECE8FD", "#360061")}
       borderRadius="15px"
       colSpan={colSpan || 1}
+      position="relative"
+      className="chart-container"
     >
+      {askAuraQuestion && <AskAuraButton question={askAuraQuestion} colSpan={colSpan} />}
       <Stat>
         <StatLabel>{statLabel}</StatLabel>
         <StatNumber color={useColorModeValue("#820DDF", "#D199FF")}>
