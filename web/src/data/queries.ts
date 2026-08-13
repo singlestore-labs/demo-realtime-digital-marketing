@@ -190,7 +190,7 @@ export const insertSeedData = async (config: ConnectionConfig) => {
   }
 };
 
-export const seedCityWithOffers = (
+export const seedCityWithOffers = async (
   config: ConnectionConfig,
   city: CityConfig,
   scaleFactor: ScaleFactor
@@ -510,25 +510,12 @@ export type SQLIntervals =
 export const runMatchingProcess = async (
   config: ConnectionConfig,
   interval: SQLIntervals = "minute"
-
-): Promise<number> => {
-  try {
-    const result = await QueryOne<{ RESULT: number }>(
-      config,
-      "CALL run_matching_process(?)",
-      interval
-    );
-    return result.RESULT;
-  } catch (e) {
-    if (e instanceof SQLError && e.message.includes("Expected exactly one row")) {
-      throw new SQLError(
-        "The run_matching_process procedure needs to be updated. Please reset your schema in the Configure page to apply the latest database changes.",
-        "CALL run_matching_process(?)"
-      );
-    }
-    throw e;
-  }
-};
+) =>
+  QueryOne<{ count: number }>(
+    config,
+    "CALL run_matching_process(?)",
+    interval
+  ).then((x) => x.count);
 
 // returns the timestamp to use in the next call to runUpdateSegments
 export const runUpdateSegments = async (

@@ -57,7 +57,8 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
-import { ConnectionConfig } from "@/data/client";
+import { ConnectionConfig, Query } from "@/data/client";
+import { DEFAULT_CITY } from "@/data/offers";
 import {
   checkPlans,
   ensurePipelinesExist,
@@ -69,6 +70,7 @@ import {
   pipelineStatus,
   runMatchingProcess,
   runUpdateSegments,
+  seedCityWithOffers,
 } from "@/data/queries";
 import {
   analystApiKey,
@@ -223,7 +225,7 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
   return (
     <Section
       completed={connected}
-      title="Connect to SingleStoreDB"
+      title="Connect to SingleStore Helios"
       previousStepCompleted
       left={
         <Text>
@@ -547,7 +549,7 @@ const PipelinesSection = ({
           target="_blank"
         >
           {" "}
-          SingleStoreDB Pipelines{" "}
+          SingleStore Helios Pipelines{" "}
         </Link>
         and{" "}
         <Link href="https://aws.amazon.com/s3/" target="_blank">
@@ -609,15 +611,19 @@ const OffersSection = ({
   previousStepCompleted: boolean;
 }) => {
   const config = useRecoilValue(connectionConfig);
+  const scaleFactor = useRecoilValue(configScaleFactor);
   const [working, workingCtrl] = useBoolean();
   const tableCounts = useTableCounts(config);
 
   const onSeedData = React.useCallback(async () => {
     workingCtrl.on();
+    // Load seed data (worldcities pipeline, segments pipeline, etc.)
     await insertSeedData(config);
-    tableCounts.mutate();
+    // Generate offers directly since S3 offers pipeline doesn't have accessible data
+    await seedCityWithOffers(config, DEFAULT_CITY, scaleFactor);
+    await tableCounts.mutate();
     workingCtrl.off();
-  }, [config, tableCounts, workingCtrl]);
+  }, [config, tableCounts, workingCtrl, scaleFactor]);
 
   const done = !!tableCounts.data?.offers;
 
@@ -724,7 +730,11 @@ const SegmentationSection = ({
 
     let isWarmingUp;
     if (elapsed && elapsed > 1000) {
-      isWarmingUp = await checkPlans(config);
+      try {
+        isWarmingUp = await checkPlans(config);
+      } catch (e) {
+        console.warn("Error checking plans, ignoring:", e);
+      }
     }
 
     if (isWarmingUp) {
@@ -786,7 +796,7 @@ const SegmentationSection = ({
             rarely change.
             <br />
             <br />
-            Instead SingleStore periodically caches the mapping between
+            Instead SingleStore Helios periodically caches the mapping between
             audience segments and behavioral segments for faster results.
             <br />
             <br />
@@ -847,7 +857,11 @@ const MatchingSection = ({
 
     let isWarmingUp;
     if (elapsed && elapsed > 1000) {
-      isWarmingUp = await checkPlans(config);
+      try {
+        isWarmingUp = await checkPlans(config);
+      } catch (e) {
+        console.warn("Error checking plans, ignoring:", e);
+      }
     }
 
     if (isWarmingUp) {
@@ -1175,7 +1189,7 @@ const CompleteToast = () => {
                 >
                   {database}
                 </Link>{" "}
-                database in SingleStore Customer Portal
+                database in SingleStore Helios Customer Portal
               </li>
             </ul>
           </Text>
@@ -1287,7 +1301,7 @@ export const Configure = () => {
         <Stack spacing={2}>
           <Heading fontSize="xl">Setting up Your Application</Heading>
           <Text size="xs" overflowWrap="break-word">
-            Connect to a SingleStoreDB workspace to see how we power the
+            Connect to a SingleStore Helios workspace to see how we power the
             real-time Digital Marketing applications. If you have any questions
             or issues, please file an issue on the{" "}
             <Link
