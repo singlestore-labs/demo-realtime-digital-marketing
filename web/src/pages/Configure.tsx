@@ -602,6 +602,7 @@ const OffersSection = ({
   previousStepCompleted: boolean;
 }) => {
   const config = useRecoilValue(connectionConfig);
+  const scaleFactor = useRecoilValue(configScaleFactor);
   const [working, workingCtrl] = useBoolean();
   const tableCounts = useTableCounts(config);
 
