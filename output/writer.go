@@ -9,6 +9,7 @@ import (
 type Location struct {
 	SubscriberId int64
 	Offset       vec2.T
+	EventTs      int64 // Unix timestamp in microseconds
 }
 
 type Request struct {

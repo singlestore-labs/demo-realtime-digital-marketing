@@ -42,17 +42,19 @@ create rowstore table if not exists subscribers_last_notification (
 create table if not exists locations (
   city_id BIGINT NOT NULL,
   subscriber_id BIGINT NOT NULL,
-  ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
+  event_ts DATETIME(6) NOT NULL,
+  ingested_at DATETIME(6) NOT NULL SERIES TIMESTAMP,
   lonlat GEOGRAPHYPOINT NOT NULL,
 
   -- open location code length 8 (275m resolution)
   olc_8 TEXT NOT NULL,
 
   SHARD KEY (city_id, subscriber_id),
-  SORT KEY (ts),
+  SORT KEY (ingested_at),
 
   KEY (city_id, subscriber_id) USING HASH,
-  KEY (olc_8) USING HASH
+  KEY (olc_8) USING HASH,
+  KEY (event_ts) USING HASH
 );
 
 create table if not exists requests (
@@ -261,4 +263,73 @@ CREATE OR REPLACE FUNCTION dynamic_subscriber_segments(
   SELECT * FROM dynamic_subscriber_segments_requests(_since, _until)
   UNION ALL
   SELECT * FROM dynamic_subscriber_segments_purchases(_since, _until)
+);
+
+-- Freshness threshold: 30 seconds (configurable constant)
+-- A location event is considered fresh if it occurred within the last 30 seconds
+CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
+  _bounds GEOGRAPHY,
+  _freshness_threshold_seconds INT DEFAULT 30
+) RETURNS TABLE AS RETURN (
+  WITH
+    -- Get the most recent location per subscriber
+    latest_locations AS (
+      SELECT
+        l.city_id,
+        l.subscriber_id,
+        l.event_ts,
+        l.lonlat,
+        ROW_NUMBER() OVER (
+          PARTITION BY l.city_id, l.subscriber_id
+          ORDER BY l.ingested_at DESC
+        ) AS row_num
+      FROM locations l
+      WHERE GEOGRAPHY_INTERSECTS(_bounds, l.lonlat)
+    ),
+    -- Join with offers to check zone containment
+    subscriber_offer_status AS (
+      SELECT
+        ll.city_id,
+        ll.subscriber_id,
+        o.offer_id,
+        ll.lonlat,
+        ll.event_ts,
+        NOW(6) AS evaluated_at,
+        -- Calculate age in seconds
+        TIMESTAMPDIFF(MICROSECOND, ll.event_ts, NOW(6)) / 1000000.0 AS age_seconds,
+        -- Check if location event is fresh
+        (ll.event_ts IS NOT NULL AND TIMESTAMPDIFF(SECOND, ll.event_ts, NOW(6)) <= _freshness_threshold_seconds) AS is_fresh,
+        -- Check if subscriber is within the offer's notification zone
+        GEOGRAPHY_CONTAINS(o.notification_zone, ll.lonlat) AS within_zone
+      FROM latest_locations ll
+      CROSS JOIN offers o
+      WHERE
+        ll.row_num = 1
+        AND o.enabled = TRUE
+        AND GEOGRAPHY_INTERSECTS(_bounds, o.notification_zone)
+    )
+  SELECT
+    city_id,
+    subscriber_id,
+    offer_id,
+    GEOGRAPHY_LATITUDE(lonlat) AS latitude,
+    GEOGRAPHY_LONGITUDE(lonlat) AS longitude,
+    event_ts,
+    evaluated_at,
+    age_seconds,
+    is_fresh,
+    within_zone,
+    -- Determine status: green when fresh AND in zone, red otherwise
+    CASE
+      WHEN is_fresh AND within_zone THEN 'green'
+      ELSE 'red'
+    END AS status,
+    -- Provide detailed reason for status
+    CASE
+      WHEN is_fresh AND within_zone THEN 'fresh_and_in_zone'
+      WHEN NOT is_fresh AND NOT within_zone THEN 'stale_and_out_of_scope'
+      WHEN NOT is_fresh THEN 'stale'
+      ELSE 'out_of_scope'
+    END AS status_reason
+  FROM subscriber_offer_status
 );

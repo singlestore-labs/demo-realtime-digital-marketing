@@ -2,6 +2,7 @@ package gen
 
 import (
 	"subscriber-sim/output"
+	"time"
 )
 
 type Batch struct {
@@ -51,6 +52,9 @@ func FillBatch(state *State, batch *Batch) {
 	// update the sequence Id for this batch
 	batch.seqId = state.SeqId
 
+	// Generate event timestamp once per batch (microseconds since epoch)
+	eventTs := time.Now().UnixMicro()
+
 	numRequests := 0
 	numPurchases := 0
 
@@ -60,6 +64,7 @@ func FillBatch(state *State, batch *Batch) {
 		batch.locations[i].SubscriberId = subscriber.Id
 		batch.locations[i].Offset[0] = subscriber.Location[0]
 		batch.locations[i].Offset[1] = subscriber.Location[1]
+		batch.locations[i].EventTs = eventTs
 
 		if subscriber.LastRequestDomain != "" {
 			batch.requests[numRequests].SubscriberId = subscriber.Id

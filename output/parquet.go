@@ -29,6 +29,7 @@ var (
 				required int64 subscriberid;
 				required double offsetX;
 				required double offsetY;
+				required int64 eventts;
 			}
 		`)),
 	)
@@ -68,6 +69,7 @@ func (e *ParquetEncoder) EncodeLocations(seqId int64, rows []Location, w io.Writ
 		"subscriberid": nil,
 		"offsetX":      nil,
 		"offsetY":      nil,
+		"eventts":      nil,
 	}
 
 	for i := range rows {
@@ -75,6 +77,7 @@ func (e *ParquetEncoder) EncodeLocations(seqId int64, rows []Location, w io.Writ
 		obj["subscriberid"] = rows[i].SubscriberId
 		obj["offsetX"] = rows[i].Offset[0]
 		obj["offsetY"] = rows[i].Offset[1]
+		obj["eventts"] = rows[i].EventTs
 
 		if err := fw.AddData(obj); err != nil {
 			return err
