@@ -19,7 +19,9 @@ const defaultSchemaObjects: { [key: string]: boolean } = Object.fromEntries(
     TABLES.map(({ name }) => [name, false]),
     PROCEDURES.map(({ name }) => [name, false]),
     FUNCTIONS.map(({ name }) => [name, false]),
-  ].flat()
+  ]
+    .flat()
+    .filter(([name]) => name && name !== 'undefined') // Filter out undefined names from parser
 );
 
 export const useSchemaObjects = (paused = false) => {
