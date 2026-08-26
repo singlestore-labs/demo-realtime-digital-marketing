@@ -53,11 +53,16 @@ export const useConnectionState = () => {
     connectionType = "manual";
   }
 
+  // Check if core schema objects exist, allowing subscriber_status_in_bounds to be optional
+  const coreSchemaInitialized = !!connected.data &&
+    Object.entries(schemaObjs.data || [])
+      .filter(([name]) => name !== 'subscriber_status_in_bounds')
+      .every(([, exists]) => exists);
+
   return {
     connected: !!connected.data,
     isValidatingConnection: connected.isValidating,
-    initialized:
-      !!connected.data && Object.values(schemaObjs.data || []).every(Boolean),
+    initialized: coreSchemaInitialized,
     reset: () => {
       connected.mutate();
       schemaObjs.mutate();
