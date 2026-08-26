@@ -59,6 +59,20 @@ export const useConnectionState = () => {
       .filter(([name]) => name !== 'subscriber_status_in_bounds')
       .every(([, exists]) => exists);
 
+  // Debug logging
+  if (connected.data && schemaObjs.data) {
+    const missing = Object.entries(schemaObjs.data)
+      .filter(([name, exists]) => !exists && name !== 'subscriber_status_in_bounds')
+      .map(([name]) => name);
+
+    if (missing.length > 0) {
+      console.log('Missing schema objects:', missing);
+    } else {
+      console.log('All core schema objects exist!');
+    }
+    console.log('Schema initialized:', coreSchemaInitialized);
+  }
+
   return {
     connected: !!connected.data,
     isValidatingConnection: connected.isValidating,
