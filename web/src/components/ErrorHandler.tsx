@@ -59,6 +59,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
   handlePromiseRejection(ev: PromiseRejectionEvent) {
     if (this.props.isResettingSchema) {
       console.warn("Ignoring error while resetting schema", ev.reason);
+    } else if (ev.reason instanceof SQLError && ev.reason.isPlanMissing()) {
+      // Silently ignore plan-missing errors (harmless race condition)
+      console.debug("Ignoring plan-missing error:", ev.reason.message);
     } else {
       this.setState({ error: ev.reason });
     }
