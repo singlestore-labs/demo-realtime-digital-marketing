@@ -55,16 +55,16 @@ export const useConnectionState = () => {
     connectionType = "manual";
   }
 
-  // Check if core schema objects exist, allowing subscriber_status_in_bounds to be optional
+  // Check if core schema objects exist, allowing subscriber_status_in_bounds and undefined to be optional
   const coreSchemaInitialized = !!connected.data &&
     Object.entries(schemaObjs.data || [])
-      .filter(([name]) => name !== 'subscriber_status_in_bounds')
+      .filter(([name]) => name !== 'subscriber_status_in_bounds' && name !== 'undefined')
       .every(([, exists]) => exists);
 
   // Debug logging
   if (connected.data && schemaObjs.data) {
     const missing = Object.entries(schemaObjs.data)
-      .filter(([name, exists]) => !exists && name !== 'subscriber_status_in_bounds')
+      .filter(([name, exists]) => !exists && name !== 'subscriber_status_in_bounds' && name !== 'undefined')
       .map(([name]) => name);
 
     if (missing.length > 0) {
