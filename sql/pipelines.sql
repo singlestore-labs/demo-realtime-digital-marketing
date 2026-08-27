@@ -1,13 +1,14 @@
+-- Use process_locations_legacy for old data without event_ts
+-- Use process_locations for new data with event_ts field
 CREATE OR REPLACE PIPELINE locations
 AS LOAD DATA S3 'singlestore-realtime-digital-marketing/${SCALE_FACTOR}/locations.*'
 CREDENTIALS '{}'
 CONFIG '{ "region": "us-east-1" }'
 MAX_PARTITIONS_PER_BATCH ${PARTITIONS}
-INTO PROCEDURE process_locations FORMAT PARQUET (
+INTO PROCEDURE process_locations_legacy FORMAT PARQUET (
   subscriber_id <- subscriberid,
   offset_x <- offsetX,
-  offset_y <- offsetY,
-  event_ts <- eventts
+  offset_y <- offsetY
 );
 
 CREATE OR REPLACE PIPELINE requests
