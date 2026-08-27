@@ -1,5 +1,3 @@
--- Use process_locations_legacy for old data without event_ts
--- Use process_locations for new data with event_ts field
 CREATE OR REPLACE PIPELINE locations
 AS LOAD DATA S3 'singlestore-realtime-digital-marketing/${SCALE_FACTOR}/locations.*'
 CREDENTIALS '{}'
