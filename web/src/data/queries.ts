@@ -670,8 +670,11 @@ export const querySubscriberStatus = (
   config: ConnectionConfig,
   bounds: Bounds,
   freshnessThresholdSeconds: number = 30
-) =>
-  Query<SubscriberStatus>(
+) => {
+  const wkt = boundsToWKTPolygon(bounds);
+  console.log('[querySubscriberStatus] Querying with bounds:', wkt, 'threshold:', freshnessThresholdSeconds);
+
+  return Query<SubscriberStatus>(
     config,
     `
       SELECT
@@ -689,9 +692,16 @@ export const querySubscriberStatus = (
         status_reason AS statusReason
       FROM subscriber_status_in_bounds(?, ?)
     `,
-    boundsToWKTPolygon(bounds),
+    wkt,
     freshnessThresholdSeconds
-  );
+  ).then(results => {
+    console.log('[querySubscriberStatus] Got', results.length, 'status results');
+    return results;
+  }).catch(err => {
+    console.error('[querySubscriberStatus] Error:', err);
+    throw err;
+  });
+};
 
 export type ConversionEventTable = "requests" | "purchases";
 
