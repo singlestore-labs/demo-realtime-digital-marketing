@@ -42,7 +42,7 @@ create rowstore table if not exists subscribers_last_notification (
 create table if not exists locations (
   city_id BIGINT NOT NULL,
   subscriber_id BIGINT NOT NULL,
-  event_ts DATETIME(6) NOT NULL,
+  event_ts DATETIME(6) NULL,  -- Nullable for backward compatibility with old data
   ingested_at DATETIME(6) NOT NULL SERIES TIMESTAMP,
   lonlat GEOGRAPHYPOINT NOT NULL,
 
