@@ -10,7 +10,7 @@ import { connectionConfig } from "@/data/recoil";
 import { useConnectionState, useDebounce } from "@/view/hooks/hooks";
 
 const REFRESH_INTERVAL = 2000; // Poll every 2 seconds
-const FRESHNESS_THRESHOLD = 30; // 30 seconds freshness threshold
+const FRESHNESS_THRESHOLD = 600; // 600 seconds (10 minutes) for testing - change back to 30 for production
 
 // Status dot colors
 const GREEN_COLOR = 0x22c55e; // green-500 - fresh and in zone
