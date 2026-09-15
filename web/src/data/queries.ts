@@ -185,9 +185,15 @@ export const resetSchema = async (
 };
 
 export const insertSeedData = async (config: ConnectionConfig) => {
+  console.log("[insertSeedData] Inserting", SEED.length, "seed data objects");
   for (const obj of SEED) {
+    console.log(
+      "[insertSeedData] Executing:",
+      obj.statement.substring(0, 100) + "..."
+    );
     await Exec(config, obj.statement);
   }
+  console.log("[insertSeedData] Complete");
 };
 
 export const seedCityWithOffers = (
@@ -371,19 +377,22 @@ export const checkPlans = async (config: ConnectionConfig) => {
     `
   );
 
-  // Drop each plan individually, ignoring "plan missing" errors
+  // Drop each plan individually, ignoring "plan missing" and HTTP errors
   // This prevents one failed drop from blocking others
   await Promise.all(
-    badPlans.map(async ({ planId }) => {
-      try {
-        await Exec(config, `DROP ${planId} FROM PLANCACHE`);
-      } catch (e) {
-        // Silently ignore if plan was already dropped
-        if (!(e instanceof SQLError && e.isPlanMissing())) {
-          throw e;
+    badPlans.map(({ planId }) =>
+      Exec(config, `DROP ${planId} FROM PLANCACHE`).catch((e) => {
+        // Silently ignore if plan was already dropped or if we get an HTTP error
+        if (
+          e instanceof SQLError &&
+          (e.isPlanMissing() || e.message.includes("HTTP"))
+        ) {
+          console.debug("Ignoring plan drop error:", e.message);
+          return;
         }
-      }
-    })
+        throw e;
+      })
+    )
   );
 
   return badPlans.length > 0;
@@ -556,13 +565,20 @@ export const runUpdateSegments = async (
 
 export type NotificationTuple = [ts: string, lon: number, lat: number];
 
-export const queryNotificationsInBounds = (
+export const queryNotificationsInBounds = async (
   config: ConnectionConfig,
   since: string,
   limit: number,
   bounds: Bounds
-) =>
-  QueryTuples<NotificationTuple>(
+) => {
+  const wktPolygon = boundsToWKTPolygon(bounds);
+  console.log(
+    "[queryNotificationsInBounds] Querying bounds:",
+    bounds,
+    "since:",
+    since
+  );
+  const result = await QueryTuples<NotificationTuple>(
     config,
     `
       SELECT
@@ -577,8 +593,18 @@ export const queryNotificationsInBounds = (
       LIMIT ${limit}
     `,
     since,
-    boundsToWKTPolygon(bounds)
+    wktPolygon
   );
+  console.log(
+    "[queryNotificationsInBounds] Found",
+    result.length,
+    "notifications in bounds"
+  );
+  if (result.length > 0) {
+    console.log("[queryNotificationsInBounds] Sample notification:", result[0]);
+  }
+  return result;
+};
 
 export type Offer = {
   offerId: number;
@@ -672,7 +698,6 @@ export const querySubscriberStatus = (
   freshnessThresholdSeconds: number = 30
 ) => {
   const wkt = boundsToWKTPolygon(bounds);
-  console.log('[querySubscriberStatus] Querying with bounds:', wkt, 'threshold:', freshnessThresholdSeconds);
 
   return Query<SubscriberStatus>(
     config,
@@ -694,13 +719,14 @@ export const querySubscriberStatus = (
     `,
     wkt,
     freshnessThresholdSeconds
-  ).then(results => {
-    console.log('[querySubscriberStatus] Got', results.length, 'status results');
-    return results;
-  }).catch(err => {
-    console.error('[querySubscriberStatus] Error:', err);
-    throw err;
-  });
+  )
+    .then((results) => {
+      return results;
+    })
+    .catch((err) => {
+      console.error("[querySubscriberStatus] Error:", err);
+      throw err;
+    });
 };
 
 export type ConversionEventTable = "requests" | "purchases";
