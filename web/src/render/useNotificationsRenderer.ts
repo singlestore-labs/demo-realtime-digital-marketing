@@ -8,7 +8,7 @@ import useSWR from "swr";
 import { trackAnalyticsEvent } from "@/analytics";
 import { UsePixiRenderer } from "@/components/PixiMap";
 import { City, getCities, queryNotificationsInBounds } from "@/data/queries";
-import { connectionConfig } from "@/data/recoil";
+import { connectionConfig, mapViewMode } from "@/data/recoil";
 import { toISOStringNoTZ } from "@/datetime";
 import { useConnectionState, useDebounce } from "@/view/hooks/hooks";
 
@@ -16,8 +16,8 @@ const MAX_NOTIFICATIONS = 200;
 const REFRESH_INTERVAL = 500;
 
 class Pulse extends PIXI.Container {
-  static lifetime = 1.5;
-  static markerColor = 0x820ddf;  // SingleStore Purple 700
+  static lifetime = 30; // Increased from 1.5 to 30 seconds so dots persist longer
+  static markerColor = 0x820ddf; // SingleStore Purple 700
   static pulseColor = 0x820ddf;
 
   latlng: Point;
@@ -98,34 +98,62 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   latLngToPixel,
   bounds,
 }) => {
-  // Start 5 seconds in the past to populate initial dots faster
-  // Keep window small to avoid dropping notifications when > MAX_NOTIFICATIONS exist
+  // Start 1 minute in the past to catch recent notifications
+  // Keep window reasonable to avoid dropping notifications when > MAX_NOTIFICATIONS exist
   const getInitialTimestamp = () => {
     const initialTime = new Date();
-    initialTime.setSeconds(initialTime.getSeconds() - 5);
+    initialTime.setMinutes(initialTime.getMinutes() - 1);
     return toISOStringNoTZ(initialTime);
   };
   const timestampCursor = React.useRef(getInitialTimestamp());
   const config = useRecoilValue(connectionConfig);
+  const viewMode = useRecoilValue(mapViewMode);
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 50);
   const swrKey = useNotificationsDataKey();
   const trackedNotifications = React.useRef(false);
 
+  // Reset cursor when switching to notifications mode to catch recent notifications
+  React.useEffect(() => {
+    if (viewMode === "notifications") {
+      const newCursor = getInitialTimestamp();
+      console.log("[useNotificationsRenderer] Reset cursor to:", newCursor);
+      timestampCursor.current = newCursor;
+    }
+  }, [viewMode]);
+
   useSWR(
     swrKey,
-    () =>
-      queryNotificationsInBounds(
+    () => {
+      console.log(
+        "[useNotificationsRenderer] Querying for notifications since:",
+        timestampCursor.current
+      );
+      return queryNotificationsInBounds(
         config,
         timestampCursor.current,
         MAX_NOTIFICATIONS,
         debouncedBounds
-      ),
+      );
+    },
     {
       refreshInterval: REFRESH_INTERVAL,
-      isPaused: () => !initialized,
+      isPaused: () => {
+        const paused = !initialized;
+        if (paused) {
+          console.log(
+            "[useNotificationsRenderer] Query paused - not initialized"
+          );
+        }
+        return paused;
+      },
       onSuccess: (newNotifications) => {
         if (newNotifications.length > 0) {
+          console.log(
+            "[useNotificationsRenderer] Creating",
+            newNotifications.length,
+            "purple notification pulses"
+          );
           // we just want to log new notications once to avoid a lot of noise
           if (!trackedNotifications.current) {
             trackAnalyticsEvent("new-notifications");

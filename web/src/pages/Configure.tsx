@@ -2,6 +2,8 @@ import {
   CheckCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  ViewIcon,
+  ViewOffIcon,
   WarningIcon,
 } from "@chakra-ui/icons";
 import {
@@ -20,7 +22,10 @@ import {
   GridItem,
   Heading,
   HStack,
+  IconButton,
   Input,
+  InputGroup,
+  InputRightElement,
   Link,
   Modal,
   ModalBody,
@@ -31,10 +36,12 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  Tooltip,
   useBoolean,
   useColorMode,
   useColorModeValue,
   useMediaQuery,
+  VStack,
 } from "@chakra-ui/react";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
@@ -50,7 +57,7 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
-import { ConnectionConfig } from "@/data/client";
+import { ConnectionConfig, Exec } from "@/data/client";
 import {
   checkPlans,
   ensurePipelinesExist,
@@ -64,6 +71,8 @@ import {
   runUpdateSegments,
 } from "@/data/queries";
 import {
+  analystApiKey,
+  analystEndpointUrl,
   configScaleFactor,
   connectionConfig,
   connectionDatabase,
@@ -206,6 +215,296 @@ const Section = ({
         opacity: activeSection ? 1 : 0.5,
         pointerEvents: activeSection ? undefined : "none",
       }}
+    />
+  );
+};
+
+const AuraAnalystConfigSection = () => {
+  const [apiKey, setApiKey] = useRecoilState(analystApiKey);
+  const [endpointUrl, setEndpointUrl] = useRecoilState(analystEndpointUrl);
+
+  // Local form state
+  const [localApiKey, setLocalApiKey] = React.useState(apiKey);
+  const [localEndpointUrl, setLocalEndpointUrl] = React.useState(endpointUrl);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+  const [showApiKey, setShowApiKey] = React.useState(false);
+
+  // Sync local state when saved values change
+  React.useEffect(() => {
+    setLocalApiKey(apiKey);
+    setLocalEndpointUrl(endpointUrl);
+  }, [apiKey, endpointUrl]);
+
+  // Track unsaved changes
+  React.useEffect(() => {
+    setHasUnsavedChanges(
+      localApiKey !== apiKey || localEndpointUrl !== endpointUrl
+    );
+  }, [localApiKey, localEndpointUrl, apiKey, endpointUrl]);
+
+  const handleSave = () => {
+    setApiKey(localApiKey.trim());
+    setEndpointUrl(localEndpointUrl.trim());
+  };
+
+  const isConfigured = !!apiKey && !!endpointUrl;
+  const canSave = hasUnsavedChanges;
+
+  const setupInstructions = (
+    <>
+      <Text fontWeight="bold" mb={2}>
+        How to set up Aura Analyst:
+      </Text>
+      <ol style={{ paddingLeft: "20px", lineHeight: "1.8" }}>
+        <li>Go to SingleStore Portal → Analyst</li>
+        <li>Click "Create Domain"</li>
+        <li>
+          Point it to your <Code>martech</Code> database
+        </li>
+        <li>Add context about this demo (optional but recommended)</li>
+        <li>Go to API Keys tab and create a new API key</li>
+        <li>Copy the API Key and Endpoint URL below</li>
+      </ol>
+    </>
+  );
+
+  return (
+    <Section
+      completed={isConfigured}
+      title="Aura Analyst (Optional)"
+      previousStepCompleted
+      left={
+        <>
+          <Text>
+            Aura Analyst enables AI-powered chat to query your MarTech campaign
+            data using natural language. Each deployment needs its own Analyst
+            domain pointing to this database.
+          </Text>
+          <br />
+          <Tooltip
+            label={setupInstructions}
+            placement="right"
+            hasArrow
+            bg={useColorModeValue("gray.50", "gray.700")}
+            color={useColorModeValue("gray.800", "white")}
+            borderColor={useColorModeValue("gray.200", "gray.600")}
+            borderWidth="1px"
+            p={4}
+            borderRadius="md"
+            maxW="400px"
+          >
+            <Button size="sm" variant="link" colorScheme="purple">
+              Show setup instructions
+            </Button>
+          </Tooltip>
+          <br />
+          <Stack
+            spacing={3}
+            as="form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSave();
+            }}
+          >
+            <FormControl>
+              <FormLabel>API Key</FormLabel>
+              <InputGroup size="sm">
+                <Input
+                  type={showApiKey ? "text" : "password"}
+                  placeholder="eyJhbGciOiJFUzUxMiIsImtpZCI..."
+                  value={localApiKey}
+                  onChange={(e) => setLocalApiKey(e.target.value)}
+                />
+                <InputRightElement>
+                  <IconButton
+                    aria-label={showApiKey ? "Hide API key" : "Show API key"}
+                    icon={showApiKey ? <ViewOffIcon /> : <ViewIcon />}
+                    size="xs"
+                    variant="ghost"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  />
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Endpoint URL</FormLabel>
+              <Input
+                placeholder="https://apps.us-east-1.cloud.singlestore.com/v1/..."
+                value={localEndpointUrl}
+                onChange={(e) => setLocalEndpointUrl(e.target.value)}
+                size="sm"
+              />
+            </FormControl>
+            <PrimaryButton
+              type="submit"
+              size="sm"
+              isDisabled={!canSave}
+              alignSelf="flex-start"
+            >
+              Save Configuration
+            </PrimaryButton>
+          </Stack>
+        </>
+      }
+      right={
+        <Flex
+          direction="column"
+          gap={4}
+          padding="15px"
+          border="1px solid"
+          borderRadius="15px"
+          borderColor="#777582"
+          minHeight="300px"
+          justifyContent="center"
+          alignItems="center"
+        >
+          {isConfigured ? (
+            <VStack spacing={3}>
+              <CheckCircleIcon fontSize="4xl" color="green.500" />
+              <Text textAlign="center" fontWeight="bold">
+                Aura Analyst Configured
+              </Text>
+              <Text textAlign="center" fontSize="sm" color="gray.500">
+                The chat widget is now available on the Analytics page
+              </Text>
+            </VStack>
+          ) : (
+            <VStack spacing={3}>
+              <WarningIcon fontSize="4xl" color="gray.400" />
+              <Text textAlign="center" color="gray.500">
+                Configure your Analyst credentials to enable AI-powered chat
+              </Text>
+            </VStack>
+          )}
+        </Flex>
+      }
+    />
+  );
+};
+
+const DemoDataSection = () => {
+  const config = useRecoilValue(connectionConfig);
+  const [generating, setGenerating] = React.useState(false);
+  const [success, setSuccess] = React.useState(false);
+
+  const generateDemoData = React.useCallback(async () => {
+    setGenerating(true);
+    setSuccess(false);
+    try {
+      console.log("[Demo Mode] Starting data generation...");
+
+      // Use hardcoded Manhattan coordinates where we know offers exist
+      // These are in the dense Manhattan area
+      const coords = [
+        [-73.9857, 40.758],
+        [-73.986, 40.7582],
+        [-73.9863, 40.7578],
+        [-73.9855, 40.7585],
+        [-73.9862, 40.7583],
+        [-73.9858, 40.7577],
+        [-73.9854, 40.7579],
+        [-73.9861, 40.7581],
+        [-73.9859, 40.7584],
+        [-73.9856, 40.7576], // 10 in-zone
+        [-74.0, 40.72],
+        [-74.001, 40.721],
+        [-74.002, 40.719],
+        [-74.003, 40.722],
+        [-73.95, 40.78], // 5 out-of-zone
+      ];
+
+      for (let i = 0; i < coords.length; i++) {
+        const [lng, lat] = coords[i];
+        const subId = 501 + i;
+        await Exec(
+          config,
+          `
+          INSERT INTO locations (city_id, subscriber_id, event_ts, ingested_at, lonlat, olc_8)
+          VALUES (2643743, ${subId}, NOW(6), NOW(6), GEOGRAPHY_POINT(${lng}, ${lat}), '87G8Q23C+')
+          ON DUPLICATE KEY UPDATE
+            event_ts = VALUES(event_ts),
+            ingested_at = VALUES(ingested_at),
+            lonlat = VALUES(lonlat)
+        `
+        );
+      }
+
+      console.log("[Demo Mode] Locations created, updating subscribers...");
+
+      await Exec(
+        config,
+        `
+        INSERT INTO subscribers (city_id, subscriber_id, current_location)
+        SELECT city_id, subscriber_id, lonlat
+        FROM locations
+        WHERE subscriber_id BETWEEN 501 AND 515
+        AND ingested_at = (SELECT MAX(ingested_at) FROM locations l2 WHERE l2.subscriber_id = locations.subscriber_id)
+        ON DUPLICATE KEY UPDATE current_location = VALUES(current_location)
+      `
+      );
+
+      console.log("[Demo Mode] Complete!");
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (e) {
+      console.error("[Demo Mode] Error:", e);
+      alert("Demo data generation failed. Check console for details.");
+    } finally {
+      setGenerating(false);
+    }
+  }, [config]);
+
+  return (
+    <Section
+      completed={false}
+      title="Demo Mode"
+      previousStepCompleted
+      left={
+        <Stack spacing={3}>
+          <Text>
+            Generate fresh demo location data to showcase real-time targeting
+            with green/red status dots.
+          </Text>
+          <Text fontSize="sm" color="gray.600">
+            • Creates subscribers with fresh location data in all cities
+            <br />
+            • ~10 subscribers in campaign zones (green dots)
+            <br />
+            • ~5 subscribers outside zones (red dots)
+            <br />• Data ages after 1 minute (green → red)
+          </Text>
+          <PrimaryButton
+            onClick={generateDemoData}
+            isLoading={generating}
+            gap={2}
+          >
+            {generating && <Loader size="small" />}
+            {success ? "Demo Data Generated!" : "Generate Demo Data"}
+          </PrimaryButton>
+        </Stack>
+      }
+      right={
+        <Box
+          padding="20px"
+          borderRadius="8px"
+          bg={useColorModeValue("purple.50", "purple.900")}
+        >
+          <Heading size="sm" mb={2}>
+            Usage
+          </Heading>
+          <Text fontSize="sm">
+            1. Click "Generate Demo Data"
+            <br />
+            2. Go to Dashboard → Status mode
+            <br />
+            3. View in New York City
+            <br />
+            4. Green dots = fresh & in zone
+            <br />
+            5. Red dots = stale or outside zone
+          </Text>
+        </Box>
+      }
     />
   );
 };
@@ -628,9 +927,8 @@ const OffersSection = ({
       <Text>
         <br />
         The map to your right displays a polygon representing each campaign's
-        activation zone. Currently, there are {tableCounts.data?.offers ||
-          0}{" "}
-        ad campaigns in the database.
+        activation zone. Currently, there are {tableCounts.data?.offers || 0} ad
+        campaigns in the database.
       </Text>
     );
   } else {
@@ -643,8 +941,8 @@ const OffersSection = ({
     loadOffersButton = (
       <Text>
         <br />
-        Press the "Load ad campaigns" button to create some sample campaigns in New York
-        City.
+        Press the "Load ad campaigns" button to create some sample campaigns in
+        New York City.
       </Text>
     );
   }
@@ -657,11 +955,11 @@ const OffersSection = ({
       left={
         <>
           <Text>
-            Advertisers submit ad campaigns with a maximum bid price, notification zone,
-            list of segments and notification content. As audience segments engage,
-            they are matched with campaigns based on their location and behavior.
-            If multiple campaigns match to an audience segment, the highest bid price is
-            selected.
+            Advertisers submit ad campaigns with a maximum bid price,
+            notification zone, list of segments and notification content. As
+            audience segments engage, they are matched with campaigns based on
+            their location and behavior. If multiple campaigns match to an
+            audience segment, the highest bid price is selected.
           </Text>
           {loadOffersButton}
           {mapInfoContent}
@@ -773,15 +1071,16 @@ const SegmentationSection = ({
             A segment is defined by a simple rule, such as “bought a coffee in
             the last day” or “visited the grocery store in the last week”. While
             segments could be evaluated dynamically when matching campaigns to
-            audience segments, this would waste compute time since segment memberships
-            rarely change.
+            audience segments, this would waste compute time since segment
+            memberships rarely change.
             <br />
             <br />
-            Instead SingleStore periodically caches the mapping between
-            audience segments and behavioral segments for faster results.
+            Instead SingleStore periodically caches the mapping between audience
+            segments and behavioral segments for faster results.
             <br />
             <br />
-            Run the following query to match audience segments to behavioral segments.
+            Run the following query to match audience segments to behavioral
+            segments.
           </Text>
           <br />
           <PrimaryButton disabled={isRunning} onClick={onClick}>
@@ -828,9 +1127,17 @@ const MatchingSection = ({
     while (numSent === 0 && attempts++ < 10) {
       startTimer();
       numSent = await runMatchingProcess(config, "second");
+      console.log(
+        "[Generate Notifications] Attempt",
+        attempts,
+        "created",
+        numSent,
+        "notifications"
+      );
     }
     stopTimer();
 
+    console.log("[Generate Notifications] Total created:", numSent);
     setSentNotifications(numSent);
 
     tableCounts.mutate();
@@ -899,9 +1206,9 @@ const MatchingSection = ({
       left={
         <>
           <Text>
-            With ad campaigns and audience segments defined, let’s deliver ads as
-            push notifications. For this demo, notifications are inserted into a
-            table called “notifications”.
+            With ad campaigns and audience segments defined, let’s deliver ads
+            as push notifications. For this demo, notifications are inserted
+            into a table called “notifications”.
             <br />
             <br />
             Run the following query to generate notifications.
@@ -1045,6 +1352,10 @@ export const Configure = () => {
       ),
     },
     {
+      completed: false,
+      component: <DemoDataSection key="demodata" />,
+    },
+    {
       completed: pipelinesCompleted,
       component: (
         <PipelinesSection key="pipelines" previousStepCompleted={initialized} />
@@ -1130,6 +1441,8 @@ export const Configure = () => {
         </Box>
       </Flex>
       {sections}
+
+      <AuraAnalystConfigSection />
 
       {completeToast}
     </Container>
