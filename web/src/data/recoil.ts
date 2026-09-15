@@ -57,7 +57,7 @@ export const userSessionID = atom({
 
 export const selectedCity = atom({
   key: "selectedCity",
-  default: -1,
+  default: 120658, // Default to New York City for demo
 });
 
 export const defaultSelectedCities = selector<Array<City>>({
@@ -201,6 +201,12 @@ export const simulatorEnabled = atom<boolean>({
   effects: [localStorageEffect()],
 });
 
+export const mapViewMode = atom<"notifications" | "status">({
+  key: "mapViewMode",
+  default: "status",
+  effects: [localStorageEffect()],
+});
+
 export const databaseDrawerIsOpen = atom({
   key: "databaseDrawerIsOpen",
   default: false,
@@ -214,4 +220,42 @@ export const tickDurationMs = atomFamily<number | undefined, string>({
 export const resettingSchema = atom({
   key: "resettingSchema",
   default: false,
+});
+
+export const analystApiKey = atom({
+  key: "analystApiKey",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystEndpointUrl = atom({
+  key: "analystEndpointUrl",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystChatOpen = atom({
+  key: "analystChatOpen",
+  default: false,
+});
+
+export const analystPendingQuestion = atom<string | null>({
+  key: "analystPendingQuestion",
+  default: null,
+});
+
+export const analystChatMessages = atom<Array<any>>({
+  key: "analystChatMessages",
+  default: [],
+});
+
+export const analystSessionId = atom<string>({
+  key: "analystSessionId",
+  default: "",
+});
+
+export const analystChatSize = atom({
+  key: "analystChatSize",
+  default: { width: 500, height: 600 },
+  effects: [localStorageEffect()],
 });

@@ -1,8 +1,10 @@
 import {
   Box,
+  Button,
   Checkbox,
   Flex,
   Heading,
+  HStack,
   Icon,
   SimpleGrid,
   Stack,
@@ -27,6 +29,7 @@ import { City } from "@/data/queries";
 import {
   connectionConfig,
   isUpdatingCities,
+  mapViewMode,
   selectedCities as selectedCitiesFromRecoil,
   selectedCity,
   simulatorEnabled,
@@ -223,6 +226,8 @@ const StatsWrapper = () => {
 export const Dashboard = () => {
   const { connected, initialized } = useConnectionState();
   const enabled = useRecoilValue(simulatorEnabled);
+  const [viewMode, setViewMode] = useRecoilState(mapViewMode);
+  const config = useRecoilValue(connectionConfig);
   useSimulationMonitor(enabled && connected && initialized);
   useSimulator(enabled && connected && initialized);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
@@ -230,6 +235,204 @@ export const Dashboard = () => {
   // Call hooks unconditionally at the top
   const legendBg = useColorModeValue("white", "gray.800");
   const dotBorderColor = useColorModeValue("white", "gray.700");
+  const toggleBg = useColorModeValue("gray.100", "gray.700");
+  const activeBg = useColorModeValue("purple.500", "purple.400");
+
+  // Avoid unused variable warning
+  void config;
+
+  /*const generateDemoData = React.useCallback(async () => {
+    setGeneratingDemo(true);
+    try {
+      console.log(
+        "[Demo Mode] Creating offers and demo data for all cities..."
+      );
+
+      // Define all cities with their coordinates and OLC codes
+      const cities = [
+        {
+          id: 120658,
+          name: "New York",
+          lon: -74.006,
+          lat: 40.714,
+          olc: "87G8Q23C+",
+        },
+        {
+          id: 4658,
+          name: "Sydney",
+          lon: 151.207,
+          lat: -33.868,
+          olc: "4RRH49J2+",
+        },
+        {
+          id: 45042,
+          name: "London",
+          lon: -0.126,
+          lat: 51.509,
+          olc: "9C3XGV5C+",
+        },
+        { id: 37679, name: "Paris", lon: 2.349, lat: 48.853, olc: "8FW4V83C+" },
+        {
+          id: 33174,
+          name: "Barcelona",
+          lon: 2.159,
+          lat: 41.389,
+          olc: "8FH49QR5+",
+        },
+        {
+          id: 49551,
+          name: "Hong Kong",
+          lon: 114.175,
+          lat: 22.278,
+          olc: "7PJP75HF+",
+        },
+        {
+          id: 68449,
+          name: "Tokyo",
+          lon: 139.692,
+          lat: 35.69,
+          olc: "8Q7XMMRR+",
+        },
+        {
+          id: 103513,
+          name: "Singapore",
+          lon: 103.85,
+          lat: 1.29,
+          olc: "6PH57VR2+",
+        },
+        { id: 14, name: "Dubai", lon: 55.171, lat: 25.066, olc: "7HQQ358C+" },
+      ];
+
+      // First, create offers for each city (notification zones around city center)
+      for (const city of cities) {
+        console.log(
+          `[Demo Mode] Creating offer for ${city.name} at (${city.lon}, ${city.lat})`
+        );
+        const result = await Exec(
+          config,
+          `
+          INSERT INTO offers (customer, enabled, notification_zone, segment_ids, notification_content, notification_target, maximum_bid_cents)
+          VALUES (
+            'Demo Campaign - ${city.name}',
+            TRUE,
+            GEOGRAPHY_POLYGON(
+              'POLYGON((
+                ${city.lon - 0.02} ${city.lat - 0.02},
+                ${city.lon + 0.02} ${city.lat - 0.02},
+                ${city.lon + 0.02} ${city.lat + 0.02},
+                ${city.lon - 0.02} ${city.lat + 0.02},
+                ${city.lon - 0.02} ${city.lat - 0.02}
+              ))'
+            ),
+            '[]',
+            'Special offer in ${city.name}!',
+            'https://example.com/${city.name.toLowerCase().replace(" ", "-")}',
+            500
+          )
+          ON DUPLICATE KEY UPDATE enabled = TRUE
+        `
+        );
+        console.log(
+          `[Demo Mode] Created offer for ${city.name}, affected rows:`,
+          result
+        );
+      }
+
+      console.log("[Demo Mode] Created offers for all cities");
+
+      // Now create location data for subscribers in each city
+      for (let i = 0; i < cities.length; i++) {
+        const city = cities[i];
+        const baseSubId = 2000 + i * 100; // Ensure unique IDs: 2000, 2100, 2200, etc.
+        console.log(
+          `[Demo Mode] Creating locations for ${city.name}, city_id=${
+            city.id
+          }, subscribers ${baseSubId + 1}-${baseSubId + 5}`
+        );
+
+        const locationValues = [
+          `(${city.id}, ${baseSubId + 1}, NOW(6), NOW(6), GEOGRAPHY_POINT(${
+            city.lon
+          } + RAND()*0.01, ${city.lat} + RAND()*0.01), '${city.olc}')`,
+          `(${city.id}, ${baseSubId + 2}, NOW(6), NOW(6), GEOGRAPHY_POINT(${
+            city.lon
+          } + RAND()*0.01, ${city.lat} + RAND()*0.01), '${city.olc}')`,
+          `(${city.id}, ${baseSubId + 3}, NOW(6), NOW(6), GEOGRAPHY_POINT(${
+            city.lon
+          } + RAND()*0.01, ${city.lat} + RAND()*0.01), '${city.olc}')`,
+          `(${city.id}, ${baseSubId + 4}, NOW(6), NOW(6), GEOGRAPHY_POINT(${
+            city.lon
+          } + RAND()*0.01, ${city.lat} + RAND()*0.01), '${city.olc}')`,
+          `(${city.id}, ${baseSubId + 5}, NOW(6), NOW(6), GEOGRAPHY_POINT(${
+            city.lon
+          } + RAND()*0.01, ${city.lat} + RAND()*0.01), '${city.olc}')`,
+        ].join(",\n          ");
+
+        const result = await Exec(
+          config,
+          `
+          INSERT INTO locations (city_id, subscriber_id, event_ts, ingested_at, lonlat, olc_8)
+          VALUES ${locationValues}
+          ON DUPLICATE KEY UPDATE
+            event_ts = VALUES(event_ts),
+            ingested_at = VALUES(ingested_at),
+            lonlat = VALUES(lonlat)
+        `
+        );
+        console.log(
+          `[Demo Mode] Created locations for ${city.name}, affected rows:`,
+          result
+        );
+      }
+
+      console.log("[Demo Mode] Created locations for all cities");
+
+      // Update subscribers table
+      await Exec(
+        config,
+        `
+        INSERT INTO subscribers (city_id, subscriber_id, current_location)
+        SELECT city_id, subscriber_id, lonlat
+        FROM locations
+        WHERE subscriber_id >= 2000
+        AND ingested_at = (SELECT MAX(ingested_at) FROM locations l2 WHERE l2.subscriber_id = locations.subscriber_id)
+        ON DUPLICATE KEY UPDATE current_location = VALUES(current_location)
+      `
+      );
+
+      console.log("[Demo Mode] Updated subscribers table");
+
+      // Debug: Check what we created
+      const offerCheck = await Query(
+        config,
+        'SELECT offer_id, customer FROM offers WHERE customer LIKE "Demo Campaign%"'
+      );
+      console.log("[Demo Mode] Created offers:", offerCheck);
+
+      const subCheck = await Query(
+        config,
+        "SELECT city_id, COUNT(*) as count FROM subscribers WHERE subscriber_id >= 2000 GROUP BY city_id"
+      );
+      console.log("[Demo Mode] Subscribers by city:", subCheck);
+
+      const notifCheck = await Query(
+        config,
+        "SELECT city_id, COUNT(*) as count FROM notifications WHERE ts > DATE_SUB(NOW(), INTERVAL 10 MINUTE) GROUP BY city_id"
+      );
+      console.log(
+        "[Demo Mode] Notifications by city (last 10 min):",
+        notifCheck
+      );
+
+      console.log(
+        '[Demo Mode] Complete! Now click "Generate Notifications" on the Configure page.'
+      );
+    } catch (e) {
+      console.error("[Demo Mode] Error:", e);
+    } finally {
+      setGeneratingDemo(false);
+    }
+  }, [config]);*/
 
   if (!connected) {
     window.location.href = "/";
@@ -254,14 +457,62 @@ export const Dashboard = () => {
       position="relative"
       height="100%"
     >
-      <Box width="100%" flex="2 2 0" minHeight="200px" maxHeight="100%" position="relative">
+      <Box
+        width="100%"
+        flex="2 2 0"
+        minHeight="200px"
+        maxHeight="100%"
+        position="relative"
+      >
         <PixiMap
           selectionDropdownLeft={isSmallScreen ? undefined : "31.5%"}
           selectionDropdownTop={isSmallScreen ? undefined : "1vw"}
           useRenderer={useCombinedRenderer}
           options={{}}
         />
-        {/* Status Legend */}
+        {/* View Mode Toggle */}
+        {initialized && enabled && (
+          <HStack
+            position="absolute"
+            top="20px"
+            right="20px"
+            background={legendBg}
+            padding="4px"
+            borderRadius="8px"
+            boxShadow="0 2px 8px rgba(0,0,0,0.15)"
+            fontSize="sm"
+            zIndex={1000}
+            spacing={2}
+          >
+            <Button
+              size="sm"
+              onClick={() => setViewMode("notifications")}
+              background={
+                viewMode === "notifications" ? activeBg : "transparent"
+              }
+              color={viewMode === "notifications" ? "white" : "inherit"}
+              _hover={{
+                background: viewMode === "notifications" ? activeBg : toggleBg,
+              }}
+              borderRadius="6px"
+            >
+              Notifications
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setViewMode("status")}
+              background={viewMode === "status" ? activeBg : "transparent"}
+              color={viewMode === "status" ? "white" : "inherit"}
+              _hover={{
+                background: viewMode === "status" ? activeBg : toggleBg,
+              }}
+              borderRadius="6px"
+            >
+              Status
+            </Button>
+          </HStack>
+        )}
+        {/* Legend */}
         {initialized && enabled && (
           <Box
             position="absolute"
@@ -274,31 +525,52 @@ export const Dashboard = () => {
             fontSize="sm"
             zIndex={1000}
           >
-            <Text fontWeight="bold" marginBottom="8px">
-              Subscriber Status
-            </Text>
-            <Flex alignItems="center" gap={2} marginBottom="4px">
-              <Box
-                width="12px"
-                height="12px"
-                borderRadius="50%"
-                background="green.500"
-                border="1px solid"
-                borderColor={dotBorderColor}
-              />
-              <Text>Fresh & in campaign zone</Text>
-            </Flex>
-            <Flex alignItems="center" gap={2}>
-              <Box
-                width="12px"
-                height="12px"
-                borderRadius="50%"
-                background="red.500"
-                border="1px solid"
-                borderColor={dotBorderColor}
-              />
-              <Text>Stale or outside zone</Text>
-            </Flex>
+            {viewMode === "status" ? (
+              <>
+                <Text fontWeight="bold" marginBottom="8px">
+                  Subscriber Status
+                </Text>
+                <Flex alignItems="center" gap={2} marginBottom="4px">
+                  <Box
+                    width="12px"
+                    height="12px"
+                    borderRadius="50%"
+                    background="green.500"
+                    border="1px solid"
+                    borderColor={dotBorderColor}
+                  />
+                  <Text>Fresh & in campaign zone</Text>
+                </Flex>
+                <Flex alignItems="center" gap={2}>
+                  <Box
+                    width="12px"
+                    height="12px"
+                    borderRadius="50%"
+                    background="red.500"
+                    border="1px solid"
+                    borderColor={dotBorderColor}
+                  />
+                  <Text>Stale or outside zone</Text>
+                </Flex>
+              </>
+            ) : (
+              <>
+                <Text fontWeight="bold" marginBottom="8px">
+                  Real-time Notifications
+                </Text>
+                <Flex alignItems="center" gap={2}>
+                  <Box
+                    width="12px"
+                    height="12px"
+                    borderRadius="50%"
+                    background="purple.600"
+                    border="1px solid"
+                    borderColor={dotBorderColor}
+                  />
+                  <Text>Ad delivered</Text>
+                </Flex>
+              </>
+            )}
           </Box>
         )}
       </Box>
@@ -314,6 +586,8 @@ export const Dashboard = () => {
         height={isSmallScreen ? "auto" : "100%"}
         borderBottomRightRadius="10px"
         padding="36px 48px 36px 48px"
+        zIndex={20}
+        pointerEvents="auto"
       >
         {mapStatisticsContainer}
       </Stack>

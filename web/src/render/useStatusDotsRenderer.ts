@@ -10,14 +10,15 @@ import { connectionConfig } from "@/data/recoil";
 import { useConnectionState, useDebounce } from "@/view/hooks/hooks";
 
 const REFRESH_INTERVAL = 2000; // Poll every 2 seconds
-const FRESHNESS_THRESHOLD = 600; // 600 seconds (10 minutes) for testing - change back to 30 for production
+const FRESHNESS_THRESHOLD = 300; // 5 minutes (300 seconds) for demo purposes
 
 // Status dot colors
 const GREEN_COLOR = 0x22c55e; // green-500 - fresh and in zone
 const RED_COLOR = 0xef4444; // red-500 - stale or out of scope
 
 class StatusDot extends PIXI.Container {
-  static dotRadius = 4;
+  static redDotRadius = 8;
+  static greenDotRadius = 8;
 
   latlng: Point;
   dot: PIXI.Graphics;
@@ -35,20 +36,25 @@ class StatusDot extends PIXI.Container {
     this.updateDotColor();
     this.addChild(this.dot);
 
-    // Make interactive for tooltips
+    // Make interactive for tooltips (PIXI v6 API)
     this.interactive = true;
-    this.cursor = "pointer";
+    this.buttonMode = true; // Shows pointer cursor in v6
+    this.hitArea = new PIXI.Circle(0, 0, StatusDot.greenDotRadius + 4); // Slightly larger hit area
   }
 
   updateDotColor() {
     const color = this.status === "green" ? GREEN_COLOR : RED_COLOR;
+    const radius =
+      this.status === "green"
+        ? StatusDot.greenDotRadius
+        : StatusDot.redDotRadius;
     this.dot.clear();
     this.dot.beginFill(color);
-    this.dot.drawCircle(0, 0, StatusDot.dotRadius);
+    this.dot.drawCircle(0, 0, radius);
     this.dot.endFill();
     // Add a white border for better visibility
     this.dot.lineStyle(1, 0xffffff, 0.8);
-    this.dot.drawCircle(0, 0, StatusDot.dotRadius);
+    this.dot.drawCircle(0, 0, radius);
   }
 
   updateStatus(statusData: SubscriberStatus) {
@@ -60,6 +66,9 @@ class StatusDot extends PIXI.Container {
     } else {
       this.statusData = statusData;
     }
+    // Ensure interactive state is maintained (PIXI v6)
+    this.interactive = true;
+    this.buttonMode = true;
   }
 
   update(latLngToPixel: (latlng: Point) => Point) {
@@ -69,12 +78,20 @@ class StatusDot extends PIXI.Container {
   }
 
   getTooltipText(): string {
-    const { cityId, subscriberId, offerId, statusReason, ageSeconds, isFresh, withinZone } =
-      this.statusData;
+    const {
+      cityId,
+      subscriberId,
+      offerId,
+      statusReason,
+      ageSeconds,
+      isFresh,
+      withinZone,
+    } = this.statusData;
 
-    const ageDisplay = ageSeconds < 60
-      ? `${ageSeconds.toFixed(1)}s`
-      : `${(ageSeconds / 60).toFixed(1)}m`;
+    const ageDisplay =
+      ageSeconds < 60
+        ? `${ageSeconds.toFixed(1)}s`
+        : `${(ageSeconds / 60).toFixed(1)}m`;
 
     const reasonText = statusReason
       .split("_")
@@ -109,23 +126,33 @@ export const useStatusDotsRenderer: UsePixiRenderer = ({
   // Tooltip text element
   const tooltipText = React.useRef<PIXI.Text | null>(null);
   const tooltipBackground = React.useRef<PIXI.Graphics | null>(null);
+  const mousePos = React.useRef({ x: 0, y: 0 });
+  const isHoveringDot = React.useRef(false);
 
   // Initialize tooltip
   React.useEffect(() => {
+    const bg = new PIXI.Graphics();
+    bg.visible = false;
+    bg.zIndex = 1000;
+    bg.interactive = false; // Don't intercept mouse events (PIXI v6)
+    bg.interactiveChildren = false;
+    scene.addChild(bg);
+    tooltipBackground.current = bg;
+
     const text = new PIXI.Text("", {
-      fontFamily: "monospace",
-      fontSize: 12,
+      fontFamily: "Arial",
+      fontSize: 13,
       fill: 0xffffff,
       align: "left",
     });
     text.visible = false;
+    text.zIndex = 1001; // Text on top of background
+    text.interactive = false; // Don't intercept mouse events (PIXI v6)
     scene.addChild(text);
     tooltipText.current = text;
 
-    const bg = new PIXI.Graphics();
-    bg.visible = false;
-    scene.addChild(bg);
-    tooltipBackground.current = bg;
+    scene.sortableChildren = true; // Enable z-index sorting
+    scene.interactive = true; // Enable event handling on scene (PIXI v6)
 
     return () => {
       if (tooltipText.current) {
@@ -146,11 +173,26 @@ export const useStatusDotsRenderer: UsePixiRenderer = ({
       refreshInterval: REFRESH_INTERVAL,
       isPaused: () => !initialized,
       onSuccess: (statuses) => {
+        // Group by subscriber and keep only the best status (green > red)
+        const subscriberBestStatus = new Map<string, SubscriberStatus>();
+        for (const status of statuses) {
+          const subKey = `${status.cityId}-${status.subscriberId}`;
+          const existing = subscriberBestStatus.get(subKey);
+
+          // Keep this status if: no existing OR this is green and existing is red
+          if (
+            !existing ||
+            (status.status === "green" && existing.status === "red")
+          ) {
+            subscriberBestStatus.set(subKey, status);
+          }
+        }
+
         const currentKeys = new Set<string>();
 
-        for (const status of statuses) {
-          // Create unique key for each subscriber-offer pair
-          const key = `${status.cityId}-${status.subscriberId}-${status.offerId}`;
+        for (const status of subscriberBestStatus.values()) {
+          // Create unique key for each subscriber (not subscriber-offer)
+          const key = `${status.cityId}-${status.subscriberId}`;
           currentKeys.add(key);
 
           const existingDot = dotsMap.current.get(key);
@@ -162,21 +204,37 @@ export const useStatusDotsRenderer: UsePixiRenderer = ({
             const dot = new StatusDot(status);
 
             // Add hover handlers
-            dot.on("pointerover", () => {
+            dot.on("pointerover", (event: any) => {
+              isHoveringDot.current = true;
               if (tooltipText.current && tooltipBackground.current) {
                 tooltipText.current.text = dot.getTooltipText();
                 tooltipText.current.visible = true;
                 tooltipBackground.current.visible = true;
+                mousePos.current = {
+                  x: event.data.global.x,
+                  y: event.data.global.y,
+                };
+              }
+            });
+
+            dot.on("pointermove", (event: any) => {
+              if (isHoveringDot.current) {
+                mousePos.current = {
+                  x: event.data.global.x,
+                  y: event.data.global.y,
+                };
               }
             });
 
             dot.on("pointerout", () => {
+              isHoveringDot.current = false;
               if (tooltipText.current && tooltipBackground.current) {
                 tooltipText.current.visible = false;
                 tooltipBackground.current.visible = false;
               }
             });
 
+            dot.zIndex = 500; // Below tooltip (1000+) but above other elements
             scene.addChild(dot);
             dotsMap.current.set(key, dot);
           }
@@ -195,34 +253,34 @@ export const useStatusDotsRenderer: UsePixiRenderer = ({
   );
 
   return {
-    update: React.useCallback(
-      () => {
-        // Update positions for all dots
-        for (const dot of dotsMap.current.values()) {
-          dot.update(latLngToPixel);
-        }
+    update: React.useCallback(() => {
+      // Update positions for all dots
+      for (const dot of dotsMap.current.values()) {
+        dot.update(latLngToPixel);
+      }
 
-        // Update tooltip position if visible
-        if (tooltipText.current?.visible && tooltipBackground.current) {
-          const padding = 8;
-          const bg = tooltipBackground.current;
-          const text = tooltipText.current;
+      // Update tooltip position if visible
+      if (tooltipText.current?.visible && tooltipBackground.current) {
+        const padding = 8;
+        const offset = 15;
+        const bg = tooltipBackground.current;
+        const text = tooltipText.current;
 
-          // Position tooltip near the mouse (you'd need to track mouse position)
-          // For now, position it at top-right of the text
-          bg.clear();
-          bg.beginFill(0x000000, 0.8);
-          bg.drawRoundedRect(
-            text.x - padding,
-            text.y - padding,
-            text.width + padding * 2,
-            text.height + padding * 2,
-            4
-          );
-          bg.endFill();
-        }
-      },
-      [latLngToPixel]
-    ),
+        // Position tooltip near mouse cursor
+        text.x = mousePos.current.x + offset;
+        text.y = mousePos.current.y + offset;
+
+        bg.clear();
+        bg.beginFill(0x000000, 0.8);
+        bg.drawRoundedRect(
+          text.x - padding,
+          text.y - padding,
+          text.width + padding * 2,
+          text.height + padding * 2,
+          4
+        );
+        bg.endFill();
+      }
+    }, [latLngToPixel]),
   };
 };

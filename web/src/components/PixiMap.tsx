@@ -93,6 +93,8 @@ const PixiMapLayer = <T,>({
       antialias: true,
     });
 
+    app.stage.interactive = true; // PIXI v6 API
+    app.stage.hitArea = app.screen;
     app.stage.addChild(scene);
 
     setup?.();
@@ -111,9 +113,20 @@ const PixiMapLayer = <T,>({
         baseTexture: true,
       });
     };
-  }, [height, scene, setup, update, width]);
+  }, [height, scene, width]);
 
-  return <canvas ref={canvasRef} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        pointerEvents: "auto",
+        zIndex: 10,
+      }}
+    />
+  );
 };
 
 type RequiresInitLayerProps<T> = {
@@ -240,7 +253,7 @@ const CitySelectionDropdown: React.FC<{
   return (
     <Flex
       position="absolute"
-      zIndex={5}
+      zIndex={15}
       top={selectionDropdownTop}
       left={selectionDropdownLeft}
       background={useColorModeValue("#820DDF", "#D199FF")}
@@ -360,7 +373,7 @@ export const PixiMap = <T,>({
           minZoom={5}
           onBoundsChanged={handleBoundsChange}
           center={defaultCenter || centerValue}
-          defaultZoom={mapZoom}
+          zoom={mapZoom}
         >
           <RequiresInitLayer useRenderer={useRenderer} options={options} />
         </Map>
