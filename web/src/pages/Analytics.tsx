@@ -28,6 +28,8 @@ import {
 import { format } from "d3-format";
 import { interpolateRgb } from "d3-interpolate";
 import { Bounds } from "pigeon-maps";
+
+import { AskAuraButton } from "@/components/AskAuraButton";
 import * as React from "react";
 import { IconType } from "react-icons";
 import { BsGearFill } from "react-icons/bs";
@@ -194,24 +196,29 @@ const StatGrid = () => {
         statLabel="Ad Campaigns"
         statNumber={formatStat(tableCounts.data.offers)}
         colSpan={2}
+        question="Tell me about the top performing ad campaigns"
       />
       <StatWrapper
         statLabel="Audience Segments"
         statNumber={formatStat(tableCounts.data.subscribers)}
+        question="What are the key audience segments and their engagement?"
       />
       <StatWrapper
         statLabel="Notifications"
         statNumber={formatStat(tableCounts.data.notifications)}
+        question="Show me notification delivery trends"
       />
       <StatWrapper
         statLabel="Conversion Rate"
         statNumber={formatPct(overallRateRequests.data?.conversionRate || 0)}
         helpText="Requests"
+        question="How can we improve request conversion rates?"
       />
       <StatWrapper
         statLabel="Conversion Rate"
         statNumber={formatPct(overallRatePurchases.data?.conversionRate || 0)}
         helpText="Purchases"
+        question="What's driving purchase conversion performance?"
       />
     </Grid>
   );
@@ -323,7 +330,9 @@ const ConversionTable = () => {
   };
 
   const timeSinceUpdate = React.useMemo(() => {
-    const seconds = Math.floor((new Date().getTime() - lastUpdate.getTime()) / 1000);
+    const seconds = Math.floor(
+      (new Date().getTime() - lastUpdate.getTime()) / 1000
+    );
     return seconds;
   }, [lastUpdate]);
 
@@ -345,7 +354,11 @@ const ConversionTable = () => {
           <Flex alignItems="center" gap={2} fontSize="sm" color="gray.500">
             <Icon
               as={RepeatIcon}
-              animation={metricsTableData.isValidating ? "spin 1s linear infinite" : undefined}
+              animation={
+                metricsTableData.isValidating
+                  ? "spin 1s linear infinite"
+                  : undefined
+              }
               sx={{
                 "@keyframes spin": {
                   "0%": { transform: "rotate(0deg)" },
@@ -430,11 +443,13 @@ const StatWrapper = ({
   statNumber,
   helpText,
   colSpan,
+  question,
 }: {
   statLabel: string;
   statNumber: string;
   helpText?: string;
   colSpan?: number;
+  question?: string;
 }) => {
   let helpTextContainer;
   if (helpText) {
@@ -447,6 +462,7 @@ const StatWrapper = ({
       background={useColorModeValue("#ECE8FD", "#360061")}
       borderRadius="15px"
       colSpan={colSpan || 1}
+      position="relative"
     >
       <Stat>
         <StatLabel>{statLabel}</StatLabel>
@@ -455,6 +471,7 @@ const StatWrapper = ({
         </StatNumber>
         {helpTextContainer}
       </Stat>
+      {question && <AskAuraButton question={question} />}
     </GridItem>
   );
 };
