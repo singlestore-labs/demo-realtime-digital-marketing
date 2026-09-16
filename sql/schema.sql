@@ -272,64 +272,74 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
   _freshness_threshold_seconds INT DEFAULT 30
 ) RETURNS TABLE AS RETURN (
   WITH
-    -- Get the most recent location per subscriber
+    -- Get the most recent location per subscriber (globally, not just in bounds)
     latest_locations AS (
       SELECT
-        l.city_id,
-        l.subscriber_id,
-        l.event_ts,
-        l.lonlat,
+        city_id,
+        subscriber_id,
+        event_ts,
+        lonlat,
         ROW_NUMBER() OVER (
-          PARTITION BY l.city_id, l.subscriber_id
-          ORDER BY l.ingested_at DESC
+          PARTITION BY city_id, subscriber_id
+          ORDER BY ingested_at DESC
         ) AS row_num
-      FROM locations l
-      WHERE GEOGRAPHY_INTERSECTS(_bounds, l.lonlat)
+      FROM locations
     ),
-    -- Join with offers to check zone containment
-    subscriber_offer_status AS (
+    -- Filter to only subscribers whose latest location is in the viewport
+    in_bounds_subscribers AS (
       SELECT
-        ll.city_id,
-        ll.subscriber_id,
-        o.offer_id,
-        ll.lonlat,
-        ll.event_ts,
-        NOW(6) AS evaluated_at,
-        -- Calculate age in seconds
-        TIMESTAMPDIFF(MICROSECOND, ll.event_ts, NOW(6)) / 1000000.0 AS age_seconds,
-        -- Check if location event is fresh
-        (ll.event_ts IS NOT NULL AND TIMESTAMPDIFF(SECOND, ll.event_ts, NOW(6)) <= _freshness_threshold_seconds) AS is_fresh,
-        -- Check if subscriber is within the offer's notification zone
-        GEOGRAPHY_CONTAINS(o.notification_zone, ll.lonlat) AS within_zone
-      FROM latest_locations ll
-      CROSS JOIN offers o
+        city_id,
+        subscriber_id,
+        event_ts,
+        lonlat
+      FROM latest_locations
       WHERE
-        ll.row_num = 1
-        AND o.enabled = TRUE
-        AND GEOGRAPHY_INTERSECTS(_bounds, o.notification_zone)
+        row_num = 1
+        AND GEOGRAPHY_INTERSECTS(_bounds, lonlat)
+    ),
+    -- For each subscriber, find if they're in ANY enabled offer zone
+    subscriber_status AS (
+      SELECT
+        s.city_id,
+        s.subscriber_id,
+        s.lonlat,
+        s.event_ts,
+        NOW(6) AS evaluated_at,
+        -- Calculate age in seconds (use ingested_at fallback if event_ts is null)
+        COALESCE(TIMESTAMPDIFF(MICROSECOND, s.event_ts, NOW(6)) / 1000000.0, 999999) AS age_seconds,
+        -- Check if location event is fresh
+        (s.event_ts IS NOT NULL AND TIMESTAMPDIFF(SECOND, s.event_ts, NOW(6)) <= _freshness_threshold_seconds) AS is_fresh,
+        -- Check if subscriber is within ANY enabled offer zone
+        MAX(CASE WHEN GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN 1 ELSE 0 END) AS within_any_zone,
+        -- Pick one representative offer_id for display (the first matching one)
+        MIN(CASE WHEN GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN o.offer_id ELSE NULL END) AS offer_id
+      FROM in_bounds_subscribers s
+      CROSS JOIN offers o
+      WHERE o.enabled = TRUE
+      GROUP BY s.city_id, s.subscriber_id, s.lonlat, s.event_ts
     )
   SELECT
     city_id,
     subscriber_id,
-    offer_id,
+    COALESCE(offer_id, 0) AS offer_id,
     GEOGRAPHY_LATITUDE(lonlat) AS latitude,
     GEOGRAPHY_LONGITUDE(lonlat) AS longitude,
     event_ts,
     evaluated_at,
     age_seconds,
     is_fresh,
-    within_zone,
-    -- Determine status: green when fresh AND in zone, red otherwise
+    (within_any_zone = 1) AS within_zone,
+    -- Determine status: green when fresh AND in any zone, red otherwise
     CASE
-      WHEN is_fresh AND within_zone THEN 'green'
+      WHEN is_fresh AND within_any_zone = 1 THEN 'green'
       ELSE 'red'
     END AS status,
     -- Provide detailed reason for status
     CASE
-      WHEN is_fresh AND within_zone THEN 'fresh_and_in_zone'
-      WHEN NOT is_fresh AND NOT within_zone THEN 'stale_and_out_of_scope'
+      WHEN is_fresh AND within_any_zone = 1 THEN 'fresh_and_in_zone'
+      WHEN NOT is_fresh AND within_any_zone = 0 THEN 'stale_and_out_of_scope'
       WHEN NOT is_fresh THEN 'stale'
       ELSE 'out_of_scope'
     END AS status_reason
-  FROM subscriber_offer_status
+  FROM subscriber_status
 );

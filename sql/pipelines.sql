@@ -3,11 +3,10 @@ AS LOAD DATA S3 'singlestore-realtime-digital-marketing/${SCALE_FACTOR}/location
 CREDENTIALS '{}'
 CONFIG '{ "region": "us-east-1" }'
 MAX_PARTITIONS_PER_BATCH ${PARTITIONS}
-INTO PROCEDURE process_locations FORMAT PARQUET (
+INTO PROCEDURE process_locations_legacy FORMAT PARQUET (
   subscriber_id <- subscriberid,
   offset_x <- offsetX,
-  offset_y <- offsetY,
-  event_ts <- eventts
+  offset_y <- offsetY
 );
 
 CREATE OR REPLACE PIPELINE requests
