@@ -215,3 +215,26 @@ export const resettingSchema = atom({
   key: "resettingSchema",
   default: false,
 });
+
+// Aura Analyst configuration and state
+export const analystApiKey = atom({
+  key: "analystApiKey",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystEndpointUrl = atom({
+  key: "analystEndpointUrl",
+  default: "",
+  effects: [localStorageEffect()],
+});
+
+export const analystChatOpen = atom({
+  key: "analystChatOpen",
+  default: false,
+});
+
+export const analystPendingQuestion = atom({
+  key: "analystPendingQuestion",
+  default: "",
+});

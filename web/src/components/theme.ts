@@ -20,7 +20,7 @@ export const chakraTheme = extendTheme({
       400: "#B88FFF",
       500: "#9D66FF",
       600: "#9040FF",
-      700: "#820DDF",  // Primary brand color
+      700: "#820DDF", // Primary brand color
       800: "#6B0AB8",
       900: "#550891",
     },
