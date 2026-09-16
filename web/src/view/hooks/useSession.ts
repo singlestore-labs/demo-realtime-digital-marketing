@@ -50,7 +50,7 @@ export const useSession = () => {
 
       // Only warn if we HAD controller status and LOST it
       if (wasController && !isController) {
-        console.warn('⚠️ Simulator stopped - lost controller status');
+        console.warn("⚠️ Simulator stopped - lost controller status");
       }
 
       prevController.current = isController;

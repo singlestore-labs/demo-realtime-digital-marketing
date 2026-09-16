@@ -323,7 +323,9 @@ const ConversionTable = () => {
   };
 
   const timeSinceUpdate = React.useMemo(() => {
-    const seconds = Math.floor((new Date().getTime() - lastUpdate.getTime()) / 1000);
+    const seconds = Math.floor(
+      (new Date().getTime() - lastUpdate.getTime()) / 1000
+    );
     return seconds;
   }, [lastUpdate]);
 
@@ -345,7 +347,11 @@ const ConversionTable = () => {
           <Flex alignItems="center" gap={2} fontSize="sm" color="gray.500">
             <Icon
               as={RepeatIcon}
-              animation={metricsTableData.isValidating ? "spin 1s linear infinite" : undefined}
+              animation={
+                metricsTableData.isValidating
+                  ? "spin 1s linear infinite"
+                  : undefined
+              }
               sx={{
                 "@keyframes spin": {
                   "0%": { transform: "rotate(0deg)" },
