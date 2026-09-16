@@ -55,11 +55,11 @@ class StatusDot extends PIXI.Container {
     const newStatus = statusData.status;
     if (this.status !== newStatus) {
       this.status = newStatus;
-      this.statusData = statusData;
       this.updateDotColor();
-    } else {
-      this.statusData = statusData;
     }
+    // Always update statusData and latlng to track subscriber movement
+    this.statusData = statusData;
+    this.latlng = [statusData.latitude, statusData.longitude];
   }
 
   update(latLngToPixel: (latlng: Point) => Point) {

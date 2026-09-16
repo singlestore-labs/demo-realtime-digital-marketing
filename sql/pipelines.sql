@@ -6,7 +6,8 @@ MAX_PARTITIONS_PER_BATCH ${PARTITIONS}
 INTO PROCEDURE process_locations FORMAT PARQUET (
   subscriber_id <- subscriberid,
   offset_x <- offsetX,
-  offset_y <- offsetY
+  offset_y <- offsetY,
+  event_ts <- eventts
 );
 
 CREATE OR REPLACE PIPELINE requests
