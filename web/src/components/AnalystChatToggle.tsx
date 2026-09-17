@@ -1,12 +1,20 @@
 import { IconButton } from "@chakra-ui/react";
 import { ChatIcon } from "@chakra-ui/icons";
 import * as React from "react";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 
-import { analystChatOpen } from "@/data/recoil";
+import { analystApiKey, analystChatOpen, analystEndpointUrl } from "@/data/recoil";
 
 export const AnalystChatToggle: React.FC = () => {
   const [isOpen, setIsOpen] = useRecoilState(analystChatOpen);
+  const apiKey = useRecoilValue(analystApiKey);
+  const endpointUrl = useRecoilValue(analystEndpointUrl);
+
+  // Only show toggle if API is configured and chat is closed
+  const isConfigured = !!apiKey && !!endpointUrl;
+  if (!isConfigured || isOpen) {
+    return null;
+  }
 
   return (
     <IconButton
@@ -18,7 +26,7 @@ export const AnalystChatToggle: React.FC = () => {
       bottom="20px"
       right="20px"
       borderRadius="full"
-      onClick={() => setIsOpen(!isOpen)}
+      onClick={() => setIsOpen(true)}
       boxShadow="lg"
       zIndex={999}
       _hover={{

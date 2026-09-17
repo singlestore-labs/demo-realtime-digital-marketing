@@ -5,6 +5,7 @@ export interface AnalystQueryRequest {
   message: string;
   output_modes?: Array<"sql" | "data" | "chart" | "text">;
   session_id?: string;
+  model?: string;
 }
 
 export interface AnalystTable {
