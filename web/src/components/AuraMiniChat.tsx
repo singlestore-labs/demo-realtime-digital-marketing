@@ -12,7 +12,7 @@ import {
 import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 import * as React from "react";
 import { useRecoilValue } from "recoil";
-import { auraApiKey, auraEndpointUrl } from "@/data/recoil";
+import { analystApiKey, analystEndpointUrl } from "@/data/recoil";
 import { Message } from "./AuraChat";
 
 type AuraMiniChatProps = {
@@ -28,8 +28,8 @@ export const AuraMiniChat: React.FC<AuraMiniChatProps> = ({
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const apiKey = useRecoilValue(auraApiKey);
-  const endpointUrl = useRecoilValue(auraEndpointUrl);
+  const apiKey = useRecoilValue(analystApiKey);
+  const endpointUrl = useRecoilValue(analystEndpointUrl);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   const bgColor = useColorModeValue("purple.50", "purple.900");
