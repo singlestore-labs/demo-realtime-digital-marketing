@@ -33,8 +33,8 @@ import {
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { NavLink as RouterLink } from "react-router-dom";
 
-import SingleStoreLogoLight from "@/assets/singlestore-logo-light.svg";
-import SingleStoreLogoDark from "@/assets/singlestore-logo-dark-new.svg";
+import SingleStoreLogoLight from "@/assets/singlestore-logo-light.png";
+import SingleStoreLogoDark from "@/assets/singlestore-logo-dark-new.png";
 import { GithubStargazer } from "@/components/GithubButtons";
 import { LinkedinIconButton, TwitterIconButton } from "@/components/IconLinks";
 
@@ -45,7 +45,12 @@ export const SinglestoreBrandLogo = () => {
   const [isMediumScreen] = useMediaQuery("(max-width: 1200px)");
 
   return (
-    <HStack as="nav" spacing={4} display={{ base: "none", md: "flex" }} minWidth="fit-content">
+    <HStack
+      as="nav"
+      spacing={4}
+      display={{ base: "none", md: "flex" }}
+      minWidth="fit-content"
+    >
       <Image
         src={useColorModeValue(SingleStoreLogoDark, SingleStoreLogoLight)}
         alt="SingleStore"
@@ -53,7 +58,11 @@ export const SinglestoreBrandLogo = () => {
         objectFit="contain"
       />
       <Heading as="h1" size={isSmallScreen ? "sm" : "md"} whiteSpace="nowrap">
-        {isSmallScreen ? "Martech" : isMediumScreen ? "RT Digital Marketing" : "Real-Time Digital Marketing"}
+        {isSmallScreen
+          ? "Martech"
+          : isMediumScreen
+          ? "RT Digital Marketing"
+          : "Real-Time Digital Marketing"}
       </Heading>
     </HStack>
   );
@@ -75,7 +84,12 @@ export const NavTools = () => {
   };
 
   return (
-    <Flex alignItems="center" justifyContent="right" gap={7} minWidth="fit-content">
+    <Flex
+      alignItems="center"
+      justifyContent="right"
+      gap={7}
+      minWidth="fit-content"
+    >
       <Menu>
         <MenuButton alignItems="center">
           <Icon as={useColorModeValue(BsShare, BsShareFill)} cursor="pointer" />

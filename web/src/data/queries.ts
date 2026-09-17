@@ -185,18 +185,12 @@ export const resetSchema = async (
 };
 
 export const insertSeedData = async (config: ConnectionConfig) => {
-  console.log("[insertSeedData] Inserting", SEED.length, "seed data objects");
   for (const obj of SEED) {
-    console.log(
-      "[insertSeedData] Executing:",
-      obj.statement.substring(0, 100) + "..."
-    );
     await Exec(config, obj.statement);
   }
-  console.log("[insertSeedData] Complete");
 };
 
-export const seedCityWithOffers = (
+export const seedCityWithOffers = async (
   config: ConnectionConfig,
   city: CityConfig,
   scaleFactor: ScaleFactor
@@ -367,35 +361,12 @@ export const ensurePipelinesAreRunning = async (config: ConnectionConfig) => {
 
 // returns true if any plans were dropped
 export const checkPlans = async (config: ConnectionConfig) => {
-  const badPlans = await Query<{ planId: string }>(
-    config,
-    `
-      SELECT plan_id AS planId
-      FROM information_schema.plancache
-      WHERE
-        plan_warnings LIKE "%empty tables%"
-    `
-  );
-
-  // Drop each plan individually, ignoring "plan missing" and HTTP errors
-  // This prevents one failed drop from blocking others
-  await Promise.all(
-    badPlans.map(({ planId }) =>
-      Exec(config, `DROP ${planId} FROM PLANCACHE`).catch((e) => {
-        // Silently ignore if plan was already dropped or if we get an HTTP error
-        if (
-          e instanceof SQLError &&
-          (e.isPlanMissing() || e.message.includes("HTTP"))
-        ) {
-          console.debug("Ignoring plan drop error:", e.message);
-          return;
-        }
-        throw e;
-      })
-    )
-  );
-
-  return badPlans.length > 0;
+  // Disabled: plancache checking causes race condition errors (Error 1885)
+  // When multiple concurrent sessions query plancache and try to drop plans,
+  // one session may drop a plan between another session's SELECT and DROP,
+  // causing "plan does not exist" errors (HY000). The database warms up
+  // naturally without manual plan drops, so this check is no longer needed.
+  return false;
 };
 
 export const estimatedRowCount = <TableName extends string>(
@@ -492,7 +463,11 @@ export const truncateTimeseriesTables = async (
             MIN(min_value) AS minTs,
             MAX(max_value) AS maxTs
           FROM information_schema.columnar_segments
-          WHERE column_name = "ts"
+          WHERE
+            column_name = CASE
+              WHEN table_name = "locations" THEN "ingested_at"
+              ELSE "ts"
+            END
           GROUP BY database_name, table_name
         ) minmax
       WHERE
@@ -518,9 +493,10 @@ export const truncateTimeseriesTables = async (
       console.log(
         `removing rows from ${tableName} older than ${toISOStringNoTZ(ts)}`
       );
+      const tsColumn = tableName === "locations" ? "ingested_at" : "ts";
       await Exec(
         config,
-        `DELETE FROM ${tableName} WHERE ts <= ?`,
+        `DELETE FROM ${tableName} WHERE ${tsColumn} <= ?`,
         toISOStringNoTZ(ts)
       );
     })
@@ -536,15 +512,15 @@ export type SQLIntervals =
   | "month";
 
 // returns number of notifications sent
-export const runMatchingProcess = (
+export const runMatchingProcess = async (
   config: ConnectionConfig,
   interval: SQLIntervals = "minute"
 ) =>
-  QueryOne<{ RESULT: number }>(
+  QueryOne<{ count: number }>(
     config,
-    "ECHO run_matching_process(?)",
+    "CALL run_matching_process(?)",
     interval
-  ).then((x) => x.RESULT);
+  ).then((x) => x.count);
 
 // returns the timestamp to use in the next call to runUpdateSegments
 export const runUpdateSegments = async (
@@ -565,20 +541,13 @@ export const runUpdateSegments = async (
 
 export type NotificationTuple = [ts: string, lon: number, lat: number];
 
-export const queryNotificationsInBounds = async (
+export const queryNotificationsInBounds = (
   config: ConnectionConfig,
   since: string,
   limit: number,
   bounds: Bounds
-) => {
-  const wktPolygon = boundsToWKTPolygon(bounds);
-  console.log(
-    "[queryNotificationsInBounds] Querying bounds:",
-    bounds,
-    "since:",
-    since
-  );
-  const result = await QueryTuples<NotificationTuple>(
+) =>
+  QueryTuples<NotificationTuple>(
     config,
     `
       SELECT
@@ -593,18 +562,8 @@ export const queryNotificationsInBounds = async (
       LIMIT ${limit}
     `,
     since,
-    wktPolygon
+    boundsToWKTPolygon(bounds)
   );
-  console.log(
-    "[queryNotificationsInBounds] Found",
-    result.length,
-    "notifications in bounds"
-  );
-  if (result.length > 0) {
-    console.log("[queryNotificationsInBounds] Sample notification:", result[0]);
-  }
-  return result;
-};
 
 export type Offer = {
   offerId: number;
@@ -698,6 +657,12 @@ export const querySubscriberStatus = (
   freshnessThresholdSeconds: number = 30
 ) => {
   const wkt = boundsToWKTPolygon(bounds);
+  console.log(
+    "[querySubscriberStatus] Querying with bounds:",
+    wkt,
+    "threshold:",
+    freshnessThresholdSeconds
+  );
 
   return Query<SubscriberStatus>(
     config,
@@ -721,6 +686,11 @@ export const querySubscriberStatus = (
     freshnessThresholdSeconds
   )
     .then((results) => {
+      console.log(
+        "[querySubscriberStatus] Got",
+        results.length,
+        "status results"
+      );
       return results;
     })
     .catch((err) => {

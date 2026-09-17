@@ -13,6 +13,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { useAnalytics } from "@/analytics";
+import { AnalystChat } from "@/components/AnalystChat";
 import { Loader } from "@/components/customcomponents/loader/Loader";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/navBar/Nav";
@@ -36,7 +37,8 @@ const WelcomeMessageToast = () => {
       <Text style={{ fontWeight: 400, fontSize: "16px" }}>
         <Heading size="sm">Hello!</Heading>
         This is a demo application for real-time digital marketing campaign
-        optimization serving personalized ad campaigns to millions of audience segments. You can:
+        optimization serving personalized ad campaigns to millions of audience
+        segments. You can:
         <ul style={{ listStylePosition: "inside", listStyleType: "initial" }}>
           <li>Add or remove locations from dashboard</li>
           <li>Inspect campaign performance under "Analytics"</li>
@@ -125,6 +127,7 @@ const LayoutContainer = ({ children }: { children: React.ReactNode }) => {
         {childComponent}
       </Box>
       <Footer />
+      {connected && <AnalystChat />}
     </>
   );
 };

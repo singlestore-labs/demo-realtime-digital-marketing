@@ -8,7 +8,7 @@ import useSWR from "swr";
 import { trackAnalyticsEvent } from "@/analytics";
 import { UsePixiRenderer } from "@/components/PixiMap";
 import { City, getCities, queryNotificationsInBounds } from "@/data/queries";
-import { connectionConfig, mapViewMode } from "@/data/recoil";
+import { connectionConfig } from "@/data/recoil";
 import { toISOStringNoTZ } from "@/datetime";
 import { useConnectionState, useDebounce } from "@/view/hooks/hooks";
 
@@ -16,7 +16,7 @@ const MAX_NOTIFICATIONS = 200;
 const REFRESH_INTERVAL = 500;
 
 class Pulse extends PIXI.Container {
-  static lifetime = 30; // Increased from 1.5 to 30 seconds so dots persist longer
+  static lifetime = 1.5;
   static markerColor = 0x820ddf; // SingleStore Purple 700
   static pulseColor = 0x820ddf;
 
@@ -90,6 +90,14 @@ export const useCities = (onSuccess: (cities: Array<City>) => void) => {
   return useSWR(["cities", config, initialized], () => getCities(config), {
     isPaused: () => !initialized,
     onSuccess,
+    onError: (error) => {
+      // Silently ignore abort errors
+      if (error.name === "AbortError") {
+        return;
+      }
+      console.warn("Failed to fetch cities:", error);
+    },
+    shouldRetryOnError: false,
   });
 };
 
@@ -98,62 +106,34 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
   latLngToPixel,
   bounds,
 }) => {
-  // Start 1 minute in the past to catch recent notifications
-  // Keep window reasonable to avoid dropping notifications when > MAX_NOTIFICATIONS exist
+  // Start 5 seconds in the past to populate initial dots faster
+  // Keep window small to avoid dropping notifications when > MAX_NOTIFICATIONS exist
   const getInitialTimestamp = () => {
     const initialTime = new Date();
-    initialTime.setMinutes(initialTime.getMinutes() - 1);
+    initialTime.setSeconds(initialTime.getSeconds() - 5);
     return toISOStringNoTZ(initialTime);
   };
   const timestampCursor = React.useRef(getInitialTimestamp());
   const config = useRecoilValue(connectionConfig);
-  const viewMode = useRecoilValue(mapViewMode);
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 50);
   const swrKey = useNotificationsDataKey();
   const trackedNotifications = React.useRef(false);
 
-  // Reset cursor when switching to notifications mode to catch recent notifications
-  React.useEffect(() => {
-    if (viewMode === "notifications") {
-      const newCursor = getInitialTimestamp();
-      console.log("[useNotificationsRenderer] Reset cursor to:", newCursor);
-      timestampCursor.current = newCursor;
-    }
-  }, [viewMode]);
-
   useSWR(
     swrKey,
-    () => {
-      console.log(
-        "[useNotificationsRenderer] Querying for notifications since:",
-        timestampCursor.current
-      );
-      return queryNotificationsInBounds(
+    () =>
+      queryNotificationsInBounds(
         config,
         timestampCursor.current,
         MAX_NOTIFICATIONS,
         debouncedBounds
-      );
-    },
+      ),
     {
       refreshInterval: REFRESH_INTERVAL,
-      isPaused: () => {
-        const paused = !initialized;
-        if (paused) {
-          console.log(
-            "[useNotificationsRenderer] Query paused - not initialized"
-          );
-        }
-        return paused;
-      },
+      isPaused: () => !initialized,
       onSuccess: (newNotifications) => {
-        if (newNotifications.length > 0) {
-          console.log(
-            "[useNotificationsRenderer] Creating",
-            newNotifications.length,
-            "purple notification pulses"
-          );
+        if (newNotifications && newNotifications.length > 0) {
           // we just want to log new notications once to avoid a lot of noise
           if (!trackedNotifications.current) {
             trackAnalyticsEvent("new-notifications");
@@ -168,6 +148,16 @@ export const useNotificationsRenderer: UsePixiRenderer = ({
           }
         }
       },
+      onError: (error) => {
+        // Silently ignore abort errors - they're expected when map moves/zooms
+        if (error.name === "AbortError") {
+          return;
+        }
+        // Log other errors but don't crash
+        console.warn("Failed to fetch notifications:", error);
+      },
+      // Prevent SWR from retrying on errors to avoid hammering the API
+      shouldRetryOnError: false,
     }
   );
 
