@@ -13,6 +13,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { useAnalytics } from "@/analytics";
+import { AnalystChat } from "@/components/AnalystChat";
+import { AnalystChatToggle } from "@/components/AnalystChatToggle";
 import { Loader } from "@/components/customcomponents/loader/Loader";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/navBar/Nav";
@@ -175,6 +177,8 @@ const App = () => {
       <Analytics>
         <Flex height="100vh" width="100vw" direction="column" overflowY="auto">
           <RoutesBlock />
+          <AnalystChat />
+          <AnalystChatToggle />
         </Flex>
       </Analytics>
     </React.Suspense>
