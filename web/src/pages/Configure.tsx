@@ -3,6 +3,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   WarningIcon,
+  ViewIcon,
+  ViewOffIcon,
 } from "@chakra-ui/icons";
 import {
   Alert,
@@ -20,7 +22,10 @@ import {
   GridItem,
   Heading,
   HStack,
+  IconButton,
   Input,
+  InputGroup,
+  InputRightElement,
   Link,
   Modal,
   ModalBody,
@@ -31,6 +36,8 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  Tooltip,
+  VStack,
   useBoolean,
   useColorMode,
   useColorModeValue,
@@ -50,7 +57,8 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
-import { ConnectionConfig } from "@/data/client";
+import { ConnectionConfig, Query } from "@/data/client";
+import { DEFAULT_CITY } from "@/data/offers";
 import {
   checkPlans,
   ensurePipelinesExist,
@@ -62,8 +70,11 @@ import {
   pipelineStatus,
   runMatchingProcess,
   runUpdateSegments,
+  seedCityWithOffers,
 } from "@/data/queries";
 import {
+  analystApiKey,
+  analystEndpointUrl,
   configScaleFactor,
   connectionConfig,
   connectionDatabase,
@@ -214,7 +225,7 @@ const ConnectionSection = ({ connected }: { connected: boolean }) => {
   return (
     <Section
       completed={connected}
-      title="Connect to SingleStoreDB"
+      title="Connect to SingleStore Helios"
       previousStepCompleted
       left={
         <Text>
@@ -538,7 +549,7 @@ const PipelinesSection = ({
           target="_blank"
         >
           {" "}
-          SingleStoreDB Pipelines{" "}
+          SingleStore Helios Pipelines{" "}
         </Link>
         and{" "}
         <Link href="https://aws.amazon.com/s3/" target="_blank">
@@ -600,15 +611,19 @@ const OffersSection = ({
   previousStepCompleted: boolean;
 }) => {
   const config = useRecoilValue(connectionConfig);
+  const scaleFactor = useRecoilValue(configScaleFactor);
   const [working, workingCtrl] = useBoolean();
   const tableCounts = useTableCounts(config);
 
   const onSeedData = React.useCallback(async () => {
     workingCtrl.on();
+    // Load seed data (worldcities pipeline, segments pipeline, etc.)
     await insertSeedData(config);
-    tableCounts.mutate();
+    // Generate offers directly since S3 offers pipeline doesn't have accessible data
+    await seedCityWithOffers(config, DEFAULT_CITY, scaleFactor);
+    await tableCounts.mutate();
     workingCtrl.off();
-  }, [config, tableCounts, workingCtrl]);
+  }, [config, tableCounts, workingCtrl, scaleFactor]);
 
   const done = !!tableCounts.data?.offers;
 
@@ -714,7 +729,11 @@ const SegmentationSection = ({
 
     let isWarmingUp;
     if (elapsed && elapsed > 1000) {
-      isWarmingUp = await checkPlans(config);
+      try {
+        isWarmingUp = await checkPlans(config);
+      } catch (e) {
+        console.warn("Error checking plans, ignoring:", e);
+      }
     }
 
     if (isWarmingUp) {
@@ -727,7 +746,7 @@ const SegmentationSection = ({
     const { segments, subscriber_segments, locations, requests, purchases } =
       tableCounts.data;
     const durationFormatted = formatMs(elapsed);
-    const estRows = formatNumber(locations + requests + purchases);
+    const estRows = formatNumber((locations || 0) + (requests || 0) + (purchases || 0));
     const seg = formatNumber(segments);
     const memberships = formatNumber(subscriber_segments);
 
@@ -776,8 +795,8 @@ const SegmentationSection = ({
             memberships rarely change.
             <br />
             <br />
-            Instead SingleStore periodically caches the mapping between audience
-            segments and behavioral segments for faster results.
+            Instead SingleStore Helios periodically caches the mapping between
+            audience segments and behavioral segments for faster results.
             <br />
             <br />
             Run the following query to match audience segments to behavioral
@@ -838,7 +857,11 @@ const MatchingSection = ({
 
     let isWarmingUp;
     if (elapsed && elapsed > 1000) {
-      isWarmingUp = await checkPlans(config);
+      try {
+        isWarmingUp = await checkPlans(config);
+      } catch (e) {
+        console.warn("Error checking plans, ignoring:", e);
+      }
     }
 
     if (isWarmingUp) {
@@ -858,7 +881,7 @@ const MatchingSection = ({
   if (elapsed && tableCounts.data) {
     const { offers, subscribers, subscriber_segments, notifications } =
       tableCounts.data;
-    const estRows = formatNumber(offers * subscribers + notifications);
+    const estRows = formatNumber((offers || 0) * (subscribers || 0) + (notifications || 0));
     const memberships = formatNumber(subscriber_segments);
     const durationFormatted = formatMs(elapsed);
     const sentNotifs = formatNumber(sentNotifications);
@@ -940,6 +963,168 @@ const MatchingSection = ({
   );
 };
 
+const AnalystConfigSection = ({
+  previousStepCompleted,
+}: {
+  previousStepCompleted: boolean;
+}) => {
+  const [apiKey, setApiKey] = useRecoilState(analystApiKey);
+  const [endpointUrl, setEndpointUrl] = useRecoilState(analystEndpointUrl);
+
+  // Local form state
+  const [localApiKey, setLocalApiKey] = React.useState(apiKey);
+  const [localEndpointUrl, setLocalEndpointUrl] = React.useState(endpointUrl);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+  const [showApiKey, setShowApiKey] = React.useState(false);
+
+  // Sync local state when saved values change
+  React.useEffect(() => {
+    setLocalApiKey(apiKey);
+    setLocalEndpointUrl(endpointUrl);
+  }, [apiKey, endpointUrl]);
+
+  // Track unsaved changes
+  React.useEffect(() => {
+    setHasUnsavedChanges(
+      localApiKey !== apiKey || localEndpointUrl !== endpointUrl
+    );
+  }, [localApiKey, localEndpointUrl, apiKey, endpointUrl]);
+
+  const handleSave = () => {
+    setApiKey(localApiKey.trim());
+    setEndpointUrl(localEndpointUrl.trim());
+  };
+
+  const isConfigured = !!apiKey && !!endpointUrl;
+  // Allow saving if there are changes (including clearing both fields)
+  const canSave = hasUnsavedChanges;
+
+  const setupInstructions = (
+    <>
+      <Text fontWeight="bold" mb={2}>
+        How to set up Aura Analyst:
+      </Text>
+      <ol style={{ paddingLeft: "20px", lineHeight: "1.8" }}>
+        <li>Go to SingleStore Portal → Analyst</li>
+        <li>Click "Create Domain"</li>
+        <li>Point it to your <Code>martech</Code> database</li>
+        <li>Add context about this demo (optional but recommended)</li>
+        <li>Go to API Keys tab and create a new API key</li>
+        <li>Copy the API Key and Endpoint URL below</li>
+      </ol>
+    </>
+  );
+
+  return (
+    <Section
+      completed={isConfigured}
+      title="Aura Analyst (Optional)"
+      previousStepCompleted={previousStepCompleted}
+      left={
+        <>
+          <Text>
+            Aura Analyst enables AI-powered chat to query your MarTech campaign data using natural language.
+            Each deployment needs its own Analyst domain pointing to this database.
+          </Text>
+          <br />
+          <Tooltip
+            label={setupInstructions}
+            placement="right"
+            hasArrow
+            bg={useColorModeValue("gray.50", "gray.700")}
+            color={useColorModeValue("gray.800", "white")}
+            borderColor={useColorModeValue("gray.200", "gray.600")}
+            borderWidth="1px"
+            p={4}
+            borderRadius="md"
+            maxW="400px"
+          >
+            <Button
+              size="sm"
+              variant="link"
+              colorScheme="purple"
+            >
+              Show setup instructions
+            </Button>
+          </Tooltip>
+          <br />
+          <Stack spacing={3} as="form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+            <FormControl>
+              <FormLabel>API Key</FormLabel>
+              <InputGroup size="sm">
+                <Input
+                  type={showApiKey ? "text" : "password"}
+                  placeholder="eyJhbGciOiJFUzUxMiIsImtpZCI..."
+                  value={localApiKey}
+                  onChange={(e) => setLocalApiKey(e.target.value)}
+                />
+                <InputRightElement>
+                  <IconButton
+                    aria-label={showApiKey ? "Hide API key" : "Show API key"}
+                    icon={showApiKey ? <ViewOffIcon /> : <ViewIcon />}
+                    size="xs"
+                    variant="ghost"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  />
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Endpoint URL</FormLabel>
+              <Input
+                placeholder="https://apps.us-east-1.cloud.singlestore.com/v1/..."
+                value={localEndpointUrl}
+                onChange={(e) => setLocalEndpointUrl(e.target.value)}
+                size="sm"
+              />
+            </FormControl>
+            <PrimaryButton
+              type="submit"
+              size="sm"
+              isDisabled={!canSave}
+              alignSelf="flex-start"
+            >
+              Save Configuration
+            </PrimaryButton>
+          </Stack>
+        </>
+      }
+      right={
+        <Flex
+          direction="column"
+          gap={4}
+          padding="15px"
+          border="1px solid"
+          borderRadius="15px"
+          borderColor="#777582"
+          minHeight="300px"
+          justifyContent="center"
+          alignItems="center"
+        >
+          {isConfigured ? (
+            <VStack spacing={3}>
+              <CheckCircleIcon fontSize="4xl" color="green.500" />
+              <Text textAlign="center" fontWeight="bold">
+                Aura Analyst Configured
+              </Text>
+              <Text textAlign="center" fontSize="sm" color="gray.500">
+                The chat widget is now available on the Analytics page
+              </Text>
+            </VStack>
+          ) : (
+            <VStack spacing={3}>
+              <WarningIcon fontSize="4xl" color="gray.400" />
+              <Text textAlign="center" color="gray.500">
+                Configure your Analyst credentials to enable AI-powered chat
+              </Text>
+            </VStack>
+          )}
+        </Flex>
+      }
+    />
+  );
+};
+
 const CompleteToast = () => {
   const database = useRecoilValue(connectionDatabase);
   const navigate = useNavigate();
@@ -1004,7 +1189,7 @@ const CompleteToast = () => {
                 >
                   {database}
                 </Link>{" "}
-                database in SingleStore Customer Portal
+                database in SingleStore Helios Customer Portal
               </li>
             </ul>
           </Text>
@@ -1081,6 +1266,17 @@ export const Configure = () => {
         />
       ),
     },
+    {
+      completed: false, // Optional section, never blocks progress
+      component: (
+        <AnalystConfigSection
+          key="analyst"
+          previousStepCompleted={
+            (tableCounts && tableCounts.notifications > 0) || false
+          }
+        />
+      ),
+    },
   ];
 
   const sections = [];
@@ -1105,7 +1301,7 @@ export const Configure = () => {
         <Stack spacing={2}>
           <Heading fontSize="xl">Setting up Your Application</Heading>
           <Text size="xs" overflowWrap="break-word">
-            Connect to a SingleStoreDB workspace to see how we power the
+            Connect to a SingleStore Helios workspace to see how we power the
             real-time Digital Marketing applications. If you have any questions
             or issues, please file an issue on the{" "}
             <Link

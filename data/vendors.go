@@ -18,7 +18,7 @@ type Vendor struct {
 }
 
 var (
-	//go:embed vendors.json
+	//go:embed vendors-top100.json
 	vendors_raw    []byte
 	vendorMaxTotal int
 	Vendors        []Vendor

@@ -33,8 +33,8 @@ import {
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { NavLink as RouterLink } from "react-router-dom";
 
-import SingleStoreLogoLight from "@/assets/singlestore-logo-light.svg";
-import SingleStoreLogoDark from "@/assets/singlestore-logo-dark-new.svg";
+import SingleStoreLogoLight from "@/assets/singlestore-logo-light.png";
+import SingleStoreLogoDark from "@/assets/singlestore-logo-dark-new.png";
 import { GithubStargazer } from "@/components/GithubButtons";
 import { LinkedinIconButton, TwitterIconButton } from "@/components/IconLinks";
 

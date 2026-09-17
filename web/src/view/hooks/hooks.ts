@@ -133,6 +133,21 @@ export const useTick = (
         if (e instanceof DOMException && e.name === "AbortError") {
           return;
         }
+        // Handle specific database connection errors gracefully
+        if (e instanceof Error) {
+          // Only retry on actual connection errors (not just any error mentioning these words)
+          // Check for specific error patterns from fetch/database failures
+          const isFetchError = e.name === 'TypeError' && e.message.includes('fetch');
+          const isNetworkError = e.name === 'NetworkError';
+          const isTimeoutError = e.name === 'TimeoutError';
+
+          if (isFetchError || isNetworkError || isTimeoutError) {
+            console.warn(`${tickID}: Connection issue (${e.name}), will retry on next tick:`, e.message);
+            // Continue the tick loop instead of crashing
+            setTimeout(outerTick, intervalMS);
+            return;
+          }
+        }
         throw e;
       } finally {
         console.timeEnd(tickID);

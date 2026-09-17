@@ -179,10 +179,7 @@ export async function queryAnalyst(
           }
 
           // Capture follow-up queries
-          if (
-            parsed.type === "response.follow_up_queries_event" &&
-            parsed.follow_up_queries
-          ) {
+          if (parsed.type === "response.follow_up_queries_event" && parsed.follow_up_queries) {
             followUpQueries = parsed.follow_up_queries;
             if (callbacks?.onFollowUpQueries) {
               callbacks.onFollowUpQueries(parsed.follow_up_queries);
@@ -214,9 +211,7 @@ export async function queryAnalyst(
   }
 
   // Extract table and chart JSON objects from the accumulated text
-  const extractEntitiesFromText = (
-    text: string
-  ): {
+  const extractEntitiesFromText = (text: string): {
     cleanText: string;
     extractedTables: AnalystTable[];
     extractedCharts: AnalystChart[];
@@ -244,7 +239,7 @@ export async function queryAnalyst(
           continue;
         }
 
-        if (char === "\\") {
+        if (char === '\\') {
           escapeNext = true;
           continue;
         }
@@ -255,8 +250,8 @@ export async function queryAnalyst(
         }
 
         if (!inString) {
-          if (char === "{") braceCount++;
-          if (char === "}") {
+          if (char === '{') braceCount++;
+          if (char === '}') {
             braceCount--;
             if (braceCount === 0) {
               endIdx = i + 1;
@@ -277,8 +272,7 @@ export async function queryAnalyst(
       }
 
       // Remove this JSON object from the text
-      remainingText =
-        remainingText.substring(0, startIdx) + remainingText.substring(endIdx);
+      remainingText = remainingText.substring(0, startIdx) + remainingText.substring(endIdx);
     }
 
     // Find chart JSON objects by looking for {"type": "chart" pattern
@@ -300,7 +294,7 @@ export async function queryAnalyst(
           continue;
         }
 
-        if (char === "\\") {
+        if (char === '\\') {
           escapeNext = true;
           continue;
         }
@@ -311,8 +305,8 @@ export async function queryAnalyst(
         }
 
         if (!inString) {
-          if (char === "{") braceCount++;
-          if (char === "}") {
+          if (char === '{') braceCount++;
+          if (char === '}') {
             braceCount--;
             if (braceCount === 0) {
               endIdx = i + 1;
@@ -333,19 +327,13 @@ export async function queryAnalyst(
       }
 
       // Remove this JSON object from the text
-      remainingText =
-        remainingText.substring(0, startIdx) + remainingText.substring(endIdx);
+      remainingText = remainingText.substring(0, startIdx) + remainingText.substring(endIdx);
     }
 
-    return {
-      cleanText: remainingText.trim(),
-      extractedTables,
-      extractedCharts,
-    };
+    return { cleanText: remainingText.trim(), extractedTables, extractedCharts };
   };
 
-  const { cleanText, extractedTables, extractedCharts } =
-    extractEntitiesFromText(accumulatedText);
+  const { cleanText, extractedTables, extractedCharts } = extractEntitiesFromText(accumulatedText);
   const allTables = [...tables, ...extractedTables];
   const allCharts = [...charts, ...extractedCharts];
 
@@ -360,8 +348,7 @@ export async function queryAnalyst(
         error: null,
         tables: allTables.length > 0 ? allTables : undefined,
         charts: allCharts.length > 0 ? allCharts : undefined,
-        followUpQueries:
-          followUpQueries.length > 0 ? followUpQueries : undefined,
+        followUpQueries: followUpQueries.length > 0 ? followUpQueries : undefined,
       },
     ],
   };
@@ -386,9 +373,7 @@ export function formatAnalystResult(result: AnalystQueryResult): {
   if (result.data) {
     return {
       type: "data",
-      content: `Found ${result.data.row_count} ${
-        result.data.row_count === 1 ? "result" : "results"
-      }`,
+      content: `Found ${result.data.row_count} ${result.data.row_count === 1 ? "result" : "results"}`,
       data: result.data,
     };
   }

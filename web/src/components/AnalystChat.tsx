@@ -41,15 +41,7 @@ import {
   AnalystChart,
   AnalystTable,
 } from "@/data/analystClient";
-import {
-  analystApiKey,
-  analystEndpointUrl,
-  analystChatOpen,
-  analystChatMessages,
-  analystSessionId,
-  analystChatSize,
-  analystPendingQuestion,
-} from "@/data/recoil";
+import { analystApiKey, analystEndpointUrl, analystChatOpen, analystChatMessages, analystSessionId, analystChatSize, analystPendingQuestion } from "@/data/recoil";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -57,16 +49,9 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   result?: AnalystQueryResult;
-  processingSteps?: Array<{
-    type: "status" | "query" | "reasoning";
-    content: string;
-  }>;
+  processingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string }>;
   isStreaming?: boolean;
-  streamingSteps?: Array<{
-    type: "status" | "query" | "reasoning";
-    content: string;
-    timestamp: number;
-  }>;
+  streamingSteps?: Array<{ type: "status" | "query" | "reasoning"; content: string; timestamp: number }>;
 }
 
 // Fun thinking status messages inspired by Claude
@@ -95,7 +80,7 @@ const THINKING_STATUSES = [
 
 // Helper function to clean reasoning text by removing redundant headers
 const cleanReasoningText = (text: string): string => {
-  return text.replace(/^\*\*Reasoning:\*\*\s*/i, "").trim();
+  return text.replace(/^\*\*Reasoning:\*\*\s*/i, '').trim();
 };
 
 export const AnalystChat: React.FC = () => {
@@ -104,13 +89,10 @@ export const AnalystChat: React.FC = () => {
   const [isOpen, setIsOpen] = useRecoilState(analystChatOpen);
   const [messages, setMessages] = useRecoilState(analystChatMessages);
   const [sessionId, setSessionId] = useRecoilState(analystSessionId);
-  const [pendingQuestion, setPendingQuestion] = useRecoilState(
-    analystPendingQuestion
-  );
+  const [pendingQuestion, setPendingQuestion] = useRecoilState(analystPendingQuestion);
   const [input, setInput] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const [currentThinkingStatus, setCurrentThinkingStatus] =
-    React.useState("Thinking");
+  const [currentThinkingStatus, setCurrentThinkingStatus] = React.useState("Thinking");
   const abortControllerRef = React.useRef<AbortController | null>(null);
   const [size, setSize] = useRecoilState(analystChatSize);
   const [isResizing, setIsResizing] = React.useState(false);
@@ -134,12 +116,10 @@ export const AnalystChat: React.FC = () => {
   // Clean up orphaned streaming messages on mount (from page reload/close during request)
   React.useEffect(() => {
     setMessages((prev) => {
-      const hasStreaming = prev.some((msg) => msg.isStreaming);
+      const hasStreaming = prev.some(msg => msg.isStreaming);
       if (hasStreaming) {
-        console.log(
-          "[Analyst] Cleaning up orphaned streaming messages from previous session"
-        );
-        return prev.filter((msg) => !msg.isStreaming);
+        console.log('[Analyst] Cleaning up orphaned streaming messages from previous session');
+        return prev.filter(msg => !msg.isStreaming);
       }
       return prev;
     });
@@ -159,9 +139,7 @@ export const AnalystChat: React.FC = () => {
     if (isLoading) {
       thinkingIntervalRef.current = setInterval(() => {
         setCurrentThinkingStatus(
-          THINKING_STATUSES[
-            Math.floor(Math.random() * THINKING_STATUSES.length)
-          ]
+          THINKING_STATUSES[Math.floor(Math.random() * THINKING_STATUSES.length)]
         );
       }, 4000); // Changed from 2000ms to 4000ms
     } else if (thinkingIntervalRef.current) {
@@ -178,13 +156,7 @@ export const AnalystChat: React.FC = () => {
 
   // Handle pending questions from external triggers (e.g., Ask Aura buttons)
   React.useEffect(() => {
-    if (
-      pendingQuestion &&
-      !isLoading &&
-      !isProcessingRef.current &&
-      apiKey &&
-      endpointUrl
-    ) {
+    if (pendingQuestion && !isLoading && !isProcessingRef.current && apiKey && endpointUrl) {
       handleSend(pendingQuestion).then((sent) => {
         // Only clear pending question if message was actually sent
         if (sent) {
@@ -229,20 +201,8 @@ export const AnalystChat: React.FC = () => {
       const deltaY = resizeStartRef.current.y - e.clientY;
 
       setSize({
-        width: Math.max(
-          350,
-          Math.min(
-            window.innerWidth * 0.9,
-            resizeStartRef.current.width + deltaX
-          )
-        ),
-        height: Math.max(
-          400,
-          Math.min(
-            window.innerHeight * 0.85,
-            resizeStartRef.current.height + deltaY
-          )
-        ),
+        width: Math.max(350, Math.min(window.innerWidth * 0.9, resizeStartRef.current.width + deltaX)),
+        height: Math.max(400, Math.min(window.innerHeight * 0.85, resizeStartRef.current.height + deltaY)),
       });
     };
 
@@ -261,8 +221,7 @@ export const AnalystChat: React.FC = () => {
 
   const handleSend = async (messageOverride?: string) => {
     const messageToSend = messageOverride || input;
-    if (!messageToSend.trim() || isLoading || isProcessingRef.current)
-      return false;
+    if (!messageToSend.trim() || isLoading || isProcessingRef.current) return false;
 
     if (!apiKey || !endpointUrl) {
       return false;
@@ -282,7 +241,7 @@ export const AnalystChat: React.FC = () => {
     // Set a 2 minute timeout
     let wasTimedOut = false;
     const timeoutId = setTimeout(() => {
-      console.log("[Analyst] Request timeout after 2 minutes");
+      console.log('[Analyst] Request timeout after 2 minutes');
       wasTimedOut = true;
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -290,10 +249,7 @@ export const AnalystChat: React.FC = () => {
     }, 120000); // 2 minutes
 
     // Track processing steps (reasoning and queries executed)
-    const processingSteps: Array<{
-      type: "status" | "query" | "reasoning";
-      content: string;
-    }> = [];
+    const processingSteps: Array<{ type: "status" | "query" | "reasoning"; content: string }> = [];
 
     // Create a streaming assistant message that will be updated in real-time
     const streamingMessageIndex = messages.length + 1;
@@ -316,10 +272,7 @@ export const AnalystChat: React.FC = () => {
         endpointUrl,
         {
           onReasoning: (reasoning: string) => {
-            console.log(
-              "[Analyst] Received reasoning:",
-              reasoning.substring(0, 100)
-            );
+            console.log('[Analyst] Received reasoning:', reasoning.substring(0, 100));
             processingSteps.push({ type: "reasoning", content: reasoning });
             // Update the streaming message with new reasoning in real-time
             setMessages((prev) => {
@@ -329,12 +282,8 @@ export const AnalystChat: React.FC = () => {
                     ...msg,
                     streamingSteps: [
                       ...(msg.streamingSteps || []),
-                      {
-                        type: "reasoning" as const,
-                        content: reasoning,
-                        timestamp: Date.now(),
-                      },
-                    ],
+                      { type: "reasoning" as const, content: reasoning, timestamp: Date.now() }
+                    ]
                   };
                 }
                 return msg;
@@ -343,7 +292,7 @@ export const AnalystChat: React.FC = () => {
             });
           },
           onQuery: (query: string) => {
-            console.log("[Analyst] Received query:", query.substring(0, 100));
+            console.log('[Analyst] Received query:', query.substring(0, 100));
             processingSteps.push({ type: "query", content: query });
             // Update the streaming message with new query in real-time
             setMessages((prev) => {
@@ -353,12 +302,8 @@ export const AnalystChat: React.FC = () => {
                     ...msg,
                     streamingSteps: [
                       ...(msg.streamingSteps || []),
-                      {
-                        type: "query" as const,
-                        content: query,
-                        timestamp: Date.now(),
-                      },
-                    ],
+                      { type: "query" as const, content: query, timestamp: Date.now() }
+                    ]
                   };
                 }
                 return msg;
@@ -370,23 +315,21 @@ export const AnalystChat: React.FC = () => {
         abortControllerRef.current?.signal
       );
 
-      console.log("[Analyst] Query complete, processing response");
+      console.log('[Analyst] Query complete, processing response');
 
       // Ignore response if session has changed (chat was cleared)
       if (requestSessionId !== currentSessionIdRef.current) {
-        console.log("[Analyst] Session changed, ignoring response");
+        console.log('[Analyst] Session changed, ignoring response');
         return true; // Message was sent, just session changed
       }
 
       if (!isMountedRef.current) {
-        console.log(
-          "[Analyst] Component unmounted, cleaning up streaming message"
-        );
+        console.log('[Analyst] Component unmounted, cleaning up streaming message');
         // Remove streaming message even though component is unmounted
         // This prevents orphaned streaming state in Recoil localStorage
         setMessages((prev) => {
           const updated = [...prev];
-          const streamingIdx = updated.findIndex((msg) => msg.isStreaming);
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
           if (streamingIdx !== -1) {
             updated.splice(streamingIdx, 1);
           }
@@ -395,15 +338,15 @@ export const AnalystChat: React.FC = () => {
         return true; // Message was sent, just component unmounted
       }
 
-      console.log("[Analyst] Response results:", response.results?.length || 0);
+      console.log('[Analyst] Response results:', response.results?.length || 0);
 
       // Handle multiple results (agent can return more than one)
       if (!response.results || !Array.isArray(response.results)) {
-        console.log("[Analyst] Malformed response");
+        console.log('[Analyst] Malformed response');
         // Remove streaming message and show error
         setMessages((prev) => {
           const updated = [...prev];
-          const streamingIdx = updated.findIndex((msg) => msg.isStreaming);
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
           if (streamingIdx !== -1) {
             updated.splice(streamingIdx, 1);
           }
@@ -412,15 +355,15 @@ export const AnalystChat: React.FC = () => {
             {
               role: "assistant",
               content: "Received malformed response from Analyst API.",
-            },
+            }
           ];
         });
       } else if (response.results.length === 0) {
-        console.log("[Analyst] Empty results");
+        console.log('[Analyst] Empty results');
         // Remove streaming message and show error
         setMessages((prev) => {
           const updated = [...prev];
-          const streamingIdx = updated.findIndex((msg) => msg.isStreaming);
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
           if (streamingIdx !== -1) {
             updated.splice(streamingIdx, 1);
           }
@@ -429,50 +372,45 @@ export const AnalystChat: React.FC = () => {
             {
               role: "assistant",
               content: "The agent returned no results.",
-            },
+            }
           ];
         });
       } else {
-        console.log("[Analyst] Updating UI with results");
+        console.log('[Analyst] Updating UI with results');
         // Update the streaming message to show final results
         setMessages((prev) => {
           const updated = [...prev];
           // Remove the streaming message
-          const streamingIdx = updated.findIndex((msg) => msg.isStreaming);
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
           if (streamingIdx !== -1) {
             updated.splice(streamingIdx, 1);
           }
 
           // Add final assistant messages
-          const assistantMessages: Message[] = response.results.map(
-            (result, idx) => {
-              const formatted = formatAnalystResult(result);
-              return {
-                role: "assistant",
-                content: formatted.content,
-                result: result,
-                processingSteps:
-                  idx === 0 && processingSteps.length > 0
-                    ? processingSteps
-                    : undefined,
-                isStreaming: false,
-              };
-            }
-          );
+          const assistantMessages: Message[] = response.results.map((result, idx) => {
+            const formatted = formatAnalystResult(result);
+            return {
+              role: "assistant",
+              content: formatted.content,
+              result: result,
+              processingSteps: idx === 0 && processingSteps.length > 0 ? processingSteps : undefined,
+              isStreaming: false,
+            };
+          });
 
           return [...updated, ...assistantMessages];
         });
-        console.log("[Analyst] UI update complete");
+        console.log('[Analyst] UI update complete');
       }
     } catch (error) {
       clearTimeout(timeoutId);
 
       if (!isMountedRef.current) {
-        console.log("[Analyst] Component unmounted during error, cleaning up");
+        console.log('[Analyst] Component unmounted during error, cleaning up');
         // Remove streaming message even though component is unmounted
         setMessages((prev) => {
           const updated = [...prev];
-          const streamingIdx = updated.findIndex((msg) => msg.isStreaming);
+          const streamingIdx = updated.findIndex(msg => msg.isStreaming);
           if (streamingIdx !== -1) {
             updated.splice(streamingIdx, 1);
           }
@@ -483,20 +421,20 @@ export const AnalystChat: React.FC = () => {
 
       // Ignore errors if session changed (chat was cleared)
       if (requestSessionId !== currentSessionIdRef.current) {
-        console.log("[Analyst] Session changed, ignoring error");
+        console.log('[Analyst] Session changed, ignoring error');
         return true; // Message was sent, just session changed
       }
 
       // Handle aborted requests
-      if (error instanceof Error && error.name === "AbortError") {
-        console.log("[Analyst] Request was aborted");
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('[Analyst] Request was aborted');
 
         // Only show timeout message if it was actually a timeout (not user clearing chat)
         if (wasTimedOut) {
           setMessages((prev) => {
             const updated = [...prev];
             // Find and remove the streaming message by checking isStreaming flag
-            const streamingIdx = updated.findIndex((msg) => msg.isStreaming);
+            const streamingIdx = updated.findIndex(msg => msg.isStreaming);
             if (streamingIdx !== -1) {
               updated.splice(streamingIdx, 1);
             }
@@ -504,16 +442,15 @@ export const AnalystChat: React.FC = () => {
               ...updated,
               {
                 role: "assistant",
-                content:
-                  "Request timed out after 2 minutes. Please try a simpler question or check your connection.",
-              },
+                content: "Request timed out after 2 minutes. Please try a simpler question or check your connection.",
+              }
             ];
           });
         } else {
           // User cleared chat or other abort - remove streaming message silently
           setMessages((prev) => {
             const updated = [...prev];
-            const streamingIdx = updated.findIndex((msg) => msg.isStreaming);
+            const streamingIdx = updated.findIndex(msg => msg.isStreaming);
             if (streamingIdx !== -1) {
               updated.splice(streamingIdx, 1);
             }
@@ -526,7 +463,7 @@ export const AnalystChat: React.FC = () => {
       // Remove streaming message and show error
       setMessages((prev) => {
         const updated = [...prev];
-        const streamingIdx = updated.findIndex((msg) => msg.isStreaming);
+        const streamingIdx = updated.findIndex(msg => msg.isStreaming);
         if (streamingIdx !== -1) {
           updated.splice(streamingIdx, 1);
         }
@@ -534,10 +471,8 @@ export const AnalystChat: React.FC = () => {
           ...updated,
           {
             role: "assistant",
-            content: `Error: ${
-              error instanceof Error ? error.message : "Unknown error"
-            }`,
-          },
+            content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+          }
         ];
       });
     } finally {
@@ -642,17 +577,11 @@ export const AnalystChat: React.FC = () => {
   const processedCharts = React.useMemo(() => {
     return messages
       .map((msg) => msg.result?.charts)
-      .filter(
-        (charts): charts is AnalystChart[] => !!charts && charts.length > 0
-      )
+      .filter((charts): charts is AnalystChart[] => !!charts && charts.length > 0)
       .flat()
       .map((chart) => {
         // Guard against malformed charts
-        if (
-          !chart.figure ||
-          !chart.figure.data ||
-          !Array.isArray(chart.figure.data)
-        ) {
+        if (!chart.figure || !chart.figure.data || !Array.isArray(chart.figure.data)) {
           return {
             title: chart.title || "Malformed chart",
             data: [],
@@ -736,12 +665,7 @@ export const AnalystChat: React.FC = () => {
               borderRadius="md"
             >
               {chart.title && (
-                <Text
-                  fontWeight="bold"
-                  mb={2}
-                  fontSize="sm"
-                  color={chartTextColor}
-                >
+                <Text fontWeight="bold" mb={2} fontSize="sm" color={chartTextColor}>
                   {chart.title}
                 </Text>
               )}
@@ -880,7 +804,13 @@ export const AnalystChat: React.FC = () => {
           </Flex>
 
           {/* Messages */}
-          <VStack flex={1} overflowY="auto" p={4} spacing={3} align="stretch">
+          <VStack
+            flex={1}
+            overflowY="auto"
+            p={4}
+            spacing={3}
+            align="stretch"
+          >
             {messages.length === 0 && (!apiKey || !endpointUrl) && (
               <VStack spacing={3} color="gray.500" textAlign="center" mt={8}>
                 <Text>Aura Analyst is not configured.</Text>
@@ -906,9 +836,7 @@ export const AnalystChat: React.FC = () => {
                     variant="outline"
                     colorScheme="purple"
                     w="90%"
-                    onClick={() =>
-                      handleSend("What are the top performing campaigns?")
-                    }
+                    onClick={() => handleSend("What are the top performing campaigns?")}
                   >
                     What are the top performing campaigns?
                   </Button>
@@ -917,9 +845,7 @@ export const AnalystChat: React.FC = () => {
                     variant="outline"
                     colorScheme="purple"
                     w="90%"
-                    onClick={() =>
-                      handleSend("Show me conversion rates by city")
-                    }
+                    onClick={() => handleSend("Show me conversion rates by city")}
                   >
                     Show me conversion rates by city
                   </Button>
@@ -928,9 +854,7 @@ export const AnalystChat: React.FC = () => {
                     variant="outline"
                     colorScheme="purple"
                     w="90%"
-                    onClick={() =>
-                      handleSend("Which customers have the highest ROAS?")
-                    }
+                    onClick={() => handleSend("Which customers have the highest ROAS?")}
                   >
                     Which customers have the highest ROAS?
                   </Button>
@@ -958,9 +882,7 @@ export const AnalystChat: React.FC = () => {
                     <VStack align="stretch" spacing={2}>
                       <Flex alignItems="center" gap={2}>
                         <Spinner size="sm" />
-                        <Text fontSize="sm" fontWeight="medium">
-                          {currentThinkingStatus}...
-                        </Text>
+                        <Text fontSize="sm" fontWeight="medium">{currentThinkingStatus}...</Text>
                       </Flex>
                       {msg.streamingSteps && msg.streamingSteps.length > 0 && (
                         <VStack align="stretch" spacing={1} mt={2}>
@@ -972,17 +894,11 @@ export const AnalystChat: React.FC = () => {
                               fontSize="xs"
                               bg={reasoningBgColor}
                               borderLeft="3px solid"
-                              borderColor={
-                                step.type === "query"
-                                  ? "blue.400"
-                                  : "purple.400"
-                              }
+                              borderColor={step.type === "query" ? "blue.400" : "purple.400"}
                             >
                               <Flex alignItems="center" gap={1} mb={1}>
                                 <Text fontWeight="bold">
-                                  {step.type === "query"
-                                    ? "🔍 Running query"
-                                    : "💭 Reasoning"}
+                                  {step.type === "query" ? "🔍 Running query" : "💭 Reasoning"}
                                 </Text>
                               </Flex>
                               {step.type === "query" ? (
@@ -1009,181 +925,124 @@ export const AnalystChat: React.FC = () => {
                       <ReactMarkdown
                         components={{
                           p: ({ children }) => <Text mb={2}>{children}</Text>,
-                          strong: ({ children }) => (
-                            <Text as="strong" fontWeight="bold">
-                              {children}
-                            </Text>
-                          ),
+                          strong: ({ children }) => <Text as="strong" fontWeight="bold">{children}</Text>,
                         }}
                       >
                         {msg.content}
                       </ReactMarkdown>
                     </Box>
                   )}
-                  {!msg.isStreaming &&
-                    msg.processingSteps &&
-                    msg.processingSteps.length > 0 && (
-                      <Accordion allowToggle mt={2}>
-                        {msg.processingSteps.some(
-                          (s) => s.type === "reasoning"
-                        ) && (
-                          <AccordionItem border="none">
-                            <AccordionButton
-                              px={0}
-                              _hover={{ bg: "transparent" }}
-                            >
-                              <Box
-                                flex="1"
-                                textAlign="left"
-                                fontSize="xs"
-                                fontWeight="medium"
-                              >
-                                💭 View Reasoning
-                              </Box>
-                              <AccordionIcon />
-                            </AccordionButton>
-                            <AccordionPanel px={0} pb={2}>
-                              <VStack align="stretch" spacing={2}>
-                                {msg.processingSteps
-                                  .filter((step) => step.type === "reasoning")
-                                  .map((step, stepIdx) => (
-                                    <Box
-                                      key={stepIdx}
-                                      p={3}
-                                      borderRadius="md"
-                                      fontSize="xs"
-                                      whiteSpace="pre-wrap"
-                                      bg={reasoningBgColor}
-                                      borderLeft="3px solid"
-                                      borderColor="purple.400"
-                                    >
-                                      <ReactMarkdown
-                                        components={{
-                                          p: ({ children }) => (
-                                            <Text mb={1} fontSize="xs">
+                  {!msg.isStreaming && msg.processingSteps && msg.processingSteps.length > 0 && (
+                    <Accordion allowToggle mt={2}>
+                      {msg.processingSteps.some(s => s.type === "reasoning") && (
+                        <AccordionItem border="none">
+                          <AccordionButton px={0} _hover={{ bg: "transparent" }}>
+                            <Box flex="1" textAlign="left" fontSize="xs" fontWeight="medium">
+                              💭 View Reasoning
+                            </Box>
+                            <AccordionIcon />
+                          </AccordionButton>
+                          <AccordionPanel px={0} pb={2}>
+                            <VStack align="stretch" spacing={2}>
+                              {msg.processingSteps
+                                .filter(step => step.type === "reasoning")
+                                .map((step, stepIdx) => (
+                                  <Box
+                                    key={stepIdx}
+                                    p={3}
+                                    borderRadius="md"
+                                    fontSize="xs"
+                                    whiteSpace="pre-wrap"
+                                    bg={reasoningBgColor}
+                                    borderLeft="3px solid"
+                                    borderColor="purple.400"
+                                  >
+                                    <ReactMarkdown
+                                      components={{
+                                        p: ({ children }) => <Text mb={1} fontSize="xs">{children}</Text>,
+                                        code: ({ inline, children }) =>
+                                          inline ? (
+                                            <Code fontSize="xs">{children}</Code>
+                                          ) : (
+                                            <Code display="block" p={2} fontSize="xs" whiteSpace="pre-wrap">
                                               {children}
-                                            </Text>
+                                            </Code>
                                           ),
-                                          code: ({ inline, children }) =>
-                                            inline ? (
-                                              <Code fontSize="xs">
-                                                {children}
-                                              </Code>
-                                            ) : (
-                                              <Code
-                                                display="block"
-                                                p={2}
-                                                fontSize="xs"
-                                                whiteSpace="pre-wrap"
-                                              >
-                                                {children}
-                                              </Code>
-                                            ),
-                                        }}
-                                      >
-                                        {cleanReasoningText(step.content)}
-                                      </ReactMarkdown>
-                                    </Box>
-                                  ))}
-                              </VStack>
-                            </AccordionPanel>
-                          </AccordionItem>
-                        )}
-                        {msg.processingSteps.some(
-                          (s) => s.type === "query"
-                        ) && (
-                          <AccordionItem border="none">
-                            <AccordionButton
-                              px={0}
-                              _hover={{ bg: "transparent" }}
-                            >
-                              <Box
-                                flex="1"
-                                textAlign="left"
-                                fontSize="xs"
-                                fontWeight="medium"
-                              >
-                                📊 View Queries (
-                                {
-                                  msg.processingSteps.filter(
-                                    (s) => s.type === "query"
-                                  ).length
-                                }
-                                )
-                              </Box>
-                              <AccordionIcon />
-                            </AccordionButton>
-                            <AccordionPanel px={0} pb={2}>
-                              <VStack align="stretch" spacing={2}>
-                                {msg.processingSteps
-                                  .filter((step) => step.type === "query")
-                                  .map((step, stepIdx) => (
-                                    <Code
-                                      key={stepIdx}
-                                      p={2}
-                                      borderRadius="md"
-                                      fontSize="xs"
-                                      whiteSpace="pre-wrap"
-                                      display="block"
-                                      colorScheme="purple"
+                                      }}
                                     >
-                                      {step.content}
-                                    </Code>
-                                  ))}
-                              </VStack>
-                            </AccordionPanel>
-                          </AccordionItem>
-                        )}
-                      </Accordion>
-                    )}
+                                      {cleanReasoningText(step.content)}
+                                    </ReactMarkdown>
+                                  </Box>
+                                ))}
+                            </VStack>
+                          </AccordionPanel>
+                        </AccordionItem>
+                      )}
+                      {msg.processingSteps.some(s => s.type === "query") && (
+                        <AccordionItem border="none">
+                          <AccordionButton px={0} _hover={{ bg: "transparent" }}>
+                            <Box flex="1" textAlign="left" fontSize="xs" fontWeight="medium">
+                              📊 View Queries ({msg.processingSteps.filter(s => s.type === "query").length})
+                            </Box>
+                            <AccordionIcon />
+                          </AccordionButton>
+                          <AccordionPanel px={0} pb={2}>
+                            <VStack align="stretch" spacing={2}>
+                              {msg.processingSteps
+                                .filter(step => step.type === "query")
+                                .map((step, stepIdx) => (
+                                  <Code
+                                    key={stepIdx}
+                                    p={2}
+                                    borderRadius="md"
+                                    fontSize="xs"
+                                    whiteSpace="pre-wrap"
+                                    display="block"
+                                    colorScheme="purple"
+                                  >
+                                    {step.content}
+                                  </Code>
+                                ))}
+                            </VStack>
+                          </AccordionPanel>
+                        </AccordionItem>
+                      )}
+                    </Accordion>
+                  )}
                   {msg.result && renderCharts(msg.result)}
                   {msg.result && renderTables(msg.result)}
                   {msg.result && renderData(msg.result)}
-                  {msg.result?.followUpQueries &&
-                    msg.result.followUpQueries.length > 0 && (
-                      <VStack
-                        align="stretch"
-                        spacing={2}
-                        mt={3}
-                        pt={3}
-                        borderTop="1px solid"
-                        borderColor={borderColor}
-                      >
-                        <Text
+                  {msg.result?.followUpQueries && msg.result.followUpQueries.length > 0 && (
+                    <VStack align="stretch" spacing={2} mt={3} pt={3} borderTop="1px solid" borderColor={borderColor}>
+                      <Text fontSize="xs" fontWeight="bold" color={followUpTextColor}>
+                        💡 You might also ask:
+                      </Text>
+                      {msg.result.followUpQueries.slice(0, 3).map((question: string, qIdx: number) => (
+                        <Button
+                          key={qIdx}
+                          size="sm"
+                          variant="outline"
+                          colorScheme="purple"
+                          justifyContent="flex-start"
+                          textAlign="left"
+                          whiteSpace="normal"
+                          height="auto"
+                          py={2}
+                          px={3}
                           fontSize="xs"
-                          fontWeight="bold"
-                          color={followUpTextColor}
+                          onClick={() => {
+                            if (!isLoading && !isProcessingRef.current) {
+                              handleSend(question);
+                            }
+                          }}
+                          disabled={isLoading || isProcessingRef.current}
+                          _hover={{ bg: followUpButtonHoverBg }}
                         >
-                          💡 You might also ask:
-                        </Text>
-                        {msg.result.followUpQueries
-                          .slice(0, 3)
-                          .map((question: string, qIdx: number) => (
-                            <Button
-                              key={qIdx}
-                              size="sm"
-                              variant="outline"
-                              colorScheme="purple"
-                              justifyContent="flex-start"
-                              textAlign="left"
-                              whiteSpace="normal"
-                              height="auto"
-                              py={2}
-                              px={3}
-                              fontSize="xs"
-                              onClick={() => {
-                                if (!isLoading && !isProcessingRef.current) {
-                                  handleSend(question);
-                                }
-                              }}
-                              disabled={isLoading || isProcessingRef.current}
-                              _hover={{ bg: followUpButtonHoverBg }}
-                            >
-                              {question}
-                            </Button>
-                          ))}
-                      </VStack>
-                    )}
+                          {question}
+                        </Button>
+                      ))}
+                    </VStack>
+                  )}
                 </Box>
               </Flex>
             ))}
