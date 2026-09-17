@@ -278,6 +278,7 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
         city_id,
         subscriber_id,
         event_ts,
+        ingested_at,
         lonlat,
         ROW_NUMBER() OVER (
           PARTITION BY city_id, subscriber_id
@@ -291,6 +292,7 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
         city_id,
         subscriber_id,
         event_ts,
+        ingested_at,
         lonlat
       FROM latest_locations
       WHERE
@@ -306,9 +308,13 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
         s.event_ts,
         NOW(6) AS evaluated_at,
         -- Calculate age in seconds (use ingested_at fallback if event_ts is null)
-        COALESCE(TIMESTAMPDIFF(MICROSECOND, s.event_ts, NOW(6)) / 1000000.0, 999999) AS age_seconds,
-        -- Check if location event is fresh
-        (s.event_ts IS NOT NULL AND TIMESTAMPDIFF(SECOND, s.event_ts, NOW(6)) <= _freshness_threshold_seconds) AS is_fresh,
+        COALESCE(
+          TIMESTAMPDIFF(MICROSECOND, s.event_ts, NOW(6)) / 1000000.0,
+          TIMESTAMPDIFF(MICROSECOND, s.ingested_at, NOW(6)) / 1000000.0
+        ) AS age_seconds,
+        -- Check if location event is fresh (use ingested_at if event_ts is null)
+        (COALESCE(s.event_ts, s.ingested_at) IS NOT NULL
+         AND TIMESTAMPDIFF(SECOND, COALESCE(s.event_ts, s.ingested_at), NOW(6)) <= _freshness_threshold_seconds) AS is_fresh,
         -- Check if subscriber is within ANY enabled offer zone
         MAX(CASE WHEN GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN 1 ELSE 0 END) AS within_any_zone,
         -- Pick one representative offer_id for display (the first matching one)
