@@ -57,7 +57,7 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
-import { ConnectionConfig, Query } from "@/data/client";
+import { ConnectionConfig, Exec, Query } from "@/data/client";
 import { DEFAULT_CITY } from "@/data/offers";
 import {
   checkPlans,
