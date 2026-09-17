@@ -31,7 +31,7 @@ import {
   selectedCity,
   simulatorEnabled,
 } from "@/data/recoil";
-import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
+import { useCombinedRenderer } from "@/render/useCombinedRenderer";
 import { useConnectionState } from "@/view/hooks/hooks";
 import { useSimulationMonitor } from "@/view/hooks/useSimulationMonitor";
 import { useSimulator } from "@/view/hooks/useSimulator";
@@ -229,6 +229,10 @@ export const Dashboard = () => {
   useSimulator(enabled && connected && initialized);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
+  // Call hooks unconditionally at the top
+  const legendBg = useColorModeValue("white", "gray.800");
+  const dotBorderColor = useColorModeValue("white", "gray.700");
+
   if (!connected) {
     window.location.href = "/";
   }
@@ -252,13 +256,59 @@ export const Dashboard = () => {
       position="relative"
       height="100%"
     >
-      <Box width="100%" flex="2 2 0" minHeight="200px" maxHeight="100%">
+      <Box
+        width="100%"
+        flex="2 2 0"
+        minHeight="200px"
+        maxHeight="100%"
+        position="relative"
+      >
         <PixiMap
           selectionDropdownLeft={isSmallScreen ? undefined : "31.5%"}
           selectionDropdownTop={isSmallScreen ? undefined : "1vw"}
-          useRenderer={useNotificationsRenderer}
+          useRenderer={useCombinedRenderer}
           options={{}}
         />
+        {/* Status Legend */}
+        {initialized && enabled && (
+          <Box
+            position="absolute"
+            bottom="20px"
+            right="20px"
+            background={legendBg}
+            padding="12px 16px"
+            borderRadius="8px"
+            boxShadow="0 2px 8px rgba(0,0,0,0.15)"
+            fontSize="sm"
+            zIndex={1000}
+          >
+            <Text fontWeight="bold" marginBottom="8px">
+              Subscriber Status
+            </Text>
+            <Flex alignItems="center" gap={2} marginBottom="4px">
+              <Box
+                width="12px"
+                height="12px"
+                borderRadius="50%"
+                background="green.500"
+                border="1px solid"
+                borderColor={dotBorderColor}
+              />
+              <Text>Fresh & in campaign zone</Text>
+            </Flex>
+            <Flex alignItems="center" gap={2}>
+              <Box
+                width="12px"
+                height="12px"
+                borderRadius="50%"
+                background="red.500"
+                border="1px solid"
+                borderColor={dotBorderColor}
+              />
+              <Text>Stale or outside zone</Text>
+            </Flex>
+          </Box>
+        )}
       </Box>
       <Stack
         spacing={4}

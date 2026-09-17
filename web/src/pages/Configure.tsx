@@ -643,9 +643,8 @@ const OffersSection = ({
       <Text>
         <br />
         The map to your right displays a polygon representing each campaign's
-        activation zone. Currently, there are {tableCounts.data?.offers ||
-          0}{" "}
-        ad campaigns in the database.
+        activation zone. Currently, there are {tableCounts.data?.offers || 0} ad
+        campaigns in the database.
       </Text>
     );
   } else {
@@ -658,8 +657,8 @@ const OffersSection = ({
     loadOffersButton = (
       <Text>
         <br />
-        Press the "Load ad campaigns" button to create some sample campaigns in New York
-        City.
+        Press the "Load ad campaigns" button to create some sample campaigns in
+        New York City.
       </Text>
     );
   }
@@ -672,11 +671,11 @@ const OffersSection = ({
       left={
         <>
           <Text>
-            Advertisers submit ad campaigns with a maximum bid price, notification zone,
-            list of segments and notification content. As audience segments engage,
-            they are matched with campaigns based on their location and behavior.
-            If multiple campaigns match to an audience segment, the highest bid price is
-            selected.
+            Advertisers submit ad campaigns with a maximum bid price,
+            notification zone, list of segments and notification content. As
+            audience segments engage, they are matched with campaigns based on
+            their location and behavior. If multiple campaigns match to an
+            audience segment, the highest bid price is selected.
           </Text>
           {loadOffersButton}
           {mapInfoContent}
@@ -792,15 +791,16 @@ const SegmentationSection = ({
             A segment is defined by a simple rule, such as “bought a coffee in
             the last day” or “visited the grocery store in the last week”. While
             segments could be evaluated dynamically when matching campaigns to
-            audience segments, this would waste compute time since segment memberships
-            rarely change.
+            audience segments, this would waste compute time since segment
+            memberships rarely change.
             <br />
             <br />
             Instead SingleStore Helios periodically caches the mapping between
             audience segments and behavioral segments for faster results.
             <br />
             <br />
-            Run the following query to match audience segments to behavioral segments.
+            Run the following query to match audience segments to behavioral
+            segments.
           </Text>
           <br />
           <PrimaryButton disabled={isRunning} onClick={onClick}>
@@ -922,9 +922,9 @@ const MatchingSection = ({
       left={
         <>
           <Text>
-            With ad campaigns and audience segments defined, let’s deliver ads as
-            push notifications. For this demo, notifications are inserted into a
-            table called “notifications”.
+            With ad campaigns and audience segments defined, let’s deliver ads
+            as push notifications. For this demo, notifications are inserted
+            into a table called “notifications”.
             <br />
             <br />
             Run the following query to generate notifications.
