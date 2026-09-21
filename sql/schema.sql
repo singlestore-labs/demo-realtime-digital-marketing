@@ -264,3 +264,79 @@ CREATE OR REPLACE FUNCTION dynamic_subscriber_segments(
   UNION ALL
   SELECT * FROM dynamic_subscriber_segments_purchases(_since, _until)
 );
+
+-- Function to get subscriber status (green/red dots)
+-- Returns subscribers visible in the given bounds with their status
+CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
+  _bounds GEOGRAPHY,
+  _freshness_threshold_seconds INT DEFAULT 30
+) RETURNS TABLE AS RETURN (
+  WITH
+    latest_locations AS (
+      SELECT
+        city_id,
+        subscriber_id,
+        event_ts,
+        ts,
+        lonlat,
+        ROW_NUMBER() OVER (
+          PARTITION BY city_id, subscriber_id
+          ORDER BY ts DESC
+        ) AS row_num
+      FROM locations
+    ),
+    in_bounds_subscribers AS (
+      SELECT
+        city_id,
+        subscriber_id,
+        event_ts,
+        ts,
+        lonlat
+      FROM latest_locations
+      WHERE
+        row_num = 1
+        AND GEOGRAPHY_INTERSECTS(_bounds, lonlat)
+    ),
+    subscriber_status AS (
+      SELECT
+        s.city_id,
+        s.subscriber_id,
+        s.lonlat,
+        s.event_ts,
+        NOW(6) AS evaluated_at,
+        COALESCE(
+          TIMESTAMPDIFF(MICROSECOND, s.event_ts, NOW(6)) / 1000000.0,
+          TIMESTAMPDIFF(MICROSECOND, s.ts, NOW(6)) / 1000000.0
+        ) AS age_seconds,
+        (COALESCE(s.event_ts, s.ts) IS NOT NULL
+         AND TIMESTAMPDIFF(SECOND, COALESCE(s.event_ts, s.ts), NOW(6)) <= _freshness_threshold_seconds) AS is_fresh,
+        MAX(CASE WHEN GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN 1 ELSE 0 END) AS within_any_zone,
+        MIN(CASE WHEN GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN o.offer_id ELSE NULL END) AS offer_id
+      FROM in_bounds_subscribers s
+      CROSS JOIN offers o
+      WHERE o.enabled = TRUE
+      GROUP BY s.city_id, s.subscriber_id, s.lonlat, s.event_ts, s.ts
+    )
+  SELECT
+    city_id,
+    subscriber_id,
+    COALESCE(offer_id, 0) AS offer_id,
+    GEOGRAPHY_LATITUDE(lonlat) AS latitude,
+    GEOGRAPHY_LONGITUDE(lonlat) AS longitude,
+    event_ts,
+    evaluated_at,
+    age_seconds,
+    is_fresh,
+    (within_any_zone = 1) AS within_zone,
+    CASE
+      WHEN is_fresh AND within_any_zone = 1 THEN 'green'
+      ELSE 'red'
+    END AS status,
+    CASE
+      WHEN is_fresh AND within_any_zone = 1 THEN 'fresh_and_in_zone'
+      WHEN NOT is_fresh AND within_any_zone = 0 THEN 'stale_and_out_of_scope'
+      WHEN NOT is_fresh THEN 'stale'
+      ELSE 'out_of_scope'
+    END AS status_reason
+  FROM subscriber_status
+);
