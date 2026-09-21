@@ -160,14 +160,34 @@ export const resetSchema = async (
     await truncateData(config);
   }
 
+  // Create tables first, then functions (which may reference tables), then procedures
+  // Note: TABLES array from schema.sql contains both tables and functions
+  for (const obj of TABLES) {
+    const stmtLower = obj.statement.toLowerCase();
+    const isTable = stmtLower.startsWith("create table") || stmtLower.startsWith("create rowstore table");
+    if (isTable) {
+      progress(`Creating table: ${obj.name}`, "info");
+      await Exec(config, obj.statement);
+    }
+  }
+
+  // Create utility functions from FUNCTIONS file
   for (const obj of FUNCTIONS) {
     progress(`Creating function: ${obj.name}`, "info");
     await Exec(config, obj.statement);
   }
+
+  // Create functions from schema.sql (may reference tables)
   for (const obj of TABLES) {
-    progress(`Creating table: ${obj.name}`, "info");
-    await Exec(config, obj.statement);
+    const stmtLower = obj.statement.toLowerCase();
+    const isFunction = stmtLower.startsWith("create or replace function") || stmtLower.startsWith("create function");
+    if (isFunction) {
+      progress(`Creating function: ${obj.name}`, "info");
+      await Exec(config, obj.statement);
+    }
   }
+
+  // Create procedures
   for (const obj of PROCEDURES) {
     progress(`Creating procedure: ${obj.name}`, "info");
     await Exec(config, obj.statement);
