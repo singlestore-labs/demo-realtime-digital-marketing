@@ -21,6 +21,7 @@ class StatusDot extends PIXI.Container {
   latlng: Point;
   dot: PIXI.Graphics;
   status: "green" | "red";
+  cityId: number;
   subscriberId: number;
 
   constructor(status: SubscriberStatus) {
@@ -28,6 +29,7 @@ class StatusDot extends PIXI.Container {
 
     this.latlng = [status.latitude, status.longitude];
     this.status = status.status;
+    this.cityId = status.cityId;
     this.subscriberId = status.subscriberId;
 
     this.dot = new PIXI.Graphics();
@@ -72,7 +74,7 @@ export const useStatusDotsRenderer: UsePixiRenderer = ({
   const { initialized } = useConnectionState();
   const debouncedBounds = useDebounce(bounds, 300);
 
-  const dots = React.useRef<Map<number, StatusDot>>(new Map());
+  const dots = React.useRef<Map<string, StatusDot>>(new Map());
 
   useSWR(
     initialized ? ["subscriber-status", config, debouncedBounds, FRESHNESS_THRESHOLD] : null,
@@ -84,27 +86,28 @@ export const useStatusDotsRenderer: UsePixiRenderer = ({
         if (!statuses) return;
 
         const currentDots = dots.current;
-        const activeSubscriberIds = new Set<number>();
+        const activeKeys = new Set<string>();
 
         for (const status of statuses) {
-          activeSubscriberIds.add(status.subscriberId);
+          const key = `${status.cityId}-${status.subscriberId}`;
+          activeKeys.add(key);
 
-          let dot = currentDots.get(status.subscriberId);
+          let dot = currentDots.get(key);
           if (dot) {
             dot.updateStatus(status.status);
             dot.updatePosition([status.latitude, status.longitude]);
           } else {
             dot = new StatusDot(status);
-            currentDots.set(status.subscriberId, dot);
+            currentDots.set(key, dot);
             scene.addChild(dot);
           }
         }
 
-        for (const [subscriberId, dot] of currentDots.entries()) {
-          if (!activeSubscriberIds.has(subscriberId)) {
+        for (const [key, dot] of currentDots.entries()) {
+          if (!activeKeys.has(key)) {
             scene.removeChild(dot);
             dot.destroy();
-            currentDots.delete(subscriberId);
+            currentDots.delete(key);
           }
         }
       },

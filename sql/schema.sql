@@ -282,6 +282,9 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
           ORDER BY ts DESC
         ) AS row_num
       FROM locations
+      WHERE
+        GEOGRAPHY_INTERSECTS(_bounds, lonlat)
+        AND ts >= DATE_SUB(NOW(6), INTERVAL 5 MINUTE)
     ),
     in_bounds_subscribers AS (
       SELECT
@@ -308,11 +311,10 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
         ) AS age_seconds,
         (COALESCE(s.event_ts, s.ts) IS NOT NULL
          AND TIMESTAMPDIFF(SECOND, COALESCE(s.event_ts, s.ts), NOW(6)) <= _freshness_threshold_seconds) AS is_fresh,
-        MAX(CASE WHEN GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN 1 ELSE 0 END) AS within_any_zone,
-        MIN(CASE WHEN GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN o.offer_id ELSE NULL END) AS offer_id
+        MAX(CASE WHEN o.offer_id IS NOT NULL AND GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN 1 ELSE 0 END) AS within_any_zone,
+        MIN(CASE WHEN o.offer_id IS NOT NULL AND GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN o.offer_id ELSE NULL END) AS offer_id
       FROM in_bounds_subscribers s
-      CROSS JOIN offers o
-      WHERE o.enabled = TRUE
+      LEFT JOIN offers o ON o.enabled = TRUE
       GROUP BY s.city_id, s.subscriber_id, s.lonlat, s.event_ts, s.ts
     )
   SELECT

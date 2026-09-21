@@ -29,14 +29,18 @@ export const useCombinedRenderer: UsePixiRenderer = (config) => {
     scene: notificationsScene,
   });
 
-  return {
-    setup: () => {
-      statusRenderer.setup?.();
-      notificationsRenderer.setup?.();
-    },
-    update: (delta: number) => {
+  const setup = React.useCallback(() => {
+    statusRenderer.setup?.();
+    notificationsRenderer.setup?.();
+  }, [statusRenderer, notificationsRenderer]);
+
+  const update = React.useCallback(
+    (delta: number) => {
       statusRenderer.update?.(delta);
       notificationsRenderer.update?.(delta);
     },
-  };
+    [statusRenderer, notificationsRenderer]
+  );
+
+  return { setup, update };
 };
