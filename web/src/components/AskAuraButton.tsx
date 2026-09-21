@@ -1,9 +1,9 @@
 import { IconButton, Tooltip, useColorModeValue, useBreakpointValue } from "@chakra-ui/react";
 import * as React from "react";
 import { FiMessageSquare } from "react-icons/fi";
-import { useSetRecoilState } from "recoil";
+import { useSetRecoilState, useRecoilValue } from "recoil";
 
-import { analystChatOpen, analystPendingQuestion } from "@/data/recoil";
+import { analystApiKey, analystChatOpen, analystEndpointUrl, analystPendingQuestion } from "@/data/recoil";
 
 interface AskAuraButtonProps {
   question: string;
@@ -16,18 +16,23 @@ export const AskAuraButton: React.FC<AskAuraButtonProps> = ({
 }) => {
   const setIsOpen = useSetRecoilState(analystChatOpen);
   const setPendingQuestion = useSetRecoilState(analystPendingQuestion);
+  const apiKey = useRecoilValue(analystApiKey);
+  const endpointUrl = useRecoilValue(analystEndpointUrl);
   const iconColor = useColorModeValue("purple.500", "purple.400");
   const iconHoverColor = useColorModeValue("purple.600", "purple.500");
 
   // Hide button on narrow panels (colSpan 1) when screen is small
   const shouldShow = useBreakpointValue({ base: colSpan > 1, md: true });
 
+  // Only show if API is configured
+  const isConfigured = !!apiKey && !!endpointUrl;
+
   const handleClick = () => {
     setIsOpen(true);
     setPendingQuestion(question);
   };
 
-  if (!shouldShow) {
+  if (!shouldShow || !isConfigured) {
     return null;
   }
 

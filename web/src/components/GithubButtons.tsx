@@ -37,14 +37,23 @@ export const GithubStargazer: React.FC<GithubStargazerProps> = ({
     window.open(`https://github.com/${owner}/${repoName}`, "_blank");
   };
 
-  const getStarCount = async () => {
-    const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repoName}`
-    );
-    const resJson = await res.json();
-    setStargazersCount(resJson.stargazers_count);
-  };
-  getStarCount();
+  React.useEffect(() => {
+    const getStarCount = async () => {
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${owner}/${repoName}`
+        );
+        if (res.ok) {
+          const resJson = await res.json();
+          setStargazersCount(resJson.stargazers_count || 0);
+        }
+      } catch (error) {
+        // Silently fail - star count is not critical
+        console.debug("GitHub star count fetch failed:", error);
+      }
+    };
+    getStarCount();
+  }, [owner, repoName]);
 
   return (
     <Flex

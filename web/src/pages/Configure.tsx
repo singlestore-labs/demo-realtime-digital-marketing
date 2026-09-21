@@ -57,7 +57,7 @@ import { IngestChart, useIngestChartData } from "@/components/IngestChart";
 import { OfferMap } from "@/components/OfferMap";
 import { DEFAULT_CENTER, PixiMap } from "@/components/PixiMap";
 import { ResetSchemaButton } from "@/components/ResetSchemaButton";
-import { ConnectionConfig, Query } from "@/data/client";
+import { ConnectionConfig, Exec, Query } from "@/data/client";
 import { DEFAULT_CITY } from "@/data/offers";
 import {
   checkPlans,
@@ -643,9 +643,8 @@ const OffersSection = ({
       <Text>
         <br />
         The map to your right displays a polygon representing each campaign's
-        activation zone. Currently, there are {tableCounts.data?.offers ||
-          0}{" "}
-        ad campaigns in the database.
+        activation zone. Currently, there are {tableCounts.data?.offers || 0} ad
+        campaigns in the database.
       </Text>
     );
   } else {
@@ -658,8 +657,8 @@ const OffersSection = ({
     loadOffersButton = (
       <Text>
         <br />
-        Press the "Load ad campaigns" button to create some sample campaigns in New York
-        City.
+        Press the "Load ad campaigns" button to create some sample campaigns in
+        New York City.
       </Text>
     );
   }
@@ -672,11 +671,11 @@ const OffersSection = ({
       left={
         <>
           <Text>
-            Advertisers submit ad campaigns with a maximum bid price, notification zone,
-            list of segments and notification content. As audience segments engage,
-            they are matched with campaigns based on their location and behavior.
-            If multiple campaigns match to an audience segment, the highest bid price is
-            selected.
+            Advertisers submit ad campaigns with a maximum bid price,
+            notification zone, list of segments and notification content. As
+            audience segments engage, they are matched with campaigns based on
+            their location and behavior. If multiple campaigns match to an
+            audience segment, the highest bid price is selected.
           </Text>
           {loadOffersButton}
           {mapInfoContent}
@@ -792,15 +791,16 @@ const SegmentationSection = ({
             A segment is defined by a simple rule, such as “bought a coffee in
             the last day” or “visited the grocery store in the last week”. While
             segments could be evaluated dynamically when matching campaigns to
-            audience segments, this would waste compute time since segment memberships
-            rarely change.
+            audience segments, this would waste compute time since segment
+            memberships rarely change.
             <br />
             <br />
             Instead SingleStore Helios periodically caches the mapping between
             audience segments and behavioral segments for faster results.
             <br />
             <br />
-            Run the following query to match audience segments to behavioral segments.
+            Run the following query to match audience segments to behavioral
+            segments.
           </Text>
           <br />
           <PrimaryButton disabled={isRunning} onClick={onClick}>
@@ -922,9 +922,9 @@ const MatchingSection = ({
       left={
         <>
           <Text>
-            With ad campaigns and audience segments defined, let’s deliver ads as
-            push notifications. For this demo, notifications are inserted into a
-            table called “notifications”.
+            With ad campaigns and audience segments defined, let’s deliver ads
+            as push notifications. For this demo, notifications are inserted
+            into a table called “notifications”.
             <br />
             <br />
             Run the following query to generate notifications.
@@ -958,6 +958,137 @@ const MatchingSection = ({
           <br />
           {warmingAlert}
         </Flex>
+      }
+    />
+  );
+};
+
+const DemoModeSection = ({
+  previousStepCompleted,
+}: {
+  previousStepCompleted: boolean;
+}) => {
+  const config = useRecoilValue(connectionConfig);
+  const [generating, setGenerating] = React.useState(false);
+  const [success, setSuccess] = React.useState(false);
+
+  const generateDemoData = React.useCallback(async () => {
+    setGenerating(true);
+    setSuccess(false);
+    try {
+      console.log("[Demo Mode] Starting data generation...");
+
+      // Use Manhattan coordinates where offers exist
+      const coords = [
+        [-73.9857, 40.758],  // Times Square area
+        [-73.986, 40.7582],
+        [-73.9863, 40.7578],
+        [-73.9855, 40.7585],
+        [-73.9862, 40.7583],
+        [-73.9858, 40.7577],
+        [-73.9854, 40.7579],
+        [-73.9861, 40.7581],
+        [-73.9859, 40.7584],
+        [-73.9856, 40.7576], // 10 in-zone
+        [-74.0, 40.72],      // Out of zone
+        [-74.001, 40.721],
+        [-74.002, 40.719],
+        [-74.003, 40.722],
+        [-73.95, 40.78],     // 5 out-of-zone
+      ];
+
+      for (let i = 0; i < coords.length; i++) {
+        const [lng, lat] = coords[i];
+        const subId = 501 + i;
+        await Exec(
+          config,
+          `
+          INSERT INTO locations (city_id, subscriber_id, event_ts, ingested_at, lonlat, olc_8)
+          VALUES (2643743, ${subId}, NOW(6), NOW(6), GEOGRAPHY_POINT(${lng}, ${lat}), '87G8Q23C+')
+          ON DUPLICATE KEY UPDATE
+            event_ts = NOW(6),
+            ingested_at = NOW(6),
+            lonlat = GEOGRAPHY_POINT(${lng}, ${lat})
+        `
+        );
+      }
+
+      console.log("[Demo Mode] Locations created, updating subscribers...");
+
+      await Exec(
+        config,
+        `
+        INSERT INTO subscribers (city_id, subscriber_id, current_location)
+        SELECT city_id, subscriber_id, lonlat
+        FROM locations
+        WHERE subscriber_id BETWEEN 501 AND 515
+        AND ingested_at = (SELECT MAX(ingested_at) FROM locations l2 WHERE l2.subscriber_id = locations.subscriber_id)
+        ON DUPLICATE KEY UPDATE current_location = VALUES(current_location)
+      `
+      );
+
+      console.log("[Demo Mode] Complete!");
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (e) {
+      console.error("[Demo Mode] Error:", e);
+      alert("Demo data generation failed. Check console for details.");
+    } finally {
+      setGenerating(false);
+    }
+  }, [config]);
+
+  return (
+    <Section
+      completed={false}
+      title="Demo Mode (Optional)"
+      previousStepCompleted={previousStepCompleted}
+      left={
+        <Stack spacing={3}>
+          <Text>
+            Generate fresh demo location data to showcase real-time targeting with green/red status dots.
+          </Text>
+          <Text fontSize="sm" color="gray.600">
+            • Creates 15 subscribers with fresh location data in New York
+            <br />
+            • ~10 subscribers in campaign zones (green dots)
+            <br />
+            • ~5 subscribers outside zones (red dots)
+            <br />• Data ages after 30 seconds (green → red)
+          </Text>
+          <PrimaryButton
+            onClick={generateDemoData}
+            isLoading={generating}
+            gap={2}
+          >
+            {generating && <Loader size="small" />}
+            {success ? "Demo Data Generated!" : "Generate Demo Data"}
+          </PrimaryButton>
+        </Stack>
+      }
+      right={
+        <Box
+          padding="20px"
+          borderRadius="8px"
+          bg={useColorModeValue("purple.50", "purple.900")}
+        >
+          <Heading size="sm" mb={2}>
+            Usage
+          </Heading>
+          <Text fontSize="sm">
+            1. Click "Generate Demo Data"
+            <br />
+            2. Go to Dashboard → Status mode
+            <br />
+            3. View in New York City
+            <br />
+            4. Green dots = fresh & in zone
+            <br />
+            5. Red dots = stale or outside zone
+            <br />
+            6. Wait 30s to see dots turn red
+          </Text>
+        </Box>
       }
     />
   );
@@ -1262,6 +1393,17 @@ export const Configure = () => {
           key="matching"
           previousStepCompleted={
             (tableCounts && tableCounts.subscriber_segments > 0) || false
+          }
+        />
+      ),
+    },
+    {
+      completed: false, // Optional section, never blocks progress
+      component: (
+        <DemoModeSection
+          key="demo"
+          previousStepCompleted={
+            (tableCounts && tableCounts.notifications > 0) || false
           }
         />
       ),

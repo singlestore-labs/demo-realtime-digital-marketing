@@ -267,6 +267,7 @@ export const AnalystChat: React.FC = () => {
           message: messageText,
           output_modes: ["data", "text"],
           session_id: requestSessionId,
+          model: "gpt-4",
         },
         apiKey,
         endpointUrl,

@@ -485,7 +485,11 @@ export const truncateTimeseriesTables = async (
             MIN(min_value) AS minTs,
             MAX(max_value) AS maxTs
           FROM information_schema.columnar_segments
-          WHERE column_name = "ts"
+          WHERE
+            column_name = CASE
+              WHEN table_name = "locations" THEN "ingested_at"
+              ELSE "ts"
+            END
           GROUP BY database_name, table_name
         ) minmax
       WHERE
@@ -511,9 +515,10 @@ export const truncateTimeseriesTables = async (
       console.log(
         `removing rows from ${tableName} older than ${toISOStringNoTZ(ts)}`
       );
+      const tsColumn = tableName === "locations" ? "ingested_at" : "ts";
       await Exec(
         config,
-        `DELETE FROM ${tableName} WHERE ts <= ?`,
+        `DELETE FROM ${tableName} WHERE ${tsColumn} <= ?`,
         toISOStringNoTZ(ts)
       );
     })
@@ -648,6 +653,73 @@ export const lookupClosestCity = (
     lon,
     lat
   );
+
+export type SubscriberStatus = {
+  cityId: number;
+  subscriberId: number;
+  offerId: number;
+  latitude: number;
+  longitude: number;
+  eventTs: string | null;
+  evaluatedAt: string;
+  ageSeconds: number;
+  isFresh: boolean;
+  withinZone: boolean;
+  status: "green" | "red";
+  statusReason:
+    | "fresh_and_in_zone"
+    | "stale"
+    | "out_of_scope"
+    | "stale_and_out_of_scope";
+};
+
+export const querySubscriberStatus = (
+  config: ConnectionConfig,
+  bounds: Bounds,
+  freshnessThresholdSeconds: number = 30
+) => {
+  const wkt = boundsToWKTPolygon(bounds);
+  console.log(
+    "[querySubscriberStatus] Querying with bounds:",
+    wkt,
+    "threshold:",
+    freshnessThresholdSeconds
+  );
+
+  return Query<SubscriberStatus>(
+    config,
+    `
+      SELECT
+        city_id AS cityId,
+        subscriber_id AS subscriberId,
+        offer_id AS offerId,
+        latitude,
+        longitude,
+        event_ts AS eventTs,
+        evaluated_at AS evaluatedAt,
+        age_seconds AS ageSeconds,
+        is_fresh AS isFresh,
+        within_zone AS withinZone,
+        status,
+        status_reason AS statusReason
+      FROM subscriber_status_in_bounds(?, ?)
+    `,
+    wkt,
+    freshnessThresholdSeconds
+  )
+    .then((results) => {
+      console.log(
+        "[querySubscriberStatus] Got",
+        results.length,
+        "status results"
+      );
+      return results;
+    })
+    .catch((err) => {
+      console.error("[querySubscriberStatus] Error:", err);
+      throw err;
+    });
+};
 
 export type ConversionEventTable = "requests" | "purchases";
 
