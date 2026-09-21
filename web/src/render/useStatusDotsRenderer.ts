@@ -9,12 +9,11 @@ import { querySubscriberStatus, SubscriberStatus } from "@/data/queries";
 import { connectionConfig } from "@/data/recoil";
 import { useConnectionState, useDebounce } from "@/view/hooks/hooks";
 
-const REFRESH_INTERVAL = 2000; // Poll every 2 seconds
-const FRESHNESS_THRESHOLD = 30; // 30 seconds
+const REFRESH_INTERVAL = 2000;
+const FRESHNESS_THRESHOLD = 30;
 
-// Status dot colors
-const GREEN_COLOR = 0x22c55e; // green-500 - fresh and in zone
-const RED_COLOR = 0xef4444; // red-500 - stale or out of scope
+const GREEN_COLOR = 0x22c55e;
+const RED_COLOR = 0xef4444;
 
 class StatusDot extends PIXI.Container {
   static dotRadius = 4;
@@ -22,21 +21,18 @@ class StatusDot extends PIXI.Container {
   latlng: Point;
   dot: PIXI.Graphics;
   status: "green" | "red";
-  statusData: SubscriberStatus;
+  subscriberId: number;
 
-  constructor(statusData: SubscriberStatus) {
+  constructor(status: SubscriberStatus) {
     super();
 
-    this.latlng = [statusData.latitude, statusData.longitude];
-    this.status = statusData.status;
-    this.statusData = statusData;
+    this.latlng = [status.latitude, status.longitude];
+    this.status = status.status;
+    this.subscriberId = status.subscriberId;
 
     this.dot = new PIXI.Graphics();
     this.updateDotColor();
     this.addChild(this.dot);
-
-    this.interactive = true;
-    this.cursor = "pointer";
   }
 
   updateDotColor() {
@@ -49,14 +45,15 @@ class StatusDot extends PIXI.Container {
     this.dot.drawCircle(0, 0, StatusDot.dotRadius);
   }
 
-  updateStatus(statusData: SubscriberStatus) {
-    const newStatus = statusData.status;
+  updateStatus(newStatus: "green" | "red") {
     if (this.status !== newStatus) {
       this.status = newStatus;
       this.updateDotColor();
     }
-    this.statusData = statusData;
-    this.latlng = [statusData.latitude, statusData.longitude];
+  }
+
+  updatePosition(latlng: Point) {
+    this.latlng = latlng;
   }
 
   update(latLngToPixel: (latlng: Point) => Point) {
@@ -64,150 +61,71 @@ class StatusDot extends PIXI.Container {
     this.x = x;
     this.y = y;
   }
-
-  getTooltipText(): string {
-    const {
-      cityId,
-      subscriberId,
-      offerId,
-      statusReason,
-      ageSeconds,
-      isFresh,
-      withinZone,
-    } = this.statusData;
-
-    const ageDisplay =
-      ageSeconds < 60
-        ? `${ageSeconds.toFixed(1)}s`
-        : `${(ageSeconds / 60).toFixed(1)}m`;
-
-    const reasonText = statusReason
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-
-    return [
-      `Subscriber: ${subscriberId}`,
-      `City: ${cityId}`,
-      `Offer: ${offerId}`,
-      `Status: ${this.status.toUpperCase()}`,
-      `Reason: ${reasonText}`,
-      `Age: ${ageDisplay}`,
-      `Fresh: ${isFresh ? "Yes" : "No"}`,
-      `In Zone: ${withinZone ? "Yes" : "No"}`,
-    ].join("\n");
-  }
 }
 
-type StatusDotsRendererData = {
-  statuses: SubscriberStatus[];
-};
-
-const useStatusData = (bounds: PIXI.Rectangle): StatusDotsRendererData => {
+export const useStatusDotsRenderer: UsePixiRenderer = ({
+  scene,
+  latLngToPixel,
+  bounds,
+}) => {
   const config = useRecoilValue(connectionConfig);
   const { initialized } = useConnectionState();
-
   const debouncedBounds = useDebounce(bounds, 300);
 
-  const { data } = useSWR(
-    initialized
-      ? ["subscriber-status", config, debouncedBounds, FRESHNESS_THRESHOLD]
-      : null,
-    () =>
-      querySubscriberStatus(config, debouncedBounds, FRESHNESS_THRESHOLD),
-    {
-      refreshInterval: REFRESH_INTERVAL,
-      revalidateOnFocus: false,
-    }
-  );
-
-  return {
-    statuses: data || [],
-  };
-};
-
-export const useStatusDotsRenderer: UsePixiRenderer<
-  StatusDotsRendererData,
-  Record<string, never>
-> = () => {
-  const dotsContainer = React.useRef<PIXI.Container>();
   const dots = React.useRef<Map<number, StatusDot>>(new Map());
 
-  const initializeRenderer = React.useCallback(() => {
-    const container = new PIXI.Container();
-    dotsContainer.current = container;
-    dots.current = new Map();
-    return container;
-  }, []);
+  useSWR(
+    initialized ? ["subscriber-status", config, debouncedBounds, FRESHNESS_THRESHOLD] : null,
+    () => querySubscriberStatus(config, debouncedBounds, FRESHNESS_THRESHOLD),
+    {
+      refreshInterval: REFRESH_INTERVAL,
+      isPaused: () => !initialized,
+      onSuccess: (statuses) => {
+        if (!statuses) return;
 
-  const getData = React.useCallback(
-    (bounds: PIXI.Rectangle) => {
-      return useStatusData(bounds);
-    },
-    []
-  );
+        const currentDots = dots.current;
+        const activeSubscriberIds = new Set<number>();
 
-  const render = React.useCallback(
-    (
-      container: PIXI.Container,
-      data: StatusDotsRendererData,
-      latLngToPixel: (latlng: Point) => Point
-    ) => {
-      const currentDots = dots.current;
-      const { statuses } = data;
+        for (const status of statuses) {
+          activeSubscriberIds.add(status.subscriberId);
 
-      const activeSubscriberIds = new Set<number>();
-
-      for (const statusData of statuses) {
-        const subscriberId = statusData.subscriberId;
-        activeSubscriberIds.add(subscriberId);
-
-        let dot = currentDots.get(subscriberId);
-        if (dot) {
-          dot.updateStatus(statusData);
-          dot.update(latLngToPixel);
-        } else {
-          dot = new StatusDot(statusData);
-          dot.update(latLngToPixel);
-          currentDots.set(subscriberId, dot);
-          container.addChild(dot);
+          let dot = currentDots.get(status.subscriberId);
+          if (dot) {
+            dot.updateStatus(status.status);
+            dot.updatePosition([status.latitude, status.longitude]);
+          } else {
+            dot = new StatusDot(status);
+            currentDots.set(status.subscriberId, dot);
+            scene.addChild(dot);
+          }
         }
-      }
 
-      for (const [subscriberId, dot] of currentDots.entries()) {
-        if (!activeSubscriberIds.has(subscriberId)) {
-          container.removeChild(dot);
-          dot.destroy();
-          currentDots.delete(subscriberId);
+        for (const [subscriberId, dot] of currentDots.entries()) {
+          if (!activeSubscriberIds.has(subscriberId)) {
+            scene.removeChild(dot);
+            dot.destroy();
+            currentDots.delete(subscriberId);
+          }
         }
-      }
-    },
-    []
+      },
+      onError: (error) => {
+        if (error.name === "AbortError") {
+          return;
+        }
+        console.warn("Failed to fetch subscriber status:", error);
+      },
+      shouldRetryOnError: false,
+    }
   );
-
-  const destroy = React.useCallback(() => {
-    if (dotsContainer.current) {
-      for (const dot of dots.current.values()) {
-        dot.destroy();
-      }
-      dots.current.clear();
-      dotsContainer.current.destroy();
-      dotsContainer.current = undefined;
-    }
-  }, []);
-
-  const getTooltip = React.useCallback((target: PIXI.DisplayObject) => {
-    if (target instanceof StatusDot) {
-      return target.getTooltipText();
-    }
-    return null;
-  }, []);
 
   return {
-    initializeRenderer,
-    getData,
-    render,
-    destroy,
-    getTooltip,
+    update: React.useCallback(
+      (delta) => {
+        for (const dot of dots.current.values()) {
+          dot.update(latLngToPixel);
+        }
+      },
+      [latLngToPixel]
+    ),
   };
 };
