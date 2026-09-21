@@ -160,14 +160,36 @@ export const resetSchema = async (
     await truncateData(config);
   }
 
+  // Create tables first, then functions (which may reference tables), then procedures
+  // Note: TABLES array from schema.sql contains both tables and functions
+  for (const obj of TABLES) {
+    const stmtLower = obj.statement.toLowerCase();
+    // Check if this is a table creation (not a function)
+    const isTable = stmtLower.includes("create") && stmtLower.includes("table") && !stmtLower.includes("function");
+    if (isTable) {
+      progress(`Creating table: ${obj.name}`, "info");
+      await Exec(config, obj.statement);
+    }
+  }
+
+  // Create utility functions from FUNCTIONS file
   for (const obj of FUNCTIONS) {
     progress(`Creating function: ${obj.name}`, "info");
     await Exec(config, obj.statement);
   }
+
+  // Create functions from schema.sql (may reference tables)
   for (const obj of TABLES) {
-    progress(`Creating table: ${obj.name}`, "info");
-    await Exec(config, obj.statement);
+    const stmtLower = obj.statement.toLowerCase();
+    // Check if this is a function creation
+    const isFunction = stmtLower.includes("create") && stmtLower.includes("function");
+    if (isFunction) {
+      progress(`Creating function: ${obj.name}`, "info");
+      await Exec(config, obj.statement);
+    }
   }
+
+  // Create procedures
   for (const obj of PROCEDURES) {
     progress(`Creating procedure: ${obj.name}`, "info");
     await Exec(config, obj.statement);
@@ -882,6 +904,54 @@ export type Session = {
   sessionID: string;
   isController: boolean;
   expiresAt: Date;
+};
+
+export type SubscriberStatus = {
+  cityId: number;
+  subscriberId: number;
+  offerId: number;
+  latitude: number;
+  longitude: number;
+  eventTs: string | null;
+  evaluatedAt: string;
+  ageSeconds: number;
+  isFresh: boolean;
+  withinZone: boolean;
+  status: "green" | "red";
+  statusReason:
+    | "fresh_and_in_zone"
+    | "stale"
+    | "out_of_scope"
+    | "stale_and_out_of_scope";
+};
+
+export const querySubscriberStatus = (
+  config: ConnectionConfig,
+  bounds: Bounds,
+  freshnessThresholdSeconds: number = 30
+) => {
+  const wkt = boundsToWKTPolygon(bounds);
+  return Query<SubscriberStatus>(
+    config,
+    `
+      SELECT
+        city_id AS cityId,
+        subscriber_id AS subscriberId,
+        offer_id AS offerId,
+        latitude,
+        longitude,
+        event_ts AS eventTs,
+        evaluated_at AS evaluatedAt,
+        age_seconds AS ageSeconds,
+        is_fresh AS isFresh,
+        within_zone AS withinZone,
+        status,
+        status_reason AS statusReason
+      FROM subscriber_status_in_bounds(?, ?)
+    `,
+    wkt,
+    freshnessThresholdSeconds
+  );
 };
 
 export const updateSessions = (

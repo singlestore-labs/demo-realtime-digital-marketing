@@ -42,8 +42,8 @@ create rowstore table if not exists subscribers_last_notification (
 create table if not exists locations (
   city_id BIGINT NOT NULL,
   subscriber_id BIGINT NOT NULL,
-  event_ts DATETIME(6) NULL,  -- Nullable for backward compatibility with old data
-  ingested_at DATETIME(6) NOT NULL SERIES TIMESTAMP,
+  ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
+  event_ts DATETIME(6) NULL,  -- Event timestamp (when location event occurred)
   lonlat GEOGRAPHYPOINT NOT NULL,
 
   -- open location code length 8 (275m resolution)
@@ -265,41 +265,47 @@ CREATE OR REPLACE FUNCTION dynamic_subscriber_segments(
   SELECT * FROM dynamic_subscriber_segments_purchases(_since, _until)
 );
 
--- Freshness threshold: 30 seconds (configurable constant)
--- A location event is considered fresh if it occurred within the last 30 seconds
 CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
   _bounds GEOGRAPHY,
   _freshness_threshold_seconds INT DEFAULT 30
 ) RETURNS TABLE AS RETURN (
   WITH
-    -- Get the most recent location per subscriber (globally, not just in bounds)
+    recent_locations AS (
+      SELECT
+        city_id,
+        subscriber_id,
+        event_ts,
+        ts,
+        lonlat
+      FROM locations
+      WHERE
+        ts >= DATE_SUB(NOW(6), INTERVAL 5 MINUTE)
+        AND GEOGRAPHY_INTERSECTS(_bounds, lonlat)
+    ),
     latest_locations AS (
       SELECT
         city_id,
         subscriber_id,
         event_ts,
-        ingested_at,
+        ts,
         lonlat,
         ROW_NUMBER() OVER (
           PARTITION BY city_id, subscriber_id
-          ORDER BY ingested_at DESC
+          ORDER BY ts DESC
         ) AS row_num
-      FROM locations
+      FROM recent_locations
     ),
-    -- Filter to only subscribers whose latest location is in the viewport
     in_bounds_subscribers AS (
       SELECT
         city_id,
         subscriber_id,
         event_ts,
-        ingested_at,
+        ts,
         lonlat
       FROM latest_locations
       WHERE
         row_num = 1
-        AND GEOGRAPHY_INTERSECTS(_bounds, lonlat)
     ),
-    -- For each subscriber, find if they're in ANY enabled offer zone
     subscriber_status AS (
       SELECT
         s.city_id,
@@ -307,22 +313,17 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
         s.lonlat,
         s.event_ts,
         NOW(6) AS evaluated_at,
-        -- Calculate age in seconds (use ingested_at fallback if event_ts is null)
         COALESCE(
           TIMESTAMPDIFF(MICROSECOND, s.event_ts, NOW(6)) / 1000000.0,
-          TIMESTAMPDIFF(MICROSECOND, s.ingested_at, NOW(6)) / 1000000.0
+          TIMESTAMPDIFF(MICROSECOND, s.ts, NOW(6)) / 1000000.0
         ) AS age_seconds,
-        -- Check if location event is fresh (use ingested_at if event_ts is null)
-        (COALESCE(s.event_ts, s.ingested_at) IS NOT NULL
-         AND TIMESTAMPDIFF(SECOND, COALESCE(s.event_ts, s.ingested_at), NOW(6)) <= _freshness_threshold_seconds) AS is_fresh,
-        -- Check if subscriber is within ANY enabled offer zone
-        MAX(CASE WHEN GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN 1 ELSE 0 END) AS within_any_zone,
-        -- Pick one representative offer_id for display (the first matching one)
-        MIN(CASE WHEN GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN o.offer_id ELSE NULL END) AS offer_id
+        (COALESCE(s.event_ts, s.ts) IS NOT NULL
+         AND TIMESTAMPDIFF(SECOND, COALESCE(s.event_ts, s.ts), NOW(6)) <= _freshness_threshold_seconds) AS is_fresh,
+        MAX(CASE WHEN o.offer_id IS NOT NULL AND GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN 1 ELSE 0 END) AS within_any_zone,
+        MIN(CASE WHEN o.offer_id IS NOT NULL AND GEOGRAPHY_CONTAINS(o.notification_zone, s.lonlat) THEN o.offer_id ELSE NULL END) AS offer_id
       FROM in_bounds_subscribers s
-      CROSS JOIN offers o
-      WHERE o.enabled = TRUE
-      GROUP BY s.city_id, s.subscriber_id, s.lonlat, s.event_ts
+      LEFT JOIN offers o ON o.enabled = TRUE
+      GROUP BY s.city_id, s.subscriber_id, s.lonlat, s.event_ts, s.ts
     )
   SELECT
     city_id,
@@ -335,12 +336,10 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
     age_seconds,
     is_fresh,
     (within_any_zone = 1) AS within_zone,
-    -- Determine status: green when fresh AND in any zone, red otherwise
     CASE
       WHEN is_fresh AND within_any_zone = 1 THEN 'green'
       ELSE 'red'
     END AS status,
-    -- Provide detailed reason for status
     CASE
       WHEN is_fresh AND within_any_zone = 1 THEN 'fresh_and_in_zone'
       WHEN NOT is_fresh AND within_any_zone = 0 THEN 'stale_and_out_of_scope'

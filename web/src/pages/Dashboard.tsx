@@ -229,7 +229,6 @@ export const Dashboard = () => {
   useSimulator(enabled && connected && initialized);
   const [isSmallScreen] = useMediaQuery("(max-width: 640px)");
 
-  // Call hooks unconditionally at the top
   const legendBg = useColorModeValue("white", "gray.800");
   const dotBorderColor = useColorModeValue("white", "gray.700");
 
@@ -269,7 +268,6 @@ export const Dashboard = () => {
           useRenderer={useCombinedRenderer}
           options={{}}
         />
-        {/* Status Legend */}
         {initialized && enabled && (
           <Box
             position="absolute"

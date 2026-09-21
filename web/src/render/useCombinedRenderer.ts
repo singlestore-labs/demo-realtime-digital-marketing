@@ -5,16 +5,10 @@ import { UsePixiRenderer } from "@/components/PixiMap";
 import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
 import { useStatusDotsRenderer } from "@/render/useStatusDotsRenderer";
 
-/**
- * Combined renderer that layers notification pulses and status dots.
- * Notifications render on top of status dots.
- */
 export const useCombinedRenderer: UsePixiRenderer = (config) => {
-  // Create separate scenes for layering
   const statusScene = React.useMemo(() => new PIXI.Container(), []);
   const notificationsScene = React.useMemo(() => new PIXI.Container(), []);
 
-  // Add both scenes to the main scene
   React.useEffect(() => {
     config.scene.addChild(statusScene);
     config.scene.addChild(notificationsScene);
@@ -25,7 +19,6 @@ export const useCombinedRenderer: UsePixiRenderer = (config) => {
     };
   }, [config.scene, statusScene, notificationsScene]);
 
-  // Initialize both renderers with their own scenes
   const statusRenderer = useStatusDotsRenderer({
     ...config,
     scene: statusScene,
@@ -37,13 +30,12 @@ export const useCombinedRenderer: UsePixiRenderer = (config) => {
   });
 
   return {
-    setup: () => {
-      statusRenderer.setup?.();
-      notificationsRenderer.setup?.();
-    },
-    update: (delta: number) => {
-      statusRenderer.update?.(delta);
-      notificationsRenderer.update?.(delta);
-    },
+    update: React.useCallback(
+      (delta: number) => {
+        statusRenderer.update?.(delta);
+        notificationsRenderer.update?.(delta);
+      },
+      [statusRenderer.update, notificationsRenderer.update]
+    ),
   };
 };
