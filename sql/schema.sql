@@ -43,6 +43,7 @@ create table if not exists locations (
   city_id BIGINT NOT NULL,
   subscriber_id BIGINT NOT NULL,
   ts DATETIME(6) NOT NULL SERIES TIMESTAMP,
+  event_ts DATETIME(6) NULL,  -- Event timestamp (when location event occurred)
   lonlat GEOGRAPHYPOINT NOT NULL,
 
   -- open location code length 8 (275m resolution)
@@ -52,7 +53,8 @@ create table if not exists locations (
   SORT KEY (ts),
 
   KEY (city_id, subscriber_id) USING HASH,
-  KEY (olc_8) USING HASH
+  KEY (olc_8) USING HASH,
+  KEY (event_ts) USING HASH
 );
 
 create table if not exists requests (
