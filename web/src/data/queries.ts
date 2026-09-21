@@ -834,6 +834,54 @@ export type Session = {
   expiresAt: Date;
 };
 
+export type SubscriberStatus = {
+  cityId: number;
+  subscriberId: number;
+  offerId: number;
+  latitude: number;
+  longitude: number;
+  eventTs: string | null;
+  evaluatedAt: string;
+  ageSeconds: number;
+  isFresh: boolean;
+  withinZone: boolean;
+  status: "green" | "red";
+  statusReason:
+    | "fresh_and_in_zone"
+    | "stale"
+    | "out_of_scope"
+    | "stale_and_out_of_scope";
+};
+
+export const querySubscriberStatus = (
+  config: ConnectionConfig,
+  bounds: Bounds,
+  freshnessThresholdSeconds: number = 30
+) => {
+  const wkt = boundsToWKTPolygon(bounds);
+  return Query<SubscriberStatus>(
+    config,
+    `
+      SELECT
+        city_id AS cityId,
+        subscriber_id AS subscriberId,
+        offer_id AS offerId,
+        latitude,
+        longitude,
+        event_ts AS eventTs,
+        evaluated_at AS evaluatedAt,
+        age_seconds AS ageSeconds,
+        is_fresh AS isFresh,
+        within_zone AS withinZone,
+        status,
+        status_reason AS statusReason
+      FROM subscriber_status_in_bounds(?, ?)
+    `,
+    wkt,
+    freshnessThresholdSeconds
+  );
+};
+
 export const updateSessions = (
   config: ConnectionConfig,
   sessionID: string,
