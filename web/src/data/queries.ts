@@ -164,7 +164,8 @@ export const resetSchema = async (
   // Note: TABLES array from schema.sql contains both tables and functions
   for (const obj of TABLES) {
     const stmtLower = obj.statement.toLowerCase();
-    const isTable = stmtLower.startsWith("create table") || stmtLower.startsWith("create rowstore table");
+    // Check if this is a table creation (not a function)
+    const isTable = stmtLower.includes("create") && stmtLower.includes("table") && !stmtLower.includes("function");
     if (isTable) {
       progress(`Creating table: ${obj.name}`, "info");
       await Exec(config, obj.statement);
@@ -180,7 +181,8 @@ export const resetSchema = async (
   // Create functions from schema.sql (may reference tables)
   for (const obj of TABLES) {
     const stmtLower = obj.statement.toLowerCase();
-    const isFunction = stmtLower.startsWith("create or replace function") || stmtLower.startsWith("create function");
+    // Check if this is a function creation
+    const isFunction = stmtLower.includes("create") && stmtLower.includes("function");
     if (isFunction) {
       progress(`Creating function: ${obj.name}`, "info");
       await Exec(config, obj.statement);
