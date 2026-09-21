@@ -50,7 +50,7 @@ create table if not exists locations (
   olc_8 TEXT NOT NULL,
 
   SHARD KEY (city_id, subscriber_id),
-  SORT KEY (ingested_at),
+  SORT KEY (ts),
 
   KEY (city_id, subscriber_id) USING HASH,
   KEY (olc_8) USING HASH,
