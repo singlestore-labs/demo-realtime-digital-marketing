@@ -270,6 +270,18 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
   _freshness_threshold_seconds INT DEFAULT 30
 ) RETURNS TABLE AS RETURN (
   WITH
+    recent_locations AS (
+      SELECT
+        city_id,
+        subscriber_id,
+        event_ts,
+        ts,
+        lonlat
+      FROM locations
+      WHERE
+        ts >= DATE_SUB(NOW(6), INTERVAL 5 MINUTE)
+        AND GEOGRAPHY_INTERSECTS(_bounds, lonlat)
+    ),
     latest_locations AS (
       SELECT
         city_id,
@@ -281,10 +293,7 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
           PARTITION BY city_id, subscriber_id
           ORDER BY ts DESC
         ) AS row_num
-      FROM locations
-      WHERE
-        GEOGRAPHY_INTERSECTS(_bounds, lonlat)
-        AND ts >= DATE_SUB(NOW(6), INTERVAL 5 MINUTE)
+      FROM recent_locations
     ),
     in_bounds_subscribers AS (
       SELECT
@@ -296,7 +305,6 @@ CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
       FROM latest_locations
       WHERE
         row_num = 1
-        AND GEOGRAPHY_INTERSECTS(_bounds, lonlat)
     ),
     subscriber_status AS (
       SELECT
