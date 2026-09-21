@@ -265,8 +265,6 @@ CREATE OR REPLACE FUNCTION dynamic_subscriber_segments(
   SELECT * FROM dynamic_subscriber_segments_purchases(_since, _until)
 );
 
--- Function to get subscriber status (green/red dots)
--- Returns subscribers visible in the given bounds with their status
 CREATE OR REPLACE FUNCTION subscriber_status_in_bounds(
   _bounds GEOGRAPHY,
   _freshness_threshold_seconds INT DEFAULT 30
