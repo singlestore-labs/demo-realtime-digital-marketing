@@ -5,7 +5,14 @@ import { UsePixiRenderer } from "@/components/PixiMap";
 import { useNotificationsRenderer } from "@/render/useNotificationsRenderer";
 import { useStatusDotsRenderer } from "@/render/useStatusDotsRenderer";
 
-export const useCombinedRenderer: UsePixiRenderer = (config) => {
+export type CombinedRendererOptions = {
+  showNotifications?: boolean;
+  showStatusDots?: boolean;
+};
+
+export const useCombinedRenderer: UsePixiRenderer<CombinedRendererOptions> = (config) => {
+  const { showNotifications = true, showStatusDots = true } = config.options;
+
   const statusScene = React.useMemo(() => new PIXI.Container(), []);
   const notificationsScene = React.useMemo(() => new PIXI.Container(), []);
 
@@ -18,6 +25,14 @@ export const useCombinedRenderer: UsePixiRenderer = (config) => {
       config.scene.removeChild(notificationsScene);
     };
   }, [config.scene, statusScene, notificationsScene]);
+
+  React.useEffect(() => {
+    statusScene.visible = showStatusDots;
+  }, [statusScene, showStatusDots]);
+
+  React.useEffect(() => {
+    notificationsScene.visible = showNotifications;
+  }, [notificationsScene, showNotifications]);
 
   const statusRenderer = useStatusDotsRenderer({
     ...config,
