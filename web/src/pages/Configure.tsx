@@ -1345,6 +1345,16 @@ export const Configure = () => {
     connected && initialized
   );
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[Configure] State:', {
+      connected,
+      initialized,
+      pipelinesCompleted,
+      tableCounts,
+    });
+  }, [connected, initialized, pipelinesCompleted, tableCounts]);
+
   const sectionDefinitions = [
     {
       completed: connected,
