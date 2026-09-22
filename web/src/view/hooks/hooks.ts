@@ -16,9 +16,9 @@ import { FUNCTIONS, PROCEDURES, TABLES } from "@/data/sql";
 
 const defaultSchemaObjects: { [key: string]: boolean } = Object.fromEntries(
   [
-    TABLES.map(({ name }) => [name, false]),
-    PROCEDURES.map(({ name }) => [name, false]),
-    FUNCTIONS.map(({ name }) => [name, false]),
+    TABLES.filter(({ name }) => !!name).map(({ name }) => [name, false]),
+    PROCEDURES.filter(({ name }) => !!name).map(({ name }) => [name, false]),
+    FUNCTIONS.filter(({ name }) => !!name).map(({ name }) => [name, false]),
   ].flat()
 );
 
