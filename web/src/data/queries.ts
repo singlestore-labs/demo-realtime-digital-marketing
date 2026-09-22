@@ -106,9 +106,13 @@ export const schemaObjects = async (
 
   return Object.fromEntries(
     [
-      TABLES.map(({ name }) => [name, name && tables.includes(name)]),
-      PROCEDURES.map(({ name }) => [name, name && procedures.includes(name)]),
-      FUNCTIONS.map(({ name }) => [name, name && functions.includes(name)]),
+      TABLES.filter((x): x is typeof x & { name: string } => !!x.name).map(({ name, statement }) => {
+        const stmtLower = statement.toLowerCase();
+        const isFunction = stmtLower.includes("create") && stmtLower.includes("function");
+        return [name, (isFunction ? functions : tables).includes(name)];
+      }),
+      PROCEDURES.filter((x): x is typeof x & { name: string } => !!x.name).map(({ name }) => [name, procedures.includes(name)]),
+      FUNCTIONS.filter((x): x is typeof x & { name: string } => !!x.name).map(({ name }) => [name, functions.includes(name)]),
     ].flat()
   );
 };
