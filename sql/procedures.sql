@@ -1,6 +1,5 @@
 DELIMITER //
 
--- Legacy procedure for old data without event_ts field
 CREATE OR REPLACE PROCEDURE process_locations_legacy (
   _batch QUERY(
     subscriber_id BIGINT NOT NULL,
