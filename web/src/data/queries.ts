@@ -490,10 +490,7 @@ export const truncateTimeseriesTables = async (
             MAX(max_value) AS maxTs
           FROM information_schema.columnar_segments
           WHERE
-            column_name = CASE
-              WHEN table_name = "locations" THEN "ingested_at"
-              ELSE "ts"
-            END
+            column_name = "ts"
           GROUP BY database_name, table_name
         ) minmax
       WHERE
@@ -519,10 +516,9 @@ export const truncateTimeseriesTables = async (
       console.log(
         `removing rows from ${tableName} older than ${toISOStringNoTZ(ts)}`
       );
-      const tsColumn = tableName === "locations" ? "ingested_at" : "ts";
       await Exec(
         config,
-        `DELETE FROM ${tableName} WHERE ${tsColumn} <= ?`,
+        `DELETE FROM ${tableName} WHERE ts <= ?`,
         toISOStringNoTZ(ts)
       );
     })

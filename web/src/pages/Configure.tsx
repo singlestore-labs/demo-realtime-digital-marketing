@@ -1003,11 +1003,11 @@ const DemoModeSection = ({
         await Exec(
           config,
           `
-          INSERT INTO locations (city_id, subscriber_id, event_ts, ingested_at, lonlat, olc_8)
+          INSERT INTO locations (city_id, subscriber_id, ts, event_ts, lonlat, olc_8)
           VALUES (2643743, ${subId}, NOW(6), NOW(6), GEOGRAPHY_POINT(${lng}, ${lat}), '87G8Q23C+')
           ON DUPLICATE KEY UPDATE
+            ts = NOW(6),
             event_ts = NOW(6),
-            ingested_at = NOW(6),
             lonlat = GEOGRAPHY_POINT(${lng}, ${lat})
         `
         );
@@ -1022,7 +1022,7 @@ const DemoModeSection = ({
         SELECT city_id, subscriber_id, lonlat
         FROM locations
         WHERE subscriber_id BETWEEN 501 AND 515
-        AND ingested_at = (SELECT MAX(ingested_at) FROM locations l2 WHERE l2.subscriber_id = locations.subscriber_id)
+        AND ts = (SELECT MAX(ts) FROM locations l2 WHERE l2.subscriber_id = locations.subscriber_id)
         ON DUPLICATE KEY UPDATE current_location = VALUES(current_location)
       `
       );
@@ -1344,6 +1344,16 @@ export const Configure = () => {
     config,
     connected && initialized
   );
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[Configure] State:', {
+      connected,
+      initialized,
+      pipelinesCompleted,
+      tableCounts,
+    });
+  }, [connected, initialized, pipelinesCompleted, tableCounts]);
 
   const sectionDefinitions = [
     {
