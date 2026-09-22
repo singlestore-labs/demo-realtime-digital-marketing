@@ -1,6 +1,5 @@
 DELIMITER //
 
--- Legacy procedure for old data without event_ts field
 CREATE OR REPLACE PROCEDURE process_locations_legacy (
   _batch QUERY(
     subscriber_id BIGINT NOT NULL,
@@ -23,12 +22,12 @@ BEGIN
   FROM _expanded
   ON DUPLICATE KEY UPDATE current_location = VALUES(current_location);
 
-  INSERT INTO locations (city_id, subscriber_id, event_ts, ingested_at, lonlat, olc_8)
+  INSERT INTO locations (city_id, subscriber_id, ts, event_ts, lonlat, olc_8)
   SELECT
     city_id,
     subscriber_id,
+    now(6) AS ts,
     NULL AS event_ts,  -- No event timestamp available in old data
-    now(6) AS ingested_at,
     lonlat,
     encode_open_location_code(lonlat, 8) AS olc_8
   FROM _expanded;
@@ -57,12 +56,12 @@ BEGIN
   FROM _expanded
   ON DUPLICATE KEY UPDATE current_location = VALUES(current_location);
 
-  INSERT INTO locations (city_id, subscriber_id, event_ts, ingested_at, lonlat, olc_8)
+  INSERT INTO locations (city_id, subscriber_id, ts, event_ts, lonlat, olc_8)
   SELECT
     city_id,
     subscriber_id,
+    now(6) AS ts,
     FROM_UNIXTIME(event_ts / 1000000.0) AS event_ts,
-    now(6) AS ingested_at,
     lonlat,
     encode_open_location_code(lonlat, 8) AS olc_8
   FROM _expanded;
