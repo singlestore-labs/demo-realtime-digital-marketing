@@ -349,17 +349,24 @@ export const Dashboard = () => {
               </>
             )}
             {showNotifications && (
-              <Flex alignItems="center" gap={2}>
-                <Box
-                  width="12px"
-                  height="12px"
-                  borderRadius="50%"
-                  background="purple.400"
-                  border="1px solid"
-                  borderColor={dotBorderColor}
-                />
-                <Text>Ad notification sent</Text>
-              </Flex>
+              <>
+                <Text fontWeight="semibold" marginBottom="4px">Ad Notifications</Text>
+                <Flex alignItems="center" gap={2} marginBottom="2px">
+                  <Box
+                    width="12px"
+                    height="12px"
+                    flexShrink={0}
+                    borderRadius="50%"
+                    background="purple.400"
+                    border="1px solid"
+                    borderColor={dotBorderColor}
+                  />
+                  <Text>Ad notification sent</Text>
+                </Flex>
+                <Text fontSize="xs" color="gray.500" paddingLeft="20px">
+                  Pulses when a subscriber is matched to a campaign in real time
+                </Text>
+              </>
             )}
           </Box>
         )}
