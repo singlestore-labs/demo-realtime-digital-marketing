@@ -209,14 +209,14 @@ CREATE OR REPLACE FUNCTION dynamic_subscriber_segments_locations(
 ) RETURNS TABLE AS RETURN (
   SELECT
     city_id, subscriber_id, segment_id,
-    MAX(date_add_dynamic(ingested_at, segments.valid_interval)) AS expires_at
+    MAX(date_add_dynamic(ts, segments.valid_interval)) AS expires_at
   FROM segments, locations
   WHERE
     segments.filter_kind = "olc_8"
     AND segments.filter_value = locations.olc_8
-    AND ingested_at >= date_sub_dynamic(NOW(6), segments.valid_interval)
-    AND ingested_at >= _since
-    AND ingested_at < _until
+    AND ts >= date_sub_dynamic(NOW(6), segments.valid_interval)
+    AND ts >= _since
+    AND ts < _until
   GROUP BY city_id, subscriber_id, segment_id
 );
 
