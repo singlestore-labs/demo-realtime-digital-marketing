@@ -106,7 +106,14 @@ export const schemaObjects = async (
 
   return Object.fromEntries(
     [
-      TABLES.map(({ name }) => [name, name && tables.includes(name)]),
+      // TABLES array from schema.sql contains both tables and functions
+      // Check each item to see if it's a table or function
+      TABLES.map(({ name, statement }) => {
+        const stmtLower = statement.toLowerCase();
+        const isFunction = stmtLower.includes("create") && stmtLower.includes("function");
+        const list = isFunction ? functions : tables;
+        return [name, name && list.includes(name)];
+      }),
       PROCEDURES.map(({ name }) => [name, name && procedures.includes(name)]),
       FUNCTIONS.map(({ name }) => [name, name && functions.includes(name)]),
     ].flat()
