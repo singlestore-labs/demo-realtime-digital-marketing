@@ -53,11 +53,21 @@ export const useConnectionState = () => {
     connectionType = "manual";
   }
 
+  const initialized = !!connected.data && Object.values(schemaObjs.data || []).every(Boolean);
+
+  // Debug logging
+  if (connected.data && schemaObjs.data) {
+    const missing = Object.entries(schemaObjs.data || {}).filter(([_, exists]) => !exists);
+    if (missing.length > 0) {
+      console.log('[useConnectionState] Missing schema objects:', missing.map(([name]) => name));
+    }
+    console.log('[useConnectionState] initialized:', initialized, 'schemaObjs:', schemaObjs.data);
+  }
+
   return {
     connected: !!connected.data,
     isValidatingConnection: connected.isValidating,
-    initialized:
-      !!connected.data && Object.values(schemaObjs.data || []).every(Boolean),
+    initialized,
     reset: () => {
       connected.mutate();
       schemaObjs.mutate();
