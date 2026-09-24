@@ -542,31 +542,37 @@ export const AnalystChat: React.FC = () => {
                   {table.title}
                 </Text>
               )}
-              <TableContainer maxW="100%" overflowX="auto">
-                <Table size="sm" variant="simple">
-                  <Thead>
-                    <Tr>
-                      {columns.map((col, idx) => (
-                        <Th key={idx}>{col}</Th>
-                      ))}
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {rows.slice(0, maxRows).map((row, rowIdx) => (
-                      <Tr key={rowIdx}>
-                        {row.map((cell, cellIdx) => (
-                          <Td key={cellIdx}>{String(cell)}</Td>
+              {rows.length === 0 ? (
+                <Text fontSize="sm" color="gray.500" mt={1}>
+                  No results found.
+                </Text>
+              ) : (
+                <TableContainer maxW="100%" overflowX="auto">
+                  <Table size="sm" variant="simple">
+                    <Thead>
+                      <Tr>
+                        {columns.map((col, idx) => (
+                          <Th key={idx}>{col}</Th>
                         ))}
                       </Tr>
-                    ))}
-                  </Tbody>
-                </Table>
-                {rows.length > maxRows && (
-                  <Text fontSize="xs" color="gray.500" mt={2}>
-                    Showing {maxRows} of {rows.length} rows
-                  </Text>
-                )}
-              </TableContainer>
+                    </Thead>
+                    <Tbody>
+                      {rows.slice(0, maxRows).map((row, rowIdx) => (
+                        <Tr key={rowIdx}>
+                          {row.map((cell, cellIdx) => (
+                            <Td key={cellIdx}>{String(cell)}</Td>
+                          ))}
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                  {rows.length > maxRows && (
+                    <Text fontSize="xs" color="gray.500" mt={2}>
+                      Showing {maxRows} of {rows.length} rows
+                    </Text>
+                  )}
+                </TableContainer>
+              )}
             </Box>
           );
         })}
