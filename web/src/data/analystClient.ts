@@ -105,6 +105,12 @@ export function extractEntitiesFromText(text: string): {
         }
       }
 
+      if (endIdx === startIdx) {
+        // No closing brace found — truncated JSON; skip past the match to avoid infinite loop
+        str = str.substring(startIdx + match![0].length);
+        continue;
+      }
+
       try {
         results.push(JSON.parse(str.substring(startIdx, endIdx)));
       } catch (e) {

@@ -119,4 +119,13 @@ describe("extractEntitiesFromText", () => {
     expect(extractedTables).toHaveLength(0);
     expect(extractedCharts).toHaveLength(0);
   });
+
+  it("does not hang on truncated JSON with no closing brace", () => {
+    // Simulates a mid-stream cut-off — brace matching must not infinite-loop
+    const truncated = '{"type": "table", "title": "Incomplete';
+    const { extractedTables, cleanText } = extractEntitiesFromText(truncated);
+    expect(extractedTables).toHaveLength(0);
+    // Remaining text may be empty or trimmed — the key requirement is it returns
+    expect(typeof cleanText).toBe("string");
+  });
 });
