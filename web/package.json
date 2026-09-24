@@ -7,7 +7,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "prettier": "prettier --write 'src/**/*.{tsx,ts}'",
-    "lint": "eslint --ext .ts,.tsx src/"
+    "lint": "eslint --ext .ts,.tsx src/",
+    "test": "vitest run"
   },
   "dependencies": {
     "@chakra-ui/icons": "^1.1.1",
@@ -86,6 +87,7 @@
     "prettier": "^2.7.1",
     "typescript": "^4.4.4",
     "vite": "^2.9.13",
-    "vite-tsconfig-paths": "^3.3.17"
+    "vite-tsconfig-paths": "^3.3.17",
+    "vitest": "^0.34.6"
   }
 }

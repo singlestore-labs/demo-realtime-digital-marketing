@@ -69,6 +69,73 @@ export interface StreamCallback {
   onReasoning?: (reasoning: string) => void;
 }
 
+export function extractEntitiesFromText(text: string): {
+  cleanText: string;
+  extractedTables: AnalystTable[];
+  extractedCharts: AnalystChart[];
+} {
+  const extractedTables: AnalystTable[] = [];
+  const extractedCharts: AnalystChart[] = [];
+  let remainingText = text;
+
+  const extractObjects = (pattern: RegExp, remainingText: string) => {
+    const results: Array<Record<string, unknown>> = [];
+    let str = remainingText;
+    while (pattern.test(str)) {
+      const match = pattern.exec(str);
+      const startIdx = match ? match.index : -1;
+      if (startIdx === -1) break;
+
+      let braceCount = 0;
+      let endIdx = startIdx;
+      let inString = false;
+      let escapeNext = false;
+
+      for (let i = startIdx; i < str.length; i++) {
+        const char = str[i];
+        if (escapeNext) { escapeNext = false; continue; }
+        if (char === '\\') { escapeNext = true; continue; }
+        if (char === '"') { inString = !inString; continue; }
+        if (!inString) {
+          if (char === '{') braceCount++;
+          if (char === '}') {
+            braceCount--;
+            if (braceCount === 0) { endIdx = i + 1; break; }
+          }
+        }
+      }
+
+      if (endIdx === startIdx) {
+        // No closing brace found — truncated JSON; skip past the match to avoid infinite loop
+        str = str.substring(startIdx + match![0].length);
+        continue;
+      }
+
+      try {
+        results.push(JSON.parse(str.substring(startIdx, endIdx)));
+      } catch (e) {
+        console.warn("[Analyst] Failed to parse entity JSON:", e);
+      }
+      str = str.substring(0, startIdx) + str.substring(endIdx);
+    }
+    return { results, cleanStr: str };
+  };
+
+  const tableResult = extractObjects(/\{"type":\s*"table"/, remainingText);
+  for (const obj of tableResult.results) {
+    if (obj.type === "table") extractedTables.push(obj as unknown as AnalystTable);
+  }
+  remainingText = tableResult.cleanStr;
+
+  const chartResult = extractObjects(/\{"type":\s*"chart"/, remainingText);
+  for (const obj of chartResult.results) {
+    if (obj.type === "chart") extractedCharts.push(obj as unknown as AnalystChart);
+  }
+  remainingText = chartResult.cleanStr;
+
+  return { cleanText: remainingText.trim(), extractedTables, extractedCharts };
+}
+
 /**
  * Query the Aura Analyst API with streaming
  * @param request The query request
@@ -186,6 +253,19 @@ export async function queryAnalyst(
               callbacks.onFollowUpQueries(parsed.follow_up_queries);
             }
           }
+
+          // Handle table/chart objects sent as top-level SSE JSON events
+          if (parsed.type === "table") {
+            tables.push(parsed as AnalystTable);
+            if (callbacks?.onTable) {
+              callbacks.onTable(parsed as AnalystTable);
+            }
+          } else if (parsed.type === "chart") {
+            charts.push(parsed as AnalystChart);
+            if (callbacks?.onChart) {
+              callbacks.onChart(parsed as AnalystChart);
+            }
+          }
         } catch (e) {
           // Try to parse as table or chart JSON (not wrapped in SSE format)
           try {
@@ -210,129 +290,6 @@ export async function queryAnalyst(
       }
     }
   }
-
-  // Extract table and chart JSON objects from the accumulated text
-  const extractEntitiesFromText = (text: string): {
-    cleanText: string;
-    extractedTables: AnalystTable[];
-    extractedCharts: AnalystChart[];
-  } => {
-    const extractedTables: AnalystTable[] = [];
-    const extractedCharts: AnalystChart[] = [];
-    let remainingText = text;
-
-    // Find table JSON objects by looking for {"type": "table" pattern
-    while (remainingText.includes('{"type": "table"')) {
-      const startIdx = remainingText.indexOf('{"type": "table"');
-      if (startIdx === -1) break;
-
-      // Find the matching closing brace by tracking nesting
-      let braceCount = 0;
-      let endIdx = startIdx;
-      let inString = false;
-      let escapeNext = false;
-
-      for (let i = startIdx; i < remainingText.length; i++) {
-        const char = remainingText[i];
-
-        if (escapeNext) {
-          escapeNext = false;
-          continue;
-        }
-
-        if (char === '\\') {
-          escapeNext = true;
-          continue;
-        }
-
-        if (char === '"') {
-          inString = !inString;
-          continue;
-        }
-
-        if (!inString) {
-          if (char === '{') braceCount++;
-          if (char === '}') {
-            braceCount--;
-            if (braceCount === 0) {
-              endIdx = i + 1;
-              break;
-            }
-          }
-        }
-      }
-
-      const jsonStr = remainingText.substring(startIdx, endIdx);
-      try {
-        const tableObj = JSON.parse(jsonStr);
-        if (tableObj.type === "table") {
-          extractedTables.push(tableObj);
-        }
-      } catch (e) {
-        console.warn("[Analyst] Failed to parse table JSON:", e);
-      }
-
-      // Remove this JSON object from the text
-      remainingText = remainingText.substring(0, startIdx) + remainingText.substring(endIdx);
-    }
-
-    // Find chart JSON objects by looking for {"type": "chart" pattern
-    while (remainingText.includes('{"type": "chart"')) {
-      const startIdx = remainingText.indexOf('{"type": "chart"');
-      if (startIdx === -1) break;
-
-      // Find the matching closing brace by tracking nesting
-      let braceCount = 0;
-      let endIdx = startIdx;
-      let inString = false;
-      let escapeNext = false;
-
-      for (let i = startIdx; i < remainingText.length; i++) {
-        const char = remainingText[i];
-
-        if (escapeNext) {
-          escapeNext = false;
-          continue;
-        }
-
-        if (char === '\\') {
-          escapeNext = true;
-          continue;
-        }
-
-        if (char === '"') {
-          inString = !inString;
-          continue;
-        }
-
-        if (!inString) {
-          if (char === '{') braceCount++;
-          if (char === '}') {
-            braceCount--;
-            if (braceCount === 0) {
-              endIdx = i + 1;
-              break;
-            }
-          }
-        }
-      }
-
-      const jsonStr = remainingText.substring(startIdx, endIdx);
-      try {
-        const chartObj = JSON.parse(jsonStr);
-        if (chartObj.type === "chart") {
-          extractedCharts.push(chartObj);
-        }
-      } catch (e) {
-        console.warn("[Analyst] Failed to parse chart JSON:", e);
-      }
-
-      // Remove this JSON object from the text
-      remainingText = remainingText.substring(0, startIdx) + remainingText.substring(endIdx);
-    }
-
-    return { cleanText: remainingText.trim(), extractedTables, extractedCharts };
-  };
 
   const { cleanText, extractedTables, extractedCharts } = extractEntitiesFromText(accumulatedText);
   const allTables = [...tables, ...extractedTables];
